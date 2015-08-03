@@ -76,8 +76,12 @@ WSGI_APPLICATION = 'projectbloom.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'projectbloom_webserver',
+        'USER': 'archer',
+        'PASSWORD': 'bloombloom',
+        'HOST': 'projectbloominstance.cw8csh5banng.ap-southeast-1.rds.amazonaws.com',   # Or an IP Address that your DB is hosted on
+        'PORT': '3306',
     }
 }
 
