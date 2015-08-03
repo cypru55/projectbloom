@@ -1,6 +1,12 @@
+'''
+    File name: urls.py
+    Author: Liu Tuo
+    Date created: 2015-08-03
+    Date last modified: 2015-08-03
+    Python Version: 2.7.6
+'''
 
 from django.conf.urls import url
-
 from . import views
 
 urlpatterns = [
