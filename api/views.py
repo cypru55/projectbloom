@@ -6,6 +6,10 @@
     Python Version: 2.7.6
 '''
 
+# public apis for querying formated and analysed data from database
+# used by web interface
+# querying data from database, and format it into json and send the response
+
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import JsonResponse

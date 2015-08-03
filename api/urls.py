@@ -6,6 +6,8 @@
     Python Version: 2.7.6
 '''
 
+# define the urls for apis and the view function mapped to each url
+
 from django.conf.urls import url
 from . import views
 
