@@ -17,6 +17,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 
 urlpatterns = [
+	url(r'^$', views.index, name='home_page'),
 	url(r'^api/', include('api.urls')),
     url(r'^admin/', include(admin.site.urls)),
 
