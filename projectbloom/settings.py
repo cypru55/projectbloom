@@ -83,6 +83,14 @@ DATABASES = {
         'HOST': 'projectbloominstance.cw8csh5banng.ap-southeast-1.rds.amazonaws.com',   # Or an IP Address that your DB is hosted on
         'PORT': '3306',
     }
+    'projectbloom_data': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'projectbloom',
+        'USER': 'archer',
+        'PASSWORD': 'bloombloom',
+        'HOST': 'projectbloominstance.cw8csh5banng.ap-southeast-1.rds.amazonaws.com',   # Or an IP Address that your DB is hosted on
+        'PORT': '3306',
+    }
 }
 
 
