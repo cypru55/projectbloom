@@ -49,9 +49,11 @@ def sales_pivot_table(request):
     cursor.close()
 
     row_in_json = json.dumps(row, default=defaultencode)
+
+
     print row_in_json	
 	# print '[%s]' % ', '.join(map(str, row))
-    return HttpResponse("sales api url, TODO.")
+    return HttpResponse(row_in_json, content_type="application/json")
 
 # helper class for serializing float
 class float_value(float):
