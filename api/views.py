@@ -23,7 +23,7 @@ def index(request):
 # sales pivot table data
 def sales_pivot_table(request):
 
-	sale_records = Sale.objects.using("projectbloom").raw("""select 
+	sale_records = Sale.objects.using("projectbloom_data").raw("""select 
 	   * from sales""")
 
 	print sale_records
