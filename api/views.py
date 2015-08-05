@@ -40,7 +40,7 @@ def sales_pivot_table(request):
 	    from projectbloom.sale as t)
 	as t2
 	group by Area, StockpointName, Products""")
-
+    desc = cursor.description
     row = [
         dict(zip([col[0] for col in desc], row))
 
