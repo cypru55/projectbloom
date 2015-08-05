@@ -14,6 +14,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.db import connections
+from decimal import Decimal
+import json
 
 # root url for api, testing purpose.
 def index(request):
@@ -45,6 +47,22 @@ def sales_pivot_table(request):
         for row in cursor.fetchall()
     ]
     cursor.close()
-    print row	
+
+    row_in_json = json.dumps(row, default=defaultencode)
+    print row_in_json	
 	# print '[%s]' % ', '.join(map(str, row))
     return HttpResponse("sales api url, TODO.")
+
+# helper class for serializing float
+class float_value(float):
+    def __init__(self, value):
+        self._value = value
+    def __repr__(self):
+        return str(self._value)
+
+# encoding function for dump
+def defaultencode(o):
+    if isinstance(o, Decimal):
+        # Subclass float with custom repr?
+        return float_value(o)
+    raise TypeError(repr(o) + " is not JSON serializable")
