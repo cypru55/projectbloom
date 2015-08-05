@@ -4,7 +4,7 @@ from django.db import models
 class Sale(models.Model):
     date = models.DateField()
     stockpoint_id = models.IntegerField()
-	selfstockpoint_name = models.CharField(max_length = 25)
+    self_stockpoint_name = models.CharField(max_length = 25)
 	uplifter_id = models.IntegerField()
 	uplifter_name = models.CharField(max_length = 25)
 	work_profile = models.CharField(max_length = 25)
