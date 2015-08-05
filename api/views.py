@@ -48,10 +48,9 @@ def sales_pivot_table(request):
     ]
     cursor.close()
 
-    json_str = json.dumps(row, default=defaultencode)
+    pivot_table = json.dump(row, default=defaultencode)
     column_name = ["week1", "week2","week3","week4"]
 
-    pivot_table = json.loads(json_str)
     pivot_table = clean_null_colunm(column_name, pivot_table)
 
 
