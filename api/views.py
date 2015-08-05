@@ -13,7 +13,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import JsonResponse
-from django.db import connection
+from django.db import connections
 
 # root url for api, testing purpose.
 def index(request):
