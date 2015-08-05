@@ -14,7 +14,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.db import connections
-from . import models
+from api.models import Sale
 
 # root url for api, testing purpose.
 def index(request):
@@ -23,7 +23,7 @@ def index(request):
 # sales pivot table data
 def sales_pivot_table(request):
 
-	raw = Sale.objects.using("projectbloom").execute("""select 
+	sale_records = Sale.objects.using("projectbloom").raw("""select 
 	    Area, StockpointName, Products,
 	    sum(week1) as week1,
 	    sum(week2) as week2,
@@ -40,5 +40,5 @@ def sales_pivot_table(request):
 	as t2
 	group by Area, StockpointName, Products""")
 
-	print raw
+	print sale_records
 	return HttpResponse("sales api url, TODO.")
