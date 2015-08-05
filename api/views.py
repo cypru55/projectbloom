@@ -24,21 +24,21 @@ def index(request):
 def sales_pivot_table(request):
 
 	sale_records = Sale.objects.using("projectbloom").raw("""select 
-	    area, stockpoint_name, products,
+	    Area, StockpointName, Products,
 	    sum(week1) as week1,
 	    sum(week2) as week2,
 	    sum(week3) as week3,
 	    sum(week4) as week4
 	from (
 	    select 
-	    area ,stockpoint_name, products,
-	    case when date between '2015-6-29' and '2015-7-5' then sold end as week1,
-	    case when date between '2015-7-6' and '2015-7-12' then sold end as week2,
-	    case when date between '2015-7-13' and '2015-7-19' then sold end as week3,
-	    case when date between '2015-7-20' and '2015-7-26' then sold end as week4
-	    from sale as t)
+	    Area ,StockpointName, Products,
+	    case when Date between '2015-6-29' and '2015-7-5' then Sold end as week1,
+	    case when Date between '2015-7-6' and '2015-7-12' then Sold end as week2,
+	    case when Date between '2015-7-13' and '2015-7-19' then Sold end as week3,
+	    case when Date between '2015-7-20' and '2015-7-26' then Sold end as week4
+	    from projectbloom.sale as t)
 	as t2
-	group by area, stockpoint_name, products""")
+	group by Area, StockpointName, Products""")
 
 	print sale_records
 	return HttpResponse("sales api url, TODO.")
