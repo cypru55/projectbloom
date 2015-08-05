@@ -48,14 +48,15 @@ def sales_pivot_table(request):
     ]
     cursor.close()
 
-    pivot_table_json = json.dumps(row, default=defaultencode)
+    json_str = json.dumps(row, default=defaultencode)
     column_name = ["week1", "week2","week3","week4"]
-    pivot_table_json = clean_null_colunm(column_name, pivot_table_json)
 
-    print pivot_table_json
+    pivot_table = json.load(json_str)
+    pivot_table = clean_null_colunm(column_name, pivot_table)
+
 
 	# print '[%s]' % ', '.join(map(str, row))
-    return HttpResponse(pivot_table_json, content_type="application/json")
+    return HttpResponse(pivot_table, content_type="application/json")
 
 # helper class for serializing float
 class float_value(float):
