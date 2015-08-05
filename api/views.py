@@ -48,12 +48,14 @@ def sales_pivot_table(request):
     ]
     cursor.close()
 
-    row_in_json = json.dumps(row, default=defaultencode)
+    pivot_table_json = json.dumps(row, default=defaultencode)
+    column_name = ["week1", "week2","week3","week4"]
+    pivot_table_json = clean_null_colunm(column_name, pivot_table_json)
 
+    print pivot_table_json
 
-    print row_in_json	
 	# print '[%s]' % ', '.join(map(str, row))
-    return HttpResponse(row_in_json, content_type="application/json")
+    return HttpResponse(pivot_table_json, content_type="application/json")
 
 # helper class for serializing float
 class float_value(float):
@@ -68,3 +70,16 @@ def defaultencode(o):
         # Subclass float with custom repr?
         return float_value(o)
     raise TypeError(repr(o) + " is not JSON serializable")
+
+# hepler function to check if all value is null
+def is_all_null(json_object, column_name):
+    for col in column_name:
+    	if json_object[col] is not None:
+    		return false
+    return true
+
+# remove rows with all null in given column
+def clean_null_colunm(column_name, pivot_table_json):
+    for i in xrange(len(pivot_table_json)):
+    	if is_all_null(pivot_table_json[i], column_name):
+            pivot_table_json.pop(i)
