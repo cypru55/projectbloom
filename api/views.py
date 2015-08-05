@@ -23,39 +23,45 @@ def index(request):
 
 # sales pivot table data
 def sales_pivot_table(request):
-    cursor = connections['projectbloom_data'].cursor()
-    cursor.execute("""select 
-	    Area, StockpointName, Products,
-	    sum(week1) as week1,
-	    sum(week2) as week2,
-	    sum(week3) as week3,
-	    sum(week4) as week4
-	from (
-	    select 
-	    Area ,StockpointName, Products,
-	    case when Date between '2015-6-29' and '2015-7-5' then Sold end as week1,
-	    case when Date between '2015-7-6' and '2015-7-12' then Sold end as week2,
-	    case when Date between '2015-7-13' and '2015-7-19' then Sold end as week3,
-	    case when Date between '2015-7-20' and '2015-7-26' then Sold end as week4
-	    from projectbloom.sale as t)
-	as t2
-	group by Area, StockpointName, Products""")
-    desc = cursor.description
-    row = [
-        dict(zip([col[0] for col in desc], row))
+	if request.method == 'GET':
+	    # read the start date and end date
+	    # start date must be monday
+	    # no parameter, then use today as end date and display previous 4 weeks
+	    # TODO
 
-        for row in cursor.fetchall()
-    ]
-    cursor.close()
+	    cursor = connections['projectbloom_data'].cursor()
+	    cursor.execute("""select 
+		    Area, StockpointName, Products,
+		    sum(week1) as week1,
+		    sum(week2) as week2,
+		    sum(week3) as week3,
+		    sum(week4) as week4
+		from (
+		    select 
+		    Area ,StockpointName, Products,
+		    case when Date between '2015-6-29' and '2015-7-5' then Sold end as week1,
+		    case when Date between '2015-7-6' and '2015-7-12' then Sold end as week2,
+		    case when Date between '2015-7-13' and '2015-7-19' then Sold end as week3,
+		    case when Date between '2015-7-20' and '2015-7-26' then Sold end as week4
+		    from projectbloom.sale as t)
+		as t2
+		group by Area, StockpointName, Products""")
+	    desc = cursor.description
+	    row = [
+	        dict(zip([col[0] for col in desc], row))
 
-    column_name = ["week1", "week2","week3","week4"]
+	        for row in cursor.fetchall()
+	    ]
+	    cursor.close()
 
-    # clean up rows with all null
-    row = clean_null_colunm(column_name,row)
+	    column_name = ["week1", "week2","week3","week4"]
 
-    json_str = json.dumps(row, default=defaultencode)
-    
-    return HttpResponse(json_str, content_type="application/json")
+	    # clean up rows with all null
+	    row = clean_null_colunm(column_name,row)
+
+	    json_str = json.dumps(row, default=defaultencode)
+	    
+	    return HttpResponse(json_str, content_type="application/json")
 
 # helper class for serializing float
 class float_value(float):
