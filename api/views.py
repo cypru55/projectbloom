@@ -21,8 +21,8 @@ def index(request):
 
 # sales pivot table data
 def sales_pivot_table(request):
-	cursor = connections['projectbloom_data'].cursor()
-	cursor.execute("""select 
+    cursor = connections['projectbloom_data'].cursor()
+    cursor.execute("""select 
 	    Area, StockpointName, Products,
 	    sum(week1) as week1,
 	    sum(week2) as week2,
@@ -39,11 +39,12 @@ def sales_pivot_table(request):
 	as t2
 	group by Area, StockpointName, Products""")
 
-	row = [
+    row = [
         dict(zip([col[0] for col in desc], row))
+
         for row in cursor.fetchall()
     ]
     cursor.close()
     print row	
 	# print '[%s]' % ', '.join(map(str, row))
-	return HttpResponse("sales api url, TODO.")
+    return HttpResponse("sales api url, TODO.")
