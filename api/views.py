@@ -51,7 +51,7 @@ def sales_pivot_table(request):
     json_str = json.dumps(row, default=defaultencode)
     column_name = ["week1", "week2","week3","week4"]
 
-    pivot_table = json.load(json_str)
+    pivot_table = json.loads(json_str)
     pivot_table = clean_null_colunm(column_name, pivot_table)
 
 
@@ -76,8 +76,8 @@ def defaultencode(o):
 def is_all_null(json_object, column_name):
     for col in column_name:
     	if json_object[col] is not None:
-    		return false
-    return true
+    		return False
+    return True
 
 # remove rows with all null in given column
 def clean_null_colunm(column_name, pivot_table_json):
