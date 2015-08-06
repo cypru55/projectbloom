@@ -45,10 +45,10 @@ def sales_pivot_table(request):
             start_date = end_date - datetime.timedelta(weeks=4) + datetime.timedelta(days=1)
             periods = period_generator(start_date, end_date, date_format)
 
+        # generate query using periods
         (query, column_name) = generate_sale_pivot_table_query(periods)
-
-        print query
-
+        
+        # execute the query
         cursor = connections['projectbloom_data'].cursor()
         cursor.execute(query)
         desc = cursor.description
