@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-08-05
+    Date last modified: 2015-08-06
     Python Version: 2.7.6
 '''
 
@@ -12,10 +12,10 @@
 
 from django.shortcuts import render
 from django.http import HttpResponse
-from django.http import JsonResponse
 from django.db import connections
 from decimal import Decimal
 import json
+import datetime
 
 # root url for api, testing purpose.
 def index(request):
@@ -23,45 +23,48 @@ def index(request):
 
 # sales pivot table data
 def sales_pivot_table(request):
-	if request.method == 'GET':
-	    # read the start date and end date
-	    # start date must be monday
-	    # no parameter, then use today as end date and display previous 4 weeks
-	    # TODO
+    if request.method == 'GET':
+        # read the start date and end date
+        # start date must be monday
+        # no parameter, then use today as end date and display previous 4 weeks
 
-	    cursor = connections['projectbloom_data'].cursor()
-	    cursor.execute("""select 
-		    Area, StockpointName, Products,
-		    sum(week1) as week1,
-		    sum(week2) as week2,
-		    sum(week3) as week3,
-		    sum(week4) as week4
-		from (
-		    select 
-		    Area ,StockpointName, Products,
-		    case when Date between '2015-6-29' and '2015-7-5' then Sold end as week1,
-		    case when Date between '2015-7-6' and '2015-7-12' then Sold end as week2,
-		    case when Date between '2015-7-13' and '2015-7-19' then Sold end as week3,
-		    case when Date between '2015-7-20' and '2015-7-26' then Sold end as week4
-		    from projectbloom.sale as t)
-		as t2
-		group by Area, StockpointName, Products""")
-	    desc = cursor.description
-	    row = [
-	        dict(zip([col[0] for col in desc], row))
+        date_format = "%Y-%m-%d"
 
-	        for row in cursor.fetchall()
-	    ]
-	    cursor.close()
+        if 'sd' in request.GET and 'ed' in request.GET:
+            start_date = datetime.datetime.strptime(request.GET['sd'], date_format)
+            end_date = datetime.datetime.strptime(request.GET['ed'], date_format)
+            periods = period_generator(start_date, end_date, date_format)
+        elif 'sd' not in request.GET and 'ed' in request.GET:
+            end_date = datetime.datetime.strptime(request.GET['ed'], date_format)
+            start_date = end_date - datetime.timedelta(weeks=4) + datetime.timedelta(days=1)
+            periods = period_generator(start_date, end_date, date_format)
+        else:
+            today = datetime.datetime.now()
+            days_left_for_this_week = 6 - datetime.datetime.today().weekday()
+            end_date = today + datetime.timedelta(days=days_left_for_this_week)
+            start_date = end_date - datetime.timedelta(weeks=4) + datetime.timedelta(days=1)
+            periods = period_generator(start_date, end_date, date_format)
 
-	    column_name = ["week1", "week2","week3","week4"]
+        (query, column_name) = generate_sale_pivot_table_query(periods)
 
-	    # clean up rows with all null
-	    row = clean_null_colunm(column_name,row)
+        print query
 
-	    json_str = json.dumps(row, default=defaultencode)
-	    
-	    return HttpResponse(json_str, content_type="application/json")
+        cursor = connections['projectbloom_data'].cursor()
+        cursor.execute(query)
+        desc = cursor.description
+        row = [
+                dict(zip([col[0] for col in desc], row))
+
+                for row in cursor.fetchall()
+                ]
+        cursor.close()
+
+        # clean up rows with all null
+        row = clean_null_colunm(column_name,row)
+
+        json_str = json.dumps(row, default=defaultencode)
+
+        return HttpResponse(json_str, content_type="application/json")
 
 # helper class for serializing float
 class float_value(float):
@@ -77,17 +80,69 @@ def defaultencode(o):
         return float_value(o)
     raise TypeError(repr(o) + " is not JSON serializable")
 
-# hepler function to check if all value is null
+# hepler function to check if all value is null, if not change null to 0
 def is_all_null(json_object, column_name):
     for col in column_name:
-    	if json_object[col] is not None:
-    		return False
-    return True
+        if json_object[col] is not None:
+            return False
+        else:
+            json_object[col] = 0
+    return (True,json_object)
 
 # remove rows with all null in given column
 def clean_null_colunm(column_name, pivot_table_json):
     new_array = []
     for i in xrange(len(pivot_table_json)):
-    	if not is_all_null(pivot_table_json[i], column_name):
-            new_array.append(pivot_table_json[i])
+        (is_null, cleaned_obj) = is_all_null(pivot_table_json[i])
+        if not is_null:
+            new_array.append(cleaned_obj)
     return new_array
+
+# helper function for getting the week period from given start date and end date
+def period_generator(start_date, end_date, date_format):
+    periods = []
+    current_start_date = start_date
+    one_week = datetime.timedelta(weeks=1)
+    one_day = datetime.timedelta(days=1)
+
+    while current_start_date < end_date:
+        period = {}
+        period['start_date'] = current_start_date.strftime(date_format)
+        if current_start_date + one_week - one_day <= end_date:
+            period['end_date'] = (current_start_date + one_week - one_day).strftime(date_format)
+        else:
+            period['end_date'] = end_date.strftime(date_format)
+            current_start_date = current_start_date + one_week
+            periods.append(period)
+
+    return periods
+
+# helper function for generating query for sales pivot table
+def generate_sale_pivot_table_query(periods):
+    query_part_1 = ""
+    query_part_2 = ""
+    col_name = []
+    # use start date as the column name
+    for period in periods:
+        col_name.append(period['start_date'])
+        query_part_1 += "sum(`%s`) as `%s`,\n" % (period['start_date'], period['start_date'])
+        query_part_2 += "case when Date between '%s' and '%s' then Sold end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
+        # remove the last colon
+        query_part_1 = query_part_1[:-2]
+        query_part_1 += "\n"
+        query_part_2 = query_part_2[:-2]
+        query_part_2 += "\n"
+
+    # build complete query
+    query = """select
+    Area, StockpointName, Products,\n"""
+    query += query_part_1
+    query += """from (
+    select
+    Area ,StockpointName, Products,\n"""
+    query += query_part_2
+    query += """from projectbloom.sale as t)
+    as t2
+    group by Area, StockpointName, Products\n"""
+
+    return (query, col_name)
