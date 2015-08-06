@@ -85,17 +85,14 @@ def is_all_null(json_object, column_name):
     for col in column_name:
         if json_object[col] is not None:
             return False
-        else:
-            json_object[col] = 0
-    return (True,json_object)
+    return True
 
 # remove rows with all null in given column
 def clean_null_colunm(column_name, pivot_table_json):
     new_array = []
     for i in xrange(len(pivot_table_json)):
-        (is_null, cleaned_obj) = is_all_null(pivot_table_json[i])
-        if not is_null:
-            new_array.append(cleaned_obj)
+        if not is_all_null(pivot_table_json[i]):
+            new_array.append(pivot_table_json[i])
     return new_array
 
 # helper function for getting the week period from given start date and end date
