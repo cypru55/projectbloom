@@ -53,5 +53,3 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
-# special setting file for testing purpose
-projectbloom/settings.py 
