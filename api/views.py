@@ -29,7 +29,6 @@ def sales_pivot_table(request):
         # no parameter, then use today as end date and display previous 4 weeks
 
         date_format = "%Y-%m-%d"
-
         if 'sd' in request.GET and 'ed' in request.GET:
             start_date = datetime.datetime.strptime(request.GET['sd'], date_format)
             end_date = datetime.datetime.strptime(request.GET['ed'], date_format)
@@ -47,7 +46,7 @@ def sales_pivot_table(request):
 
         # generate query using periods
         (query, column_name) = generate_sale_pivot_table_query(periods)
-        
+
         # execute the query
         cursor = connections['projectbloom_data'].cursor()
         cursor.execute(query)
@@ -87,11 +86,14 @@ def is_all_null(json_object, column_name):
             return False
     return True
 
-# remove rows with all null in given column
+# remove rows with all null in given column, change null to 0
 def clean_null_colunm(column_name, pivot_table_json):
     new_array = []
     for i in xrange(len(pivot_table_json)):
-        if not is_all_null(pivot_table_json[i]):
+        if not is_all_null(pivot_table_json[i], column_name):
+            for key in pivot_table_json[i]:
+                if pivot_table_json[i][key] is None:
+                    pivot_table_json[i][key] = 0 
             new_array.append(pivot_table_json[i])
     return new_array
 
@@ -109,9 +111,9 @@ def period_generator(start_date, end_date, date_format):
             period['end_date'] = (current_start_date + one_week - one_day).strftime(date_format)
         else:
             period['end_date'] = end_date.strftime(date_format)
-            current_start_date = current_start_date + one_week
-            periods.append(period)
-
+            
+        periods.append(period)
+        current_start_date = current_start_date + one_week
     return periods
 
 # helper function for generating query for sales pivot table
@@ -124,11 +126,11 @@ def generate_sale_pivot_table_query(periods):
         col_name.append(period['start_date'])
         query_part_1 += "sum(`%s`) as `%s`,\n" % (period['start_date'], period['start_date'])
         query_part_2 += "case when Date between '%s' and '%s' then Sold end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
-        # remove the last colon
-        query_part_1 = query_part_1[:-2]
-        query_part_1 += "\n"
-        query_part_2 = query_part_2[:-2]
-        query_part_2 += "\n"
+    # remove the last colon
+    query_part_1 = query_part_1[:-2]
+    query_part_1 += "\n"
+    query_part_2 = query_part_2[:-2]
+    query_part_2 += "\n"
 
     # build complete query
     query = """select
