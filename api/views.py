@@ -12,16 +12,19 @@
 
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
 from django.db import connections
 from decimal import Decimal
 import json
 import datetime
 
 # root url for api, testing purpose.
+@login_required(login_url='/login/')
 def index(request):
     return HttpResponse("Hello, world. You're at the api index.")
 
 # sales pivot table data
+@login_required(login_url='/login/')
 def sales_pivot_table(request):
     if request.method == 'GET':
         # read the start date and end date
