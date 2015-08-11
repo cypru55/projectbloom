@@ -25,6 +25,9 @@ class Sale(models.Model):
     ul_days = models.DecimalField(max_digits=10, decimal_places=5)
     sp_days = models.DecimalField(max_digits=10, decimal_places=5)
     temp = models.IntegerField()
+    class Meta:
+       managed = False
+       db_table = 'sale'
 
     def __str__(self):              # __unicode__ on Python 2
         return self.name

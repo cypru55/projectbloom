@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-08-06
+    Date last modified: 2015-08-11
     Python Version: 2.7.6
 '''
 
@@ -22,6 +22,12 @@ import datetime
 @login_required(login_url='/login/')
 def index(request):
     return HttpResponse("Hello, world. You're at the api index.")
+
+# retriving sale table
+@login_required(login_url='/login/')
+def sale_list(request):
+    return HttpResponse("sale api")
+
 
 # sales pivot table data
 @login_required(login_url='/login/')
@@ -148,3 +154,12 @@ def generate_sale_pivot_table_query(periods):
     group by Area, StockpointName, Products\n"""
 
     return (query, col_name)
+
+class JSONResponse(HttpResponse):
+    """
+    An HttpResponse that renders its content into JSON.
+    """
+    def __init__(self, data, **kwargs):
+        content = JSONRenderer().render(data)
+        kwargs['content_type'] = 'application/json'
+        super(JSONResponse, self).__init__(content, **kwargs)
