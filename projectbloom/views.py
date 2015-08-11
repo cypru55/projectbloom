@@ -14,7 +14,7 @@ from django.contrib.auth import authenticate, login, logout
 # home page
 @login_required(login_url='/login/')
 def index(request):
-    return HttpResponse("It works, you are at home page")
+    return render_to_response('projectbloom/website-base.html', context_instance=RequestContext(request))
 
 def login_user(request):
     logout(request)
