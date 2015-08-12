@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-08-11
+    Date last modified: 2015-08-12
     Python Version: 2.7.6
 '''
 
@@ -15,6 +15,11 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.db import connections
 from decimal import Decimal
+from rest_framework import viewsets
+from rest_framework.renderers import JSONRenderer
+from rest_framework.parsers import JSONParser
+from api.serializers import SaleSerializer
+from api.models import Sale
 import json
 import datetime
 
@@ -24,10 +29,19 @@ def index(request):
     return HttpResponse("Hello, world. You're at the api index.")
 
 # retriving sale table
-@login_required(login_url='/login/')
 def sale_list(request):
-    return HttpResponse("sale api")
+    sales = Sale.objects.using('projectbloom_data').all()
+    serializer = SaleSerializer(sales, many=True)
+    return JSONResponse(serializer.data)
 
+# ViewSets define the view behavior.
+class SaleViewSet(viewsets.ModelViewSet):
+    queryset = Sale.objects.using('projectbloom_data').all()
+    serializer_class = SaleSerializer
+    paginate_by = 10
+    paginate_by_param = 'page_size'
+    # Set MAX results per page
+    max_paginate_by = 100
 
 # sales pivot table data
 @login_required(login_url='/login/')
@@ -134,7 +148,7 @@ def generate_sale_pivot_table_query(periods):
     for period in periods:
         col_name.append(period['start_date'])
         query_part_1 += "sum(`%s`) as `%s`,\n" % (period['start_date'], period['start_date'])
-        query_part_2 += "case when Date between '%s' and '%s' then Sold end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
+        query_part_2 += "case when date between '%s' and '%s' then sold end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
     # remove the last colon
     query_part_1 = query_part_1[:-2]
     query_part_1 += "\n"
@@ -143,15 +157,15 @@ def generate_sale_pivot_table_query(periods):
 
     # build complete query
     query = """select
-    Area, StockpointName, Products,\n"""
+    area, stockpoint_name, product,\n"""
     query += query_part_1
     query += """from (
     select
-    Area ,StockpointName, Products,\n"""
+    area ,stockpoint_name, product,\n"""
     query += query_part_2
     query += """from projectbloom.sale as t)
     as t2
-    group by Area, StockpointName, Products\n"""
+    group by area, stockpoint_name, product\n"""
 
     return (query, col_name)
 
@@ -163,3 +177,4 @@ class JSONResponse(HttpResponse):
         content = JSONRenderer().render(data)
         kwargs['content_type'] = 'application/json'
         super(JSONResponse, self).__init__(content, **kwargs)
+

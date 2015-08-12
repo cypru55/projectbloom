@@ -2,13 +2,14 @@ from django.db import models
 
 # Create your models here.
 class Sale(models.Model):
+    id = models.AutoField(primary_key=True)
     date = models.DateField()
     stockpoint_id = models.IntegerField()
-    self_stockpoint_name = models.CharField(max_length = 25)
+    stockpoint_name = models.CharField(max_length = 50)
     uplifter_id = models.IntegerField()
     uplifter_name = models.CharField(max_length = 25)
     work_profile = models.CharField(max_length = 25)
-    products = models.CharField(max_length = 100)
+    product = models.CharField(max_length = 100)
     issued = models.DecimalField(max_digits=65, decimal_places=5)
     returned = models.DecimalField(max_digits=65, decimal_places=5)
     sold = models.DecimalField(max_digits=65, decimal_places=5)
@@ -28,6 +29,42 @@ class Sale(models.Model):
     class Meta:
        managed = False
        db_table = 'sale'
+
+    def __str__(self):              # __unicode__ on Python 2
+        return self.name
+
+class Delivery(models.Model):
+    id = models.AutoField(primary_key=True)
+    stockpoint_id = models.IntegerField()
+    stockpoint_name = models.CharField(max_length = 50)
+    area = models.CharField(max_length = 25)
+    product = models.CharField(max_length = 100)
+    qty = models.IntegerField()
+    peso = models.DecimalField(max_digits=65, decimal_places=2)
+    fiscal_year = models.IntegerField()
+    period = models.IntegerField()
+    week = models.IntegerField()
+    date = models.DateField()
+    gsv = models.IntegerField()
+    to_distributors = models.DecimalField(max_digits=65, decimal_places=5)
+    servings = models.IntegerField()
+    rsv = models.IntegerField()
+    inner_bags_per_case = models.IntegerField()
+    class Meta:
+       managed = False
+       db_table = 'delivery'
+
+    def __str__(self):              # __unicode__ on Python 2
+        return self.name
+
+class ProductMargin(models.Model):
+    product = models.CharField(max_length = 100)
+    uplifter_margin = models.DecimalField(max_digits=65, decimal_places=2)
+    wholesale_margin = models.DecimalField(max_digits=65, decimal_places=2)
+    sts_margin = models.DecimalField(max_digits=65, decimal_places=2)
+    retail_margin = models.DecimalField(max_digits=65, decimal_places=2)
+    class Meta:
+       managed = False
 
     def __str__(self):              # __unicode__ on Python 2
         return self.name
