@@ -10,11 +10,13 @@
 
 from django.conf.urls import url, include
 from . import views
-from api.views import SaleViewSet
+from api.views import SaleViewSet, DeliveryViewSet, ProductMarginViewSet
 from rest_framework import routers, viewsets
 
 router = routers.DefaultRouter()
-router.register(r'sales', SaleViewSet)
+router.register(r'sale', SaleViewSet)
+router.register(r'delivery', DeliveryViewSet)
+router.register(r'product_margin', ProductMarginViewSet)
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),

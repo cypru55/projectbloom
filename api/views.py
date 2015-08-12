@@ -18,8 +18,8 @@ from decimal import Decimal
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
-from api.serializers import SaleSerializer
-from api.models import Sale
+from api.serializers import SaleSerializer, DeliverySerializer, ProductMarginSerializer
+from api.models import Sale, Delivery, ProductMargin
 import json
 import datetime
 
@@ -28,16 +28,29 @@ import datetime
 def index(request):
     return HttpResponse("Hello, world. You're at the api index.")
 
-# retriving sale table
-def sale_list(request):
-    sales = Sale.objects.using('projectbloom_data').all()
-    serializer = SaleSerializer(sales, many=True)
-    return JSONResponse(serializer.data)
 
 # ViewSets define the view behavior.
 class SaleViewSet(viewsets.ModelViewSet):
     queryset = Sale.objects.using('projectbloom_data').all()
     serializer_class = SaleSerializer
+    paginate_by = 10
+    paginate_by_param = 'page_size'
+    # Set MAX results per page
+    max_paginate_by = 100
+
+class DeliveryViewSet(viewsets.ModelViewSet):
+    queryset = Delivery.objects.using('projectbloom_data').all()
+    serializer_class = DeliverySerializer
+    paginate_by = 10
+    paginate_by_param = 'page_size'
+    # Set MAX results per page
+    max_paginate_by = 100
+
+class ProductMarginViewSet(viewsets.ModelViewSet):
+    # TODO change table name according to get parameter
+    ProductMargin._meta.db_table = 'latest_area_product_margin'
+    queryset = ProductMargin.objects.using('projectbloom_data').all()
+    serializer_class = ProductMarginSerializer
     paginate_by = 10
     paginate_by_param = 'page_size'
     # Set MAX results per page

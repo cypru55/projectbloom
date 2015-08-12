@@ -7,7 +7,7 @@
 '''
 
 from rest_framework import serializers
-from api.models import Sale
+from api.models import Sale, Delivery, ProductMargin
 
 class SaleSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
