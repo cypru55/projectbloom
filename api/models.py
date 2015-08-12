@@ -58,13 +58,16 @@ class Delivery(models.Model):
         return self.name
 
 class ProductMargin(models.Model):
+    id = models.AutoField(primary_key=True)
     product = models.CharField(max_length = 100)
     uplifter_margin = models.DecimalField(max_digits=65, decimal_places=2)
     wholesale_margin = models.DecimalField(max_digits=65, decimal_places=2)
     sts_margin = models.DecimalField(max_digits=65, decimal_places=2)
     retail_margin = models.DecimalField(max_digits=65, decimal_places=2)
+    type = models.CharField(max_length = 10)
     class Meta:
        managed = False
+       db_table = 'product_margin'
 
     def __str__(self):              # __unicode__ on Python 2
         return self.name

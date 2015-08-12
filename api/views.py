@@ -57,13 +57,13 @@ class ProductMarginViewSet(generics.ListAPIView):
     http_method_names = ['get']
     def get_queryset(self):
         product_margin_type = self.kwargs['type']
-        if product_margin_type == 'latest':
-            ProductMargin._meta.db_table = 'latest_area_product_margin'
-        elif product_margin_type == 'old':
-            ProductMargin._meta.db_table = 'old_area_product_margin_from_15'
-        elif product_margin_type == 'lp4y':
-            ProductMargin._meta.db_table = 'latest_lp4y_products_margin'
         queryset = ProductMargin.objects.using('projectbloom_data').all()
+        if product_margin_type == 'latest':
+            queryset = queryset.filter(type='latest')
+        elif product_margin_type == 'old':
+            queryset = queryset.filter(type='old')
+        elif product_margin_type == 'lp4y':
+            queryset = queryset.filter(type='lp4y')
         return queryset
 
 # sales pivot table data

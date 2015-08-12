@@ -28,4 +28,4 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
 class ProductMarginSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = ProductMargin
-		fields = ('product', 'uplifter_margin', 'wholesale_margin', 'sts_margin', 'retail_margin')
+		fields = ('product', 'uplifter_margin', 'wholesale_margin', 'sts_margin', 'retail_margin', 'type')
