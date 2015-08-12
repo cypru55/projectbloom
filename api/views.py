@@ -15,7 +15,7 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.db import connections
 from decimal import Decimal
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from api.serializers import SaleSerializer, DeliverySerializer, ProductMarginSerializer
@@ -37,6 +37,7 @@ class SaleViewSet(viewsets.ModelViewSet):
     paginate_by_param = 'page_size'
     # Set MAX results per page
     max_paginate_by = 100
+    http_method_names = ['get', 'post']
 
 class DeliveryViewSet(viewsets.ModelViewSet):
     queryset = Delivery.objects.using('projectbloom_data').all()
@@ -45,16 +46,25 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     paginate_by_param = 'page_size'
     # Set MAX results per page
     max_paginate_by = 100
+    http_method_names = ['get', 'post']
 
-class ProductMarginViewSet(viewsets.ModelViewSet):
-    # TODO change table name according to get parameter
-    ProductMargin._meta.db_table = 'latest_area_product_margin'
-    queryset = ProductMargin.objects.using('projectbloom_data').all()
+class ProductMarginViewSet(generics.ListAPIView):
     serializer_class = ProductMarginSerializer
     paginate_by = 10
     paginate_by_param = 'page_size'
     # Set MAX results per page
     max_paginate_by = 100
+    http_method_names = ['get']
+    def get_queryset(self):
+        product_margin_type = self.kwargs['type']
+        if product_margin_type == 'latest':
+            ProductMargin._meta.db_table = 'latest_area_product_margin'
+        elif product_margin_type == 'old':
+            ProductMargin._meta.db_table = 'old_area_product_margin_from_15'
+        elif product_margin_type == 'lp4y':
+            ProductMargin._meta.db_table = 'latest_lp4y_products_margin'
+        queryset = ProductMargin.objects.using('projectbloom_data').all()
+        return queryset
 
 # sales pivot table data
 @login_required(login_url='/login/')
@@ -129,7 +139,7 @@ def clean_null_colunm(column_name, pivot_table_json):
         if not is_all_null(pivot_table_json[i], column_name):
             for key in pivot_table_json[i]:
                 if pivot_table_json[i][key] is None:
-                    pivot_table_json[i][key] = 0 
+                    pivot_table_json[i][key] = 0
             new_array.append(pivot_table_json[i])
     return new_array
 
@@ -146,8 +156,7 @@ def period_generator(start_date, end_date, date_format):
         if current_start_date + one_week - one_day <= end_date:
             period['end_date'] = (current_start_date + one_week - one_day).strftime(date_format)
         else:
-            period['end_date'] = end_date.strftime(date_format)
-            
+            period['end_date'] = end_date.strftime(date_format)       
         periods.append(period)
         current_start_date = current_start_date + one_week
     return periods

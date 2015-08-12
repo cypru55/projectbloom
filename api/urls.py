@@ -16,11 +16,11 @@ from rest_framework import routers, viewsets
 router = routers.DefaultRouter()
 router.register(r'sale', SaleViewSet)
 router.register(r'delivery', DeliveryViewSet)
-router.register(r'product_margin', ProductMarginViewSet)
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^', include(router.urls)),
+    url(r'product_margin/(?P<type>.+)/$', ProductMarginViewSet.as_view()),
     url(r'^pivot-table/sale', views.sales_pivot_table, name='sales_pivot'),
 
 ]
