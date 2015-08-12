@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Author: archer
 # @Date:   2015-08-03 17:37:19
-# @Last Modified 2015-08-03
+# @Last Modified 2015-08-12
 
 
 from django.http import *
@@ -14,7 +14,7 @@ from django.contrib.auth import authenticate, login, logout
 # home page
 @login_required(login_url='/login/')
 def index(request):
-    return render_to_response('projectbloom/website-base.html', context_instance=RequestContext(request))
+    return render_to_response('projectbloom/index.html', context_instance=RequestContext(request))
 
 def login_user(request):
     logout(request)

@@ -1,3 +1,10 @@
+'''
+    File name: models.py
+    Author: Liu Tuo
+    Date created: 2015-08-11
+    Date last modified: 2015-08-12
+    Python Version: 2.7.6
+'''
 from django.db import models
 
 # Create your models here.
