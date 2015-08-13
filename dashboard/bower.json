@@ -1,0 +1,16 @@
+{
+  "name": "dashboard_app",
+  "description": "Dashboard App for Project Bloom",
+  "version": "0.0.0",
+  "homepage": "https://github.com/liutuo/projectbloom",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "angular": "1.4.x",
+    "angular-mocks": "1.4.x",
+    "angular-route": "1.4.x",
+    "angular-resource": "1.4.x",
+    "angular-animate": "1.4.x",
+    "Chart.js": "1.0.2"
+  }
+}
