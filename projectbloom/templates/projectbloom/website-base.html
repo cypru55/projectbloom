@@ -3,9 +3,8 @@
 {# Load the tag library #}
 {% load bootstrap3 %}
 
-{# Load CSS and JavaScript #}
+{# Load bootstrap css #}
 {% bootstrap_css %}
-{% bootstrap_javascript %}
 
 {# Display django.contrib.messages as Bootstrap alerts #}
 {% bootstrap_messages %}
@@ -65,8 +64,10 @@
       {% endblock %}
     </div><!-- /.container -->
 
-
+    <script src="{% static 'projectbloom/js/jquery.min.js' %}"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="{% static 'projectbloom/js/ie10-viewport-bug-workaround.js' %}"></script>
+    {# Load bootstrap JavaScript #}
+    {% bootstrap_javascript %}
   </body>
 </html>

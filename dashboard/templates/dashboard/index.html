@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% block extrascripts %}
   <link href="{% static 'dashboard/css/dashboard.css' %}" rel="stylesheet">
+  <script src="{% static 'dashboard/js/dashboard_app.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -10,7 +11,7 @@
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
             <li class="active"><a href="#">Overview <span class="sr-only">(current)</span></a></li>
-            <li><a href="#">Reports</a></li>
+            <li><a href="#">Data</a></li>
             <li><a href="#">Analytics</a></li>
             <li><a href="#">Export</a></li>
           </ul>
