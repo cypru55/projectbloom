@@ -19,7 +19,7 @@ from . import views as projectbloom_views
 from dashboard import views as dashboard_views
 
 urlpatterns = [
-    # The home page view is in dashboard, this page is a JavaScript Application writen in Angular js
+    # The home page view is in app, this page is a JavaScript Application writen in Angular js
 	url(r'^$', dashboard_views.index, name='home_page'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 	url(r'^api/', include('api.urls')),

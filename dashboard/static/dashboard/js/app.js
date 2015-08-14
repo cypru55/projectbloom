@@ -14,8 +14,8 @@ var dashboardApp = angular.module('dashboardApp', [
 dashboardApp.config(['$routeProvider',
   function($routeProvider) {
     $routeProvider.
-      when('/overview', {
-        templateUrl: '/static/dashboard/partials/overview.html',
+      when('/dashboard', {
+        templateUrl: '/static/dashboard/partials/dashboard.html',
         controller: 'DashboardOverviewCtrl'
       }).
       when('/table/:table_type', {
@@ -35,6 +35,6 @@ dashboardApp.config(['$routeProvider',
         controller: 'DashboardFormCtrl'
       }).
       otherwise({
-        redirectTo: '/overview'
+        redirectTo: '/dashboard'
       });
   }]);

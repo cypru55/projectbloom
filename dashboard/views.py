@@ -8,4 +8,4 @@ from django.contrib.auth import authenticate, login, logout
 
 @login_required(login_url='/login/')
 def index(request):
-    return render_to_response('dashboard/index.html', context_instance=RequestContext(request))
+    return render_to_response('app/index.html', context_instance=RequestContext(request))
