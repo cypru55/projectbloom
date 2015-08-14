@@ -1,7 +1,7 @@
 /* 
 * @Author: archer
 * @Date:   2015-08-12 17:52:19
-* @Last Modified 2015-08-13
+* @Last Modified 2015-08-14
 */
 
 'use strict';
@@ -18,17 +18,21 @@ dashboardApp.config(['$routeProvider',
         templateUrl: '/static/dashboard/partials/overview.html',
         controller: 'DashboardOverviewCtrl'
       }).
-      when('/data', {
-        templateUrl: '/static/dashboard/partials/data.html',
-        controller: 'DashboardDataCtrl'
+      when('/table/:table_type', {
+        templateUrl: '/static/dashboard/partials/tables.html',
+        controller: 'DashboardTableCtrl'
       }).
-      when('/analytics', {
-        templateUrl: '/static/dashboard/partials/analytics.html',
-        controller: 'DashboardAnalyticsCtrl'
+      when('/chart', {
+        templateUrl: '/static/dashboard/partials/charts.html',
+        controller: 'DashboardChartCtrl'
       }).
       when('/export', {
         templateUrl: '/static/dashboard/partials/export.html',
         controller: 'DashboardExportCtrl'
+      }).
+      when('/form', {
+        templateUrl: '/static/dashboard/partials/forms.html',
+        controller: 'DashboardFormCtrl'
       }).
       otherwise({
         redirectTo: '/overview'

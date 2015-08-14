@@ -15,14 +15,15 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
-from . import views
+from . import views as projectbloom_views
+from dashboard import views as dashboard_views
 
 urlpatterns = [
-	url(r'^$', views.index, name='home_page'),
+    # The home page view is in dashboard, this page is a JavaScript Application writen in Angular js
+	url(r'^$', dashboard_views.index, name='home_page'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 	url(r'^api/', include('api.urls')),
-    url(r'^dashboard/', include('dashboard.urls')),
-    url(r'^login/$', views.login_user),
+    url(r'^login/$', projectbloom_views.login_user),
     url(r'^admin/', include(admin.site.urls)),
 
 ]
