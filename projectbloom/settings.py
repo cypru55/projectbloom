@@ -38,8 +38,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'bootstrap3',
     'projectbloom',
+    'dashboard',
     'api',
 )
 
@@ -79,44 +79,44 @@ WSGI_APPLICATION = 'projectbloom.wsgi.application'
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 # Local database setting
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'webserver',
-#         'USER': 'root',
-#         'PASSWORD': 'q',
-#         'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
-#         'PORT': '3306',
-#     },
-#     'projectbloom_data': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'projectbloom',
-#         'USER': 'root',
-#         'PASSWORD': 'q',
-#         'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
-#         'PORT': '3306',
-#     }
-# }
-
-# Server database setting
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'projectbloom_webserver',
-        'USER': 'archer',
-        'PASSWORD': 'bloombloom',
-        'HOST': 'projectbloominstance.cw8csh5banng.ap-southeast-1.rds.amazonaws.com',   # Or an IP Address that your DB is hosted on
+        'NAME': 'webserver',
+        'USER': 'root',
+        'PASSWORD': 'q',
+        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
         'PORT': '3306',
     },
     'projectbloom_data': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'projectbloom',
-        'USER': 'archer',
-        'PASSWORD': 'bloombloom',
-        'HOST': 'projectbloominstance.cw8csh5banng.ap-southeast-1.rds.amazonaws.com',   # Or an IP Address that your DB is hosted on
+        'USER': 'root',
+        'PASSWORD': 'q',
+        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
         'PORT': '3306',
     }
 }
+
+# Server database setting
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'projectbloom_webserver',
+#         'USER': 'archer',
+#         'PASSWORD': 'bloombloom',
+#         'HOST': 'projectbloominstance.cw8csh5banng.ap-southeast-1.rds.amazonaws.com',   # Or an IP Address that your DB is hosted on
+#         'PORT': '3306',
+#     },
+#     'projectbloom_data': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'projectbloom',
+#         'USER': 'archer',
+#         'PASSWORD': 'bloombloom',
+#         'HOST': 'projectbloominstance.cw8csh5banng.ap-southeast-1.rds.amazonaws.com',   # Or an IP Address that your DB is hosted on
+#         'PORT': '3306',
+#     }
+# }
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
