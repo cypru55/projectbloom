@@ -103,3 +103,27 @@ body {
   display: inline-block;
   border-radius: 50%;
 }
+
+#data-table-paginator {
+  margin: 0;
+  margin-top: 0px;
+  margin-right: 0px;
+  margin-bottom: 0px;
+  margin-left: 0px;
+  white-space: nowrap;
+  text-align: right;
+}
+
+#data-table-paginate {
+  float: right;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+#data-table-info {
+  padding-top: 8px
+}
+
+.pointer-cursor {
+    cursor: pointer;
+}

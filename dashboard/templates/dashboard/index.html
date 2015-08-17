@@ -295,7 +295,8 @@
 {% endblock content %}
 
 {% block extrastyles %}
-    
+    <!--Custom CSS-->
+    <link href="{% static 'dashboard/css/app.css' %}" rel="stylesheet">
 {% endblock extrastyles %}
 
 {% block extrascripts %}
@@ -310,6 +311,9 @@
 
     <!-- JavaScript For Chart JS -->
     <script src="{% static 'bower_components/Chart.js/Chart.min.js' %}"></script>
+
+    <!--JavaScript For Bootstrap Paginator-->
+    <script src="{% static 'dashboard/js/bootstrap-paginator.min.js' %}"></script>
 
     <!-- JavaScript For Dashboard JavaScript Application -->
     <script src="{% static 'dashboard/js/app.js' %}"></script>
