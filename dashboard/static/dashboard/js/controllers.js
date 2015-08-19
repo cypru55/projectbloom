@@ -23,12 +23,19 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 		if ($routeParams.table_type == 'sale') {
 			$scope.title = 'Sale Table'
 			url = '../api/' + $routeParams.table_type;
+			$('#product-margin-type-selector').hide();
 		} else if ($routeParams.table_type == 'product_margin') {
 			$scope.title = 'Product Margin Table'
 			url = '../api/' + $routeParams.table_type + '/latest';
+			$('#product-margin-type-selector').show();
+			$('#data-table-paginator').hide();
+			
+			// add listener for list selector
+			
 		} else if ($routeParams.table_type == 'delivery') {
 			$scope.title = 'Delivery Table'
 			url = '../api/' + $routeParams.table_type;
+			$('#product-margin-type-selector').hide();
 		}
 
 		// setup paginator

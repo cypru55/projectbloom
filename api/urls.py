@@ -21,6 +21,9 @@ urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^', include(router.urls)),
     url(r'product_margin/(?P<type>.+)/$', ProductMarginViewSet.as_view()),
-    url(r'^pivot-table/sale', views.sales_pivot_table, name='sales_pivot'),
+    url(r'^sale/sp-products-sold', views.sp_products_sold, name='sp-products-sold'),
+    url(r'^sale/ul-days-worked', views.ul_days_worked, name='ul-days-worked'),
+    url(r'^sale/ul-income', views.ul_income, name='ul-income'),
+    url(r'^sale/sp-income', views.sp_income, name='sp-income'),
 
 ]

@@ -22,6 +22,7 @@ from api.serializers import SaleSerializer, DeliverySerializer, ProductMarginSer
 from api.models import Sale, Delivery, ProductMargin
 import json
 import datetime
+import calendar
 
 # root url for api, testing purpose.
 @login_required(login_url='/login/')
@@ -29,7 +30,7 @@ def index(request):
     return HttpResponse("Hello, world. You're at the api index.")
 
 
-# ViewSets define the view behavior.
+# Rest Framework API for models, to be used to display original table
 class SaleViewSet(viewsets.ModelViewSet):
     queryset = Sale.objects.using('projectbloom_data').all()
     serializer_class = SaleSerializer
@@ -66,32 +67,15 @@ class ProductMarginViewSet(generics.ListAPIView):
             queryset = queryset.filter(type='lp4y')
         return queryset
 
-# sales pivot table data
+# stockpoint product sold pivot table
 @login_required(login_url='/login/')
-def sales_pivot_table(request):
+def sp_products_sold(request):
     if request.method == 'GET':
-        # read the start date and end date
-        # start date must be monday
-        # no parameter, then use today as end date and display previous 4 weeks
-
-        date_format = "%Y-%m-%d"
-        if 'sd' in request.GET and 'ed' in request.GET:
-            start_date = datetime.datetime.strptime(request.GET['sd'], date_format)
-            end_date = datetime.datetime.strptime(request.GET['ed'], date_format)
-            periods = period_generator(start_date, end_date, date_format)
-        elif 'sd' not in request.GET and 'ed' in request.GET:
-            end_date = datetime.datetime.strptime(request.GET['ed'], date_format)
-            start_date = end_date - datetime.timedelta(weeks=4) + datetime.timedelta(days=1)
-            periods = period_generator(start_date, end_date, date_format)
-        else:
-            today = datetime.datetime.now()
-            days_left_for_this_week = 6 - datetime.datetime.today().weekday()
-            end_date = today + datetime.timedelta(days=days_left_for_this_week)
-            start_date = end_date - datetime.timedelta(weeks=4) + datetime.timedelta(days=1)
-            periods = period_generator(start_date, end_date, date_format)
-
+        # parse the date in the http get parameter
+        periods = parse_date_to_period(request)
+        
         # generate query using periods
-        (query, column_name) = generate_sale_pivot_table_query(periods)
+        (query, column_name) = generate_sp_product_sold_table_query(periods)
 
         # execute the query
         cursor = connections['projectbloom_data'].cursor()
@@ -110,6 +94,117 @@ def sales_pivot_table(request):
         json_str = json.dumps(row, default=defaultencode)
 
         return HttpResponse(json_str, content_type="application/json")
+
+# uplifter days worked
+@login_required(login_url='/login/')
+def ul_days_worked(request):
+    if request.method == 'GET':
+        # parse the date in the http get parameter
+        periods = parse_date_to_period(request)
+        
+        # generate query using periods
+        (query, column_name) = generate_ul_worked_days_query(periods)
+
+        # execute the query
+        cursor = connections['projectbloom_data'].cursor()
+        cursor.execute(query)
+        desc = cursor.description
+        row = [
+                dict(zip([col[0] for col in desc], row))
+
+                for row in cursor.fetchall()
+                ]
+        cursor.close()
+
+        # clean up rows with all null
+        row = clean_null_colunm(column_name,row)
+
+        json_str = json.dumps(row, default=defaultencode)
+
+        return HttpResponse(json_str, content_type="application/json")
+
+# uplifter weekly or monthly income
+@login_required(login_url='/login/')
+def ul_income(request):
+    if request.method == 'GET':
+        # parse the date in the http get parameter
+        periods = parse_date_to_period(request)
+        
+        # generate query using periods
+        (query, column_name) = generate_sp_product_sold_table_query(periods)
+
+        # execute the query
+        cursor = connections['projectbloom_data'].cursor()
+        cursor.execute(query)
+        desc = cursor.description
+        row = [
+                dict(zip([col[0] for col in desc], row))
+
+                for row in cursor.fetchall()
+                ]
+        cursor.close()
+
+        # clean up rows with all null
+        row = clean_null_colunm(column_name,row)
+
+        json_str = json.dumps(row, default=defaultencode)
+
+        return HttpResponse(json_str, content_type="application/json")
+    
+# stock point monthly income
+@login_required(login_url='/login/')
+def sp_income(request):
+    if request.method == 'GET':
+        # parse the date in the http get parameter
+        periods = parse_date_to_period(request)
+        
+        # generate query using periods
+        (query, column_name) = generate_sp_income_query(periods)
+
+        # execute the query
+        cursor = connections['projectbloom_data'].cursor()
+        cursor.execute(query)
+        desc = cursor.description
+        row = [
+                dict(zip([col[0] for col in desc], row))
+
+                for row in cursor.fetchall()
+                ]
+        cursor.close()
+
+        # clean up rows with all null
+        row = clean_null_colunm(column_name,row)
+
+        json_str = json.dumps(row, default=defaultencode)
+
+        return HttpResponse(json_str, content_type="application/json")
+
+# parse the date into period
+def parse_date_to_period(request):
+    # read the start date and end date
+    # start date must be monday
+    # no parameter, then use today as end date and display previous 4 weeks
+    if 'option' in request.GET and request.GET['option'] == "monthly":
+        option = "monthly"
+    else:
+        option = "weekly"
+        
+    date_format = "%Y-%m-%d"
+    if 'sd' in request.GET and 'ed' in request.GET:
+        start_date = datetime.datetime.strptime(request.GET['sd'], date_format)
+        end_date = datetime.datetime.strptime(request.GET['ed'], date_format)
+        periods = period_generator(start_date, end_date, date_format, option)
+    elif 'sd' not in request.GET and 'ed' in request.GET:
+        end_date = datetime.datetime.strptime(request.GET['ed'], date_format)
+        start_date = end_date - datetime.timedelta(weeks=4) + datetime.timedelta(days=1)
+        periods = period_generator(start_date, end_date, date_format, option)
+    else:
+        today = datetime.datetime.now()
+        days_left_for_this_week = 6 - datetime.datetime.today().weekday()
+        end_date = today + datetime.timedelta(days=days_left_for_this_week)
+        start_date = end_date - datetime.timedelta(weeks=4) + datetime.timedelta(days=1)
+        periods = period_generator(start_date, end_date, date_format, option)
+    return periods
 
 # helper class for serializing float
 class float_value(float):
@@ -143,26 +238,55 @@ def clean_null_colunm(column_name, pivot_table_json):
             new_array.append(pivot_table_json[i])
     return new_array
 
-# helper function for getting the week period from given start date and end date
-def period_generator(start_date, end_date, date_format):
-    periods = []
-    current_start_date = start_date
-    one_week = datetime.timedelta(weeks=1)
-    one_day = datetime.timedelta(days=1)
+# helper function for getting first day and last day of the month
+def get_month_day_range(date):
+    """
+    For a date 'date' returns the start and end date for the month of 'date'.
 
-    while current_start_date < end_date:
-        period = {}
-        period['start_date'] = current_start_date.strftime(date_format)
-        if current_start_date + one_week - one_day <= end_date:
-            period['end_date'] = (current_start_date + one_week - one_day).strftime(date_format)
-        else:
-            period['end_date'] = end_date.strftime(date_format)       
-        periods.append(period)
-        current_start_date = current_start_date + one_week
+    Month with 31 days:
+    >>> date = datetime.date(2011, 7, 27)
+    >>> get_month_day_range(date)
+    (datetime.date(2011, 7, 1), datetime.date(2011, 7, 31))
+
+    Month with 28 days:
+    >>> date = datetime.date(2011, 2, 15)
+    >>> get_month_day_range(date)
+    (datetime.date(2011, 2, 1), datetime.date(2011, 2, 28))
+    """
+    first_day = date.replace(day = 1)
+    last_day = date.replace(day = calendar.monthrange(date.year, date.month)[1])
+    return first_day, last_day
+
+# helper function for getting the week period from given start date and end date
+def period_generator(start_date, end_date, date_format, option):
+    periods = []
+    one_day = datetime.timedelta(days=1)
+    
+    if option == "weekly":
+        current_start_date = start_date   
+        time_delta = datetime.timedelta(weeks=1)
+        while current_start_date < end_date:
+            period = {}
+            period['start_date'] = current_start_date.strftime(date_format)
+            if current_start_date + time_delta - one_day <= end_date:
+                period['end_date'] = (current_start_date + time_delta - one_day).strftime(date_format)
+            else:
+                period['end_date'] = end_date.strftime(date_format)
+            periods.append(period)
+            current_start_date = current_start_date + time_delta
+    elif option == "monthly":
+         current_month_range = get_month_day_range(start_date)
+         end_date_month_range = get_month_day_range(end_date)
+         while current_month_range[1] <= end_date_month_range[1]:
+             period = {}
+             period['start_date'] = current_month_range[0].strftime(date_format)
+             period['end_date'] = current_month_range[1].strftime(date_format)
+             periods.append(period)
+             current_month_range = get_month_day_range(current_month_range[1] + one_day)
     return periods
 
-# helper function for generating query for sales pivot table
-def generate_sale_pivot_table_query(periods):
+# helper function for generating query for stockpoint product sold table
+def generate_sp_product_sold_table_query(periods):
     query_part_1 = ""
     query_part_2 = ""
     col_name = []
@@ -189,6 +313,97 @@ def generate_sale_pivot_table_query(periods):
     as t2
     group by area, stockpoint_name, product\n"""
 
+    return (query, col_name)
+
+# helper function for generating query for uplifter worked days
+def generate_ul_worked_days_query(periods):
+    query_part_1 = ""
+    query_part_2 = ""
+    col_name = []
+    # use start date as the column name
+    for period in periods:
+        col_name.append(period['start_date'])
+        query_part_1 += "sum(`%s`) as `%s`,\n" % (period['start_date'], period['start_date'])
+        query_part_2 += "case when date between '%s' and '%s' then ul_days end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
+    # remove the last colon
+    query_part_1 = query_part_1[:-2]
+    query_part_1 += "\n"
+    query_part_2 = query_part_2[:-2]
+    query_part_2 += "\n"
+
+    # build complete query
+    query = """select
+    area, stockpoint_name, uplifter_name,\n"""
+    query += query_part_1
+    query += """from (
+    select
+    area ,stockpoint_name, uplifter_name,\n"""
+    query += query_part_2
+    query += """from projectbloom.sale as t)
+    as t2
+    group by area, stockpoint_name, uplifter_name\n"""
+
+    return (query, col_name)
+
+# helper function for generating uplifter income over period query, can be weekly or monthly    
+def generate_ul_weekly_income_query(periods):
+    query_part_1 = ""
+    query_part_2 = ""
+    col_name = []
+    # use start date as the column name
+    for period in periods:
+        col_name.append(period['start_date'])
+        query_part_1 += "sum(`%s`) as `%s`,\n" % (period['start_date'], period['start_date'])
+        query_part_2 += "case when date between '%s' and '%s' then uplifter_profit end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
+    # remove the last colon
+    query_part_1 = query_part_1[:-2]
+    query_part_1 += "\n"
+    query_part_2 = query_part_2[:-2]
+    query_part_2 += "\n"
+
+    # build complete query
+    query = """select
+    area, stockpoint_name, uplifter_name,\n"""
+    query += query_part_1
+    query += """from (
+    select
+    area ,stockpoint_name, uplifter_name,\n"""
+    query += query_part_2
+    query += """from projectbloom.sale as t)
+    as t2
+    group by area, stockpoint_name, uplifter_name\n"""
+
+    return (query, col_name)
+
+    
+# hlper function for generating stockpoint monthly income query
+def generate_sp_income_query(periods):
+    query_part_1 = ""
+    query_part_2 = ""
+    col_name = []
+    # use start date as the column name
+    for period in periods:
+        col_name.append(period['start_date'])
+        query_part_1 += "sum(`%s`) as `%s`,\n" % (period['start_date'], period['start_date'])
+        query_part_2 += "case when date between '%s' and '%s' then stockpoint_profit end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
+    # remove the last colon
+    query_part_1 = query_part_1[:-2]
+    query_part_1 += "\n"
+    query_part_2 = query_part_2[:-2]
+    query_part_2 += "\n"
+
+    # build complete query
+    query = """select
+    area, stockpoint_name,\n"""
+    query += query_part_1
+    query += """from (
+    select
+    area ,stockpoint_name,\n"""
+    query += query_part_2
+    query += """from projectbloom.sale as t)
+    as t2
+    group by area, stockpoint_name\n"""
+    
     return (query, col_name)
 
 class JSONResponse(HttpResponse):
