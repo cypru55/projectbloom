@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-08-12
+    Date last modified: 2015-08-20
     Python Version: 2.7.6
 '''
 
@@ -91,7 +91,11 @@ def sp_products_sold(request):
         # clean up rows with all null
         row = clean_null_colunm(column_name,row)
 
-        json_str = json.dumps(row, default=defaultencode)
+        result = {}
+        result['data'] = row
+        result['headers'] = column_name
+
+        json_str = json.dumps(result, default=defaultencode)
 
         return HttpResponse(json_str, content_type="application/json")
 
@@ -115,11 +119,14 @@ def ul_days_worked(request):
                 for row in cursor.fetchall()
                 ]
         cursor.close()
-
         # clean up rows with all null
         row = clean_null_colunm(column_name,row)
 
-        json_str = json.dumps(row, default=defaultencode)
+        result = {}
+        result['data'] = row
+        result['headers'] = column_name
+
+        json_str = json.dumps(result, default=defaultencode)
 
         return HttpResponse(json_str, content_type="application/json")
 
@@ -131,7 +138,7 @@ def ul_income(request):
         periods = parse_date_to_period(request)
         
         # generate query using periods
-        (query, column_name) = generate_sp_product_sold_table_query(periods)
+        (query, column_name) = generate_ul_income_query(periods)
 
         # execute the query
         cursor = connections['projectbloom_data'].cursor()
@@ -147,7 +154,11 @@ def ul_income(request):
         # clean up rows with all null
         row = clean_null_colunm(column_name,row)
 
-        json_str = json.dumps(row, default=defaultencode)
+        result = {}
+        result['data'] = row
+        result['headers'] = column_name
+
+        json_str = json.dumps(result, default=defaultencode)
 
         return HttpResponse(json_str, content_type="application/json")
     
@@ -346,7 +357,7 @@ def generate_ul_worked_days_query(periods):
     return (query, col_name)
 
 # helper function for generating uplifter income over period query, can be weekly or monthly    
-def generate_ul_weekly_income_query(periods):
+def generate_ul_income_query(periods):
     query_part_1 = ""
     query_part_2 = ""
     col_name = []

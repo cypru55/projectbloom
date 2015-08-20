@@ -248,16 +248,34 @@
                             <a href="#/dashboard"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                         </li>
                         <li>
-                            <a href="#"><i class="fa fa-table  fa-fw"></i> Tables<span class="fa arrow"></span></a>
+                            <a href="#"><i class="fa fa-database  fa-fw"></i> Data<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 <li>
-                                    <a href="#/table/sale">Sale</a>
+                                    <a href="#/data/sale">Sale</a>
                                 </li>
                                 <li>
-                                    <a href="#/table/delivery">Delivery</a>
+                                    <a href="#/data/delivery">Delivery</a>
                                 </li>
                                 <li>
-                                    <a href="#/table/product_margin">Product Margin</a>
+                                    <a href="#/data/product_margin">Product Margin</a>
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-table  fa-fw"></i> Pivot Tables<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="#/pivot/sp_products_sold">SP Products Sold</a>
+                                </li>
+                                <li>
+                                    <a href="#/pivot/ul_days_worked">UL Days Worked</a>
+                                </li>
+                                <li>
+                                    <a href="#/pivot/ul_income">UL Income</a>
+                                </li>
+                                <li>
+                                    <a href="#/pivot/sp_income">SP Income</a>
                                 </li>
                             </ul>
                             <!-- /.nav-second-level -->
@@ -295,6 +313,9 @@
 {% endblock content %}
 
 {% block extrastyles %}
+    <!--Bootstrap Bootstrap Datepicker CSS-->
+    <link href="{% static 'dashboard/css/bootstrap-datepicker.min.css' %}" rel="stylesheet">
+    
     <!--Custom CSS-->
     <link href="{% static 'dashboard/css/app.css' %}" rel="stylesheet">
 {% endblock extrastyles %}
@@ -315,6 +336,9 @@
     <!--JavaScript For Bootstrap Paginator-->
     <script src="{% static 'dashboard/js/bootstrap-paginator.min.js' %}"></script>
 
+    <!--JavaScript For Bootstrap Datepicker-->
+    <script src="{% static 'dashboard/js/bootstrap-datepicker.min.js' %}"></script>
+    
     <!-- JavaScript For Dashboard JavaScript Application -->
     <script src="{% static 'dashboard/js/app.js' %}"></script>
 

@@ -12,15 +12,19 @@ var dashboardApp = angular.module('dashboardApp', [
 ]);
 
 dashboardApp.config(['$routeProvider',
-  function($routeProvider) {
+  function ($routeProvider) {
     $routeProvider.
       when('/dashboard', {
         templateUrl: '/static/dashboard/partials/dashboard.html',
         controller: 'DashboardOverviewCtrl'
       }).
-      when('/table/:table_type', {
-        templateUrl: '/static/dashboard/partials/tables.html',
+      when('/data/:data_type', {
+        templateUrl: '/static/dashboard/partials/data.html',
         controller: 'DashboardTableCtrl'
+      }).
+      when('/pivot/:table_type', {
+        templateUrl: '/static/dashboard/partials/pivot-table.html',
+        controller: 'DashboardPivotCtrl'
       }).
       when('/chart', {
         templateUrl: '/static/dashboard/partials/charts.html',
