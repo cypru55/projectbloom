@@ -186,7 +186,11 @@ def sp_income(request):
         # clean up rows with all null
         row = clean_null_colunm(column_name,row)
 
-        json_str = json.dumps(row, default=defaultencode)
+        result = {}
+        result['data'] = row
+        result['headers'] = column_name
+
+        json_str = json.dumps(result, default=defaultencode)
 
         return HttpResponse(json_str, content_type="application/json")
 

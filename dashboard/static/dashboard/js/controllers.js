@@ -202,15 +202,14 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 
 	// send http get request
 	$http.get(url_with_param).success(function(data) {
-		console.log(data);
 		var header_structure = headers.concat(data.headers);
 		var parsed_headers = []
+		console.log(header_structure);
 		for (var k in header_structure) {
-
+			console.log(header_structure[k])
 			parsed_headers.push(parseHeader(header_structure[k], params.option));
 
 		}
-		console.log(header_structure)
 		// update view
 		$scope.header_structure = header_structure;
 		$scope.parsed_headers = parsed_headers;
