@@ -1,13 +1,14 @@
 /* 
 * @Author: archer
 * @Date:   2015-08-12 17:52:19
-* @Last Modified 2015-08-14
+* @Last Modified 2015-08-24
 */
 
 'use strict';
 
 var dashboardApp = angular.module('dashboardApp', [
   'ngRoute',
+  'n3-line-chart',
   'dashboardControllers',
 ]);
 
