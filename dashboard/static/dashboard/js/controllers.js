@@ -171,9 +171,11 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 				x: {
 					type: "date",
 					ticksFormat: "%b-%y"
+				},
+				y2: {
+					min: 0
 				}
 			},
-			lineMode: "cardinal",
 			tooltip: {
 				mode: "scrubber",
 				formatter: function(x, y, series) {
@@ -185,7 +187,7 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 			},
 			series: [{
 				y: "val_0",
-				label: "This",
+				label: "Total Stable UL",
 				type: "column",
 				color: "#bcbd22"
 			}, {
