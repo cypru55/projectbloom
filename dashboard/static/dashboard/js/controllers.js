@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-08-21
+ * @Last Modified 2015-08-24
  */
 
 'use strict';
@@ -13,6 +13,188 @@ var dashboardControllers = angular.module('dashboardControllers', []);
 dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 	function($scope, $http) {
 		console.log('a')
+		$scope.data = [{
+			x: '2014/6/1',
+			val_0: 0,
+			val_1: 4,
+			val_2: 0,
+			val_3: 1
+		}, {
+			x: '2014/7/1',
+			val_0: 0,
+			val_1: 5,
+			val_2: 0,
+			val_3: 1
+		}, {
+			x: '2014/8/1',
+			val_0: 3,
+			val_1: 9,
+			val_2: 1,
+			val_3: 3,
+		}, {
+			x: '2014/9/1',
+			val_0: 5,
+			val_1: 16,
+			val_2: 1,
+			val_3: 4,
+		}, {
+			x: '2014/10/1',
+			val_0: 12,
+			val_1: 13,
+			val_2: 4,
+			val_3: 1,
+			val_4: 1
+		}, {
+			x: '2014/11/1',
+			val_0: 15,
+			val_1: 5,
+			val_2: 5,
+			val_3: 0,
+			val_4: 1
+		}, {
+			x: '2014/12/1',
+			val_0: 22,
+			val_1: 3,
+			val_2: 5,
+			val_3: 0,
+			val_4: 1
+		}, {
+			x: '2015/1/1',
+			val_0: 23,
+			val_1: 6,
+			val_2: 5,
+			val_3: 0,
+			val_4: 0.94
+		}, {
+			x: '2015/2/1',
+			val_0: 23,
+			val_1: 22,
+			val_2: 5,
+			val_3: 6,
+			val_4: 0.94
+		}, {
+			x: '2015/3/1',
+			val_0: 26,
+			val_1: 59,
+			val_2: 5,
+			val_3: 13,
+			val_4: 0.93
+		}, {
+			x: '2015/4/1',
+			val_0: 30,
+			val_1: 37,
+			val_2: 10,
+			val_3: 8,
+			val_4: 0.90
+		}, {
+			x: '2015/5/1',
+			val_0: 40,
+			val_1: 26,
+			val_2: 13,
+			val_3: 4,
+			val_4: 0.97
+		}, {
+			x: '2015/6/1',
+			val_0: 49,
+			val_1: 23,
+			val_2: 12,
+			val_3: 6,
+			val_4: 1
+		}, {
+			x: '2015/7/1',
+			val_0: 53,
+			val_1: 52,
+			val_2: 14,
+			val_3: 15,
+			val_4: 0.8
+		}, {
+			x: '2015/8/1',
+			val_0: 60,
+			val_1: 35,
+			val_2: 17,
+			val_3: 10,
+			val_4: 0.94
+		}];
+
+		$scope.options = {
+			axes: {
+				x: {
+					type: "date",
+					ticksFormat: "%b-%y"
+				}
+			},
+			lineMode: "cardinal",
+			stacks: [{
+				axis: "y",
+				series: ["id_0", "id_1", "id_2", "id_3"]
+			}],
+			tooltip: {
+				mode: "scrubber",
+				formatter: function(x, y, series) {
+					return series.label + ' : ' + y;
+				}
+			},
+			series: [{
+				id: "id_0",
+				y: "val_0",
+				label: "Total Stable UL",
+				type: "column",
+				color: "#bcbd22"
+			}, {
+				id: "id_1",
+				y: "val_1",
+				label: "New UL",
+				type: "column",
+				color: "#17becf"
+			}, {
+				id: "id_2",
+				y: "val_2",
+				type: "column",
+				label: "Stable SP",
+				color: "#9467bd"
+			}, {
+				id: "id_3",
+				y: "val_3",
+				type: "column",
+				label: "New SP",
+				color: "#2ca02c"
+			}]
+		};
+
+		$scope.data.forEach(function(row) {
+			row.x = new Date(row.x);
+		});
+
+
+		$scope.options1 = {
+			axes: {
+				x: {
+					type: "date",
+					ticksFormat: "%b-%y"
+				}
+			},
+			lineMode: "cardinal",
+			tooltip: {
+				mode: "scrubber",
+				formatter: function(x, y, series) {
+					if (series.label == 'Retention UL')
+						return series.label + ' : ' + y.toFixed(2)*100 + '%';
+					else
+						return series.label + ' : ' + y;
+				}
+			},
+			series: [{
+				y: "val_0",
+				label: "This",
+				type: "column",
+				color: "#bcbd22"
+			}, {
+				y: "val_4",
+				axis: "y2",
+				label: "Retention UL",
+				color: "#17becf"
+			}]
+		};
 	}
 ]);
 
@@ -28,6 +210,7 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 		} else if ($routeParams.data_type == 'product_margin') {
 			$scope.title = 'Product Margin Table'
 			url = '../api/' + $routeParams.data_type + '/latest';
+			$scope.type = 'latest';
 			$('#product-margin-type-selector').show();
 
 
@@ -44,6 +227,7 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 		$('#product-margin-type-list').click(function(event) {
 			var type = event.target.getAttribute("value");
 			url = "../api/product_margin/" + type;
+			$scope.type = type;
 			retriveAndDrawDataTable(url, 1, 10, $http, $scope, $('#data-table-paginator'));
 		});
 
