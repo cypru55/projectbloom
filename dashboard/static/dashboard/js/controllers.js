@@ -120,7 +120,7 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 
 		// trying google chart
 		$scope.chartObject = {
-			type: "ComboChart",
+			type: "ColumnChart",
 			displayed: true,
 			data: {
 				cols: [{
@@ -147,10 +147,6 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 					id: "new-sp-id",
 					label: "New SP",
 					type: "number"
-				}, {
-					id: "ul-retention-id",
-					label: "Uplifter Retention",
-					type: "number"
 				}],
 				rows: []
 			},
@@ -163,28 +159,10 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 					"title": "Date",
 					"format": 'MMM-yy'
 				},
-				seriesType: 'bars',
-				series: {
-					4: {
-						type: 'line',
-						targetAxisIndex: 1
-					},
-				},
-				vAxes: {
-					0: {
-						title: "Entrepreneur",
-						gridlines: {
-							"count": 10
-						}
-					},
-					1: {
-						title: "UL Retention",
-						gridlines: {
-							"count": 10
-						},
-						format: '#%',
-						maxValue: 1,
-						minValue: 0
+				vAxis: {
+					title: "Entrepreneur",
+					gridlines: {
+						"count": 10
 					}
 				},
 				width: 800,
@@ -214,10 +192,92 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 			row.c.push({
 				v: data[i].val_3
 			})
+			$scope.chartObject.data.rows.push(row)
+		}
+
+		$scope.chartObject1 = {
+			type: "ComboChart",
+			displayed: true,
+			data: {
+				cols: [{
+					id: "month",
+					label: "Month",
+					type: "date",
+					p: {}
+				}, {
+					id: "total-stable-ul-id",
+					label: "Total Stable UL",
+					type: "number",
+					p: {}
+				}, {
+					id: "droped-ul-id",
+					label: "Dropped UL",
+					type: "number",
+					p: {}
+				}, {
+					id: "ul-retention-id",
+					label: "Uplifter Retention",
+					type: "number"
+				}],
+				rows: []
+			},
+			options: {
+				title: "Bloom Overview",
+				isStacked: "true",
+				fill: 20,
+				displayExactValues: true,
+				hAxis: {
+					"title": "Date",
+					"format": 'MMM-yy'
+				},
+				seriesType: 'bars',
+				series: {
+					2: {
+						type: 'line',
+						targetAxisIndex: 1
+					},
+				},
+				vAxes: {
+					0: {
+						title: "Stable Uplifter",
+						gridlines: {
+							"count": 10
+						}
+					},
+					1: {
+						title: "UL Retention",
+						gridlines: {
+							"count": 10
+						},
+						format: '#%',
+						maxValue: 1,
+						minValue: 0
+					}
+				},
+				width: 800,
+				height: 400
+
+			},
+			formatters: {}
+		}
+		for (var i in data) {
+			var row = {
+				c: []
+			};
+
+			row.c.push({
+				v: data[i].x
+			})
+			row.c.push({
+				v: data[i].val_0
+			})
+			row.c.push({
+				v: (0 - Math.floor((Math.random() * 10) + 1))
+			})
 			row.c.push({
 				v: data[i].val_4
 			})
-			$scope.chartObject.data.rows.push(row)
+			$scope.chartObject1.data.rows.push(row)
 		}
 	}
 ]);
