@@ -10,8 +10,7 @@ var dashboardControllers = angular.module('dashboardControllers', []);
 
 dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 	function($scope, $http) {
-		// console.log('a')
-		$scope.data = [{
+		var data = [{
 			x: '2014/6/1',
 			val_0: 0,
 			val_1: 4,
@@ -114,89 +113,10 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 			val_4: 0.94
 		}];
 
-		$scope.options = {
-			axes: {
-				x: {
-					type: "date",
-					ticksFormat: "%b-%y"
-				}
-			},
-			lineMode: "cardinal",
-			stacks: [{
-				axis: "y",
-				series: ["id_0", "id_1", "id_2", "id_3"]
-			}],
-			tooltip: {
-				mode: "scrubber",
-				formatter: function(x, y, series) {
-					return series.label + ' : ' + y;
-				}
-			},
-			series: [{
-				id: "id_0",
-				y: "val_0",
-				label: "Total Stable UL",
-				type: "column",
-				color: "#bcbd22"
-			}, {
-				id: "id_1",
-				y: "val_1",
-				label: "New UL",
-				type: "column",
-				color: "#17becf"
-			}, {
-				id: "id_2",
-				y: "val_2",
-				type: "column",
-				label: "Stable SP",
-				color: "#9467bd"
-			}, {
-				id: "id_3",
-				y: "val_3",
-				type: "column",
-				label: "New SP",
-				color: "#2ca02c"
-			}]
-		};
-
-		$scope.data.forEach(function(row) {
+		data.forEach(function(row) {
 			row.x = new Date(row.x);
 		});
 
-
-		$scope.options1 = {
-			axes: {
-				x: {
-					type: "date",
-					ticksFormat: "%b-%y"
-				},
-				y2: {
-					min: 0
-				}
-			},
-			drawLegend: true,
-			drawDots: true,
-			tooltip: {
-				mode: "scrubber",
-				formatter: function(x, y, series) {
-					if (series.label == 'Retention UL')
-						return series.label + ' : ' + y.toFixed(2) * 100 + '%';
-					else
-						return series.label + ' : ' + y;
-				}
-			},
-			series: [{
-				y: "val_0",
-				label: "Total Stable UL",
-				type: "column",
-				color: "#bcbd22"
-			}, {
-				y: "val_4",
-				axis: "y2",
-				label: "Retention UL",
-				color: "#17becf"
-			}]
-		};
 
 		// trying google chart
 		$scope.chartObject = {
@@ -245,39 +165,26 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 				},
 				seriesType: 'bars',
 				series: {
-					1: {
-						type: 'bars',
-						targetAxisIndex: 0
-					},
-					2: {
-						type: 'bars',
-						targetAxisIndex: 0
-					},
-					3: {
-						type: 'bars',
-						targetAxisIndex: 0
-					},
-					0: {
-						type: 'bars',
-						targetAxisIndex: 0
-					},
 					4: {
 						type: 'line',
 						targetAxisIndex: 1
 					},
-					vAxes: {
-						0: {
-							"title": "Entrepreneur",
-							"gridlines": {
-								"count": 10
-							}
-						},
-						1: {
-							"title": "UL Retention",
-							"gridlines": {
-								"count": 10
-							}
+				},
+				vAxes: {
+					0: {
+						title: "Entrepreneur",
+						gridlines: {
+							"count": 10
 						}
+					},
+					1: {
+						title: "UL Retention",
+						gridlines: {
+							"count": 10
+						},
+						format: '#%',
+						maxValue: 1,
+						minValue: 0
 					}
 				},
 				width: 800,
@@ -287,28 +194,28 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 			formatters: {}
 		}
 
-		for (var i in $scope.data) {
+		for (var i in data) {
 			var row = {
 				c: []
 			};
 
 			row.c.push({
-				v: $scope.data[i].x
+				v: data[i].x
 			})
 			row.c.push({
-				v: $scope.data[i].val_0
+				v: data[i].val_0
 			})
 			row.c.push({
-				v: $scope.data[i].val_1
+				v: data[i].val_1
 			})
 			row.c.push({
-				v: $scope.data[i].val_2
+				v: data[i].val_2
 			})
 			row.c.push({
-				v: $scope.data[i].val_3
+				v: data[i].val_3
 			})
 			row.c.push({
-				v: $scope.data[i].val_4
+				v: data[i].val_4
 			})
 			$scope.chartObject.data.rows.push(row)
 		}
