@@ -1,18 +1,16 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-08-24
+ * @Last Modified 2015-08-25
  */
 
 'use strict';
-var header_structure = [];
-var response_data = {}
 
 var dashboardControllers = angular.module('dashboardControllers', []);
 
 dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 	function($scope, $http) {
-		console.log('a')
+		// console.log('a')
 		$scope.data = [{
 			x: '2014/6/1',
 			val_0: 0,
@@ -176,11 +174,13 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 					min: 0
 				}
 			},
+			drawLegend: true,
+			drawDots: true,
 			tooltip: {
 				mode: "scrubber",
 				formatter: function(x, y, series) {
 					if (series.label == 'Retention UL')
-						return series.label + ' : ' + y.toFixed(2)*100 + '%';
+						return series.label + ' : ' + y.toFixed(2) * 100 + '%';
 					else
 						return series.label + ' : ' + y;
 				}
@@ -197,6 +197,121 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 				color: "#17becf"
 			}]
 		};
+
+		// trying google chart
+		$scope.chartObject = {
+			type: "ComboChart",
+			displayed: true,
+			data: {
+				cols: [{
+					id: "month",
+					label: "Month",
+					type: "date",
+					p: {}
+				}, {
+					id: "total-stable-ul-id",
+					label: "Total Stable UL",
+					type: "number",
+					p: {}
+				}, {
+					id: "new-ul-id",
+					label: "New UL",
+					type: "number",
+					p: {}
+				}, {
+					id: "stable-sp-id",
+					label: "Stable SP",
+					type: "number",
+					p: {}
+				}, {
+					id: "new-sp-id",
+					label: "New SP",
+					type: "number"
+				}, {
+					id: "ul-retention-id",
+					label: "Uplifter Retention",
+					type: "number"
+				}],
+				rows: []
+			},
+			options: {
+				title: "Bloom Overview",
+				isStacked: "true",
+				fill: 20,
+				displayExactValues: true,
+				hAxis: {
+					"title": "Date",
+					"format": 'MMM-yy'
+				},
+				seriesType: 'bars',
+				series: {
+					1: {
+						type: 'bars',
+						targetAxisIndex: 0
+					},
+					2: {
+						type: 'bars',
+						targetAxisIndex: 0
+					},
+					3: {
+						type: 'bars',
+						targetAxisIndex: 0
+					},
+					0: {
+						type: 'bars',
+						targetAxisIndex: 0
+					},
+					4: {
+						type: 'line',
+						targetAxisIndex: 1
+					},
+					vAxes: {
+						0: {
+							"title": "Entrepreneur",
+							"gridlines": {
+								"count": 10
+							}
+						},
+						1: {
+							"title": "UL Retention",
+							"gridlines": {
+								"count": 10
+							}
+						}
+					}
+				},
+				width: 800,
+				height: 400
+
+			},
+			formatters: {}
+		}
+
+		for (var i in $scope.data) {
+			var row = {
+				c: []
+			};
+
+			row.c.push({
+				v: $scope.data[i].x
+			})
+			row.c.push({
+				v: $scope.data[i].val_0
+			})
+			row.c.push({
+				v: $scope.data[i].val_1
+			})
+			row.c.push({
+				v: $scope.data[i].val_2
+			})
+			row.c.push({
+				v: $scope.data[i].val_3
+			})
+			row.c.push({
+				v: $scope.data[i].val_4
+			})
+			$scope.chartObject.data.rows.push(row)
+		}
 	}
 ]);
 
@@ -357,7 +472,7 @@ function retriveAndDrawDataTable(url, page_num, page_size, $http, $scope, table)
 
 	// retrive data
 	$http.get(url).success(function(data) {
-		header_structure = [];
+		var header_structure = [];
 		for (var k in data.results[0]) {
 			header_structure.push({
 				"data": parseHeader(k)
