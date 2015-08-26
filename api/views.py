@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-08-20
+    Date last modified: 2015-08-26
     Python Version: 2.7.6
 '''
 
@@ -324,7 +324,7 @@ def generate_sp_product_sold_table_query(periods):
     select
     area ,stockpoint_name, product,\n"""
     query += query_part_2
-    query += """from projectbloom.sale as t)
+    query += """from projectbloom.sale  as t where area is not null and stockpoint_name is not null and product is not null)
     as t2
     group by area, stockpoint_name, product\n"""
 
@@ -354,7 +354,7 @@ def generate_ul_worked_days_query(periods):
     select
     area ,stockpoint_name, uplifter_name,\n"""
     query += query_part_2
-    query += """from projectbloom.sale as t)
+    query += """from projectbloom.sale as t where area is not null and stockpoint_name is not null and uplifter_name is not null and uplifter_name <> '')
     as t2
     group by area, stockpoint_name, uplifter_name\n"""
 
@@ -384,7 +384,7 @@ def generate_ul_income_query(periods):
     select
     area ,stockpoint_name, uplifter_name,\n"""
     query += query_part_2
-    query += """from projectbloom.sale as t)
+    query += """from projectbloom.sale as t where area is not null and stockpoint_name is not null and uplifter_name is not null and uplifter_name <> '')
     as t2
     group by area, stockpoint_name, uplifter_name\n"""
 
@@ -415,7 +415,7 @@ def generate_sp_income_query(periods):
     select
     area ,stockpoint_name,\n"""
     query += query_part_2
-    query += """from projectbloom.sale as t)
+    query += """from projectbloom.sale as t where area is not null and stockpoint_name is not null)
     as t2
     group by area, stockpoint_name\n"""
     

@@ -24,21 +24,21 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 		// google charts
 		var data = google.visualization.arrayToDataTable([
 			["Month", "Total Stable UL", "New UL", "Stable SP", "New SP"],
-			['2014/6/1', 0, 4, 0, 1],
-			['2014/7/1', 0, 5, 0, 1],
-			['2014/8/1', 3, 9, 1, 3],
-			['2014/9/1', 5, 16, 1, 4],
-			['2014/10/1', 12, 13, 4, 1],
-			['2014/11/1', 19, 5, 5, 0],
-			['2014/12/1', 22, 3, 5, 0],
-			['2015/1/1', 23, 6, 5, 0],
-			['2015/2/1', 23, 22, 5, 6],
-			['2015/3/1', 26, 59, 5, 13],
-			['2015/4/1', 30, 37, 10, 8],
-			['2015/5/1', 40, 26, 13, 4],
-			['2015/6/1', 49, 23, 12, 6],
-			['2015/7/1', 53, 52, 14, 15],
-			['2015/8/1', 60, 35, 17, 10]
+			[new Date('2014/6/1'), 0, 4, 0, 1],
+			[new Date('2014/7/1'), 0, 5, 0, 1],
+			[new Date('2014/8/1'), 3, 9, 1, 3],
+			[new Date('2014/9/1'), 5, 16, 1, 4],
+			[new Date('2014/10/1'), 12, 13, 4, 1],
+			[new Date('2014/11/1'), 19, 5, 5, 0],
+			[new Date('2014/12/1'), 22, 3, 5, 0],
+			[new Date('2015/1/1'), 23, 6, 5, 0],
+			[new Date('2015/2/1'), 23, 22, 5, 6],
+			[new Date('2015/3/1'), 26, 59, 5, 13],
+			[new Date('2015/4/1'), 30, 37, 10, 8],
+			[new Date('2015/5/1'), 40, 26, 13, 4],
+			[new Date('2015/6/1'), 49, 23, 12, 6],
+			[new Date('2015/7/1'), 53, 52, 14, 15],
+			[new Date('2015/8/1'), 60, 35, 17, 10]
 		]);
 		var options = {
 			title: "Bloom Overview",
@@ -47,7 +47,10 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 			displayExactValues: true,
 			hAxis: {
 				"title": "Date",
-				"format": 'MMM-yy'
+				"format": 'MMM-yy',
+				gridlines: {
+						"count": 15
+					}
 			},
 			seriesType: 'bars',
 			vAxis: {
@@ -68,21 +71,21 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 
 		var data2 = google.visualization.arrayToDataTable([
 			["Month", "Total Stable SP", "Dropped UL", "Retention UL"],
-			['2014/6/1', 0, 0, null],
-			['2014/7/1', 0, 0, null],
-			['2014/8/1', 3, 0, null],
-			['2014/9/1', 5, 0, null],
-			['2014/10/1', 12, 0, 1],
-			['2014/11/1', 19, 0, 1],
-			['2014/12/1', 22, 0, 1],
-			['2015/1/1', 23, -1, 0.94],
-			['2015/2/1', 23, -1, 0.94],
-			['2015/3/1', 26, -1, 0.93],
-			['2015/4/1', 30, -2, 0.90],
-			['2015/5/1', 40, -1, 0.97],
-			['2015/6/1', 49, 0, 1],
-			['2015/7/1', 53, -9, 0.8],
-			['2015/8/1', 60, -3, 0.94]
+			[new Date('2014/6/1'), 0, 0, null],
+			[new Date('2014/7/1'), 0, 0, null],
+			[new Date('2014/8/1'), 3, 0, null],
+			[new Date('2014/9/1'), 5, 0, null],
+			[new Date('2014/10/1'), 12, 0, 1],
+			[new Date('2014/11/1'), 19, 0, 1],
+			[new Date('2014/12/1'), 22, 0, 1],
+			[new Date('2015/1/1'), 23, -1, 0.94],
+			[new Date('2015/2/1'), 23, -1, 0.94],
+			[new Date('2015/3/1'), 26, -1, 0.93],
+			[new Date('2015/4/1'), 30, -2, 0.90],
+			[new Date('2015/5/1'), 40, -1, 0.97],
+			[new Date('2015/6/1'), 49, 0, 1],
+			[new Date('2015/7/1'), 53, -9, 0.8],
+			[new Date('2015/8/1'), 60, -3, 0.94]
 		]);
 
 		var options2 = {
@@ -92,7 +95,10 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 			displayExactValues: true,
 			hAxis: {
 				title: "Date",
-				format: 'MMM-yy'
+				format: 'MMM-yy',
+				gridlines: {
+						"count": 15
+					}
 			},
 			seriesType: 'bars',
 			series: {
@@ -385,15 +391,12 @@ var parseHeader = function(header, option) {
 	} else {
 		var start = new Date(header);
 
-		var monthNames = ["January", "February", "March", "April", "May", "June",
-			"July", "August", "September", "October", "November", "December"
-		];
 		if (option == "weekly") {
 			var end = new Date();
 			end.setDate(start.getDate() + 6);
 			return start.format('yyyy/mm/dd') + " To " + end.format('yyyy/mm/dd');
 		} else if (option == "monthly") {
-			return monthNames[start.getMonth()]
+			return start.format('mmm-yy')
 		}
 	}
 }
