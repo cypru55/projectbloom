@@ -2,7 +2,7 @@
     File name: serializers.py
     Author: Liu Tuo
     Date created: 2015-08-11
-    Date last modified: 2015-08-12
+    Date last modified: 2015-08-26
     Python Version: 2.7.6
 '''
 
@@ -16,7 +16,7 @@ class SaleSerializer(serializers.HyperlinkedModelSerializer):
 			'uplifter_name', 'work_profile', 'product', 'issued', 'returned', 'sold', 
 			'own_sts', 'used_for_retail', 'fiscal_year', 'quarter', 'period', 'week', 
 			'area', 'uplifter_profit', 'stockpoint_profit', 'hours_per_day', 'ul_days', 
-			'sp_days', 'temp')
+			'sp_days')
 
 class DeliverySerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:

@@ -2,7 +2,7 @@
     File name: models.py
     Author: Liu Tuo
     Date created: 2015-08-11
-    Date last modified: 2015-08-12
+    Date last modified: 2015-08-26
     Python Version: 2.7.6
 '''
 from django.db import models
@@ -14,7 +14,7 @@ class Sale(models.Model):
     stockpoint_id = models.IntegerField()
     stockpoint_name = models.CharField(max_length = 50)
     uplifter_id = models.IntegerField()
-    uplifter_name = models.CharField(max_length = 25)
+    uplifter_name = models.CharField(max_length = 50)
     work_profile = models.CharField(max_length = 25)
     product = models.CharField(max_length = 100)
     issued = models.DecimalField(max_digits=65, decimal_places=5)
@@ -32,7 +32,6 @@ class Sale(models.Model):
     hours_per_day = models.DecimalField(max_digits=10, decimal_places=1)
     ul_days = models.DecimalField(max_digits=10, decimal_places=5)
     sp_days = models.DecimalField(max_digits=10, decimal_places=5)
-    temp = models.IntegerField()
     class Meta:
        managed = False
        db_table = 'sale'

@@ -1,284 +1,131 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-08-25
+ * @Last Modified 2015-08-26
  */
 
 'use strict';
 
+// Bootstrap the angular app after google chart is loaded
+
+google.load('visualization', '1', {
+	packages: ['corechart']
+});
+
+google.setOnLoadCallback(function() {
+	angular.bootstrap(document.body, ['dashboardApp']);
+});
+
+// Define angular controllers
 var dashboardControllers = angular.module('dashboardControllers', []);
 
 dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 	function($scope, $http) {
-		var data = [{
-			x: '2014/6/1',
-			val_0: 0,
-			val_1: 4,
-			val_2: 0,
-			val_3: 1
-		}, {
-			x: '2014/7/1',
-			val_0: 0,
-			val_1: 5,
-			val_2: 0,
-			val_3: 1
-		}, {
-			x: '2014/8/1',
-			val_0: 3,
-			val_1: 9,
-			val_2: 1,
-			val_3: 3,
-		}, {
-			x: '2014/9/1',
-			val_0: 5,
-			val_1: 16,
-			val_2: 1,
-			val_3: 4,
-		}, {
-			x: '2014/10/1',
-			val_0: 12,
-			val_1: 13,
-			val_2: 4,
-			val_3: 1,
-			val_4: 1
-		}, {
-			x: '2014/11/1',
-			val_0: 15,
-			val_1: 5,
-			val_2: 5,
-			val_3: 0,
-			val_4: 1
-		}, {
-			x: '2014/12/1',
-			val_0: 22,
-			val_1: 3,
-			val_2: 5,
-			val_3: 0,
-			val_4: 1
-		}, {
-			x: '2015/1/1',
-			val_0: 23,
-			val_1: 6,
-			val_2: 5,
-			val_3: 0,
-			val_4: 0.94
-		}, {
-			x: '2015/2/1',
-			val_0: 23,
-			val_1: 22,
-			val_2: 5,
-			val_3: 6,
-			val_4: 0.94
-		}, {
-			x: '2015/3/1',
-			val_0: 26,
-			val_1: 59,
-			val_2: 5,
-			val_3: 13,
-			val_4: 0.93
-		}, {
-			x: '2015/4/1',
-			val_0: 30,
-			val_1: 37,
-			val_2: 10,
-			val_3: 8,
-			val_4: 0.90
-		}, {
-			x: '2015/5/1',
-			val_0: 40,
-			val_1: 26,
-			val_2: 13,
-			val_3: 4,
-			val_4: 0.97
-		}, {
-			x: '2015/6/1',
-			val_0: 49,
-			val_1: 23,
-			val_2: 12,
-			val_3: 6,
-			val_4: 1
-		}, {
-			x: '2015/7/1',
-			val_0: 53,
-			val_1: 52,
-			val_2: 14,
-			val_3: 15,
-			val_4: 0.8
-		}, {
-			x: '2015/8/1',
-			val_0: 60,
-			val_1: 35,
-			val_2: 17,
-			val_3: 10,
-			val_4: 0.94
-		}];
-
-		data.forEach(function(row) {
-			row.x = new Date(row.x);
-		});
-
-
-		// trying google chart
-		$scope.chartObject = {
-			type: "ColumnChart",
-			displayed: true,
-			data: {
-				cols: [{
-					id: "month",
-					label: "Month",
-					type: "date",
-					p: {}
-				}, {
-					id: "total-stable-ul-id",
-					label: "Total Stable UL",
-					type: "number",
-					p: {}
-				}, {
-					id: "new-ul-id",
-					label: "New UL",
-					type: "number",
-					p: {}
-				}, {
-					id: "stable-sp-id",
-					label: "Stable SP",
-					type: "number",
-					p: {}
-				}, {
-					id: "new-sp-id",
-					label: "New SP",
-					type: "number"
-				}],
-				rows: []
+		// google charts
+		var data = google.visualization.arrayToDataTable([
+			["Month", "Total Stable UL", "New UL", "Stable SP", "New SP"],
+			['2014/6/1', 0, 4, 0, 1],
+			['2014/7/1', 0, 5, 0, 1],
+			['2014/8/1', 3, 9, 1, 3],
+			['2014/9/1', 5, 16, 1, 4],
+			['2014/10/1', 12, 13, 4, 1],
+			['2014/11/1', 19, 5, 5, 0],
+			['2014/12/1', 22, 3, 5, 0],
+			['2015/1/1', 23, 6, 5, 0],
+			['2015/2/1', 23, 22, 5, 6],
+			['2015/3/1', 26, 59, 5, 13],
+			['2015/4/1', 30, 37, 10, 8],
+			['2015/5/1', 40, 26, 13, 4],
+			['2015/6/1', 49, 23, 12, 6],
+			['2015/7/1', 53, 52, 14, 15],
+			['2015/8/1', 60, 35, 17, 10]
+		]);
+		var options = {
+			title: "Bloom Overview",
+			isStacked: "true",
+			fill: 20,
+			displayExactValues: true,
+			hAxis: {
+				"title": "Date",
+				"format": 'MMM-yy'
 			},
-			options: {
-				title: "Bloom Overview",
-				isStacked: "true",
-				fill: 20,
-				displayExactValues: true,
-				hAxis: {
-					"title": "Date",
-					"format": 'MMM-yy'
+			seriesType: 'bars',
+			vAxis: {
+				title: "Entrepreneur",
+				gridlines: {
+					"count": 10
+				}
+			},
+			width: 800,
+			height: 400
+
+		}
+
+		var chart = new google.visualization.ColumnChart(document.getElementById('chart_div1'));
+
+		chart.draw(data, options);
+		// another chart
+
+		var data2 = google.visualization.arrayToDataTable([
+			["Month", "Total Stable SP", "Dropped UL", "Retention UL"],
+			['2014/6/1', 0, 0, null],
+			['2014/7/1', 0, 0, null],
+			['2014/8/1', 3, 0, null],
+			['2014/9/1', 5, 0, null],
+			['2014/10/1', 12, 0, 1],
+			['2014/11/1', 19, 0, 1],
+			['2014/12/1', 22, 0, 1],
+			['2015/1/1', 23, -1, 0.94],
+			['2015/2/1', 23, -1, 0.94],
+			['2015/3/1', 26, -1, 0.93],
+			['2015/4/1', 30, -2, 0.90],
+			['2015/5/1', 40, -1, 0.97],
+			['2015/6/1', 49, 0, 1],
+			['2015/7/1', 53, -9, 0.8],
+			['2015/8/1', 60, -3, 0.94]
+		]);
+
+		var options2 = {
+			title: "Uplifter Retention",
+			isStacked: "true",
+			fill: 20,
+			displayExactValues: true,
+			hAxis: {
+				title: "Date",
+				format: 'MMM-yy'
+			},
+			seriesType: 'bars',
+			series: {
+				2: {
+					type: 'line',
+					targetAxisIndex: 1
 				},
-				vAxis: {
-					title: "Entrepreneur",
+			},
+			interpolateNulls: true,
+			vAxes: {
+				0: {
+					title: "Stable Uplifter",
 					gridlines: {
 						"count": 10
 					}
 				},
-				width: 800,
-				height: 400
-
-			},
-			formatters: {}
-		}
-
-		for (var i in data) {
-			var row = {
-				c: []
-			};
-
-			row.c.push({
-				v: data[i].x
-			})
-			row.c.push({
-				v: data[i].val_0
-			})
-			row.c.push({
-				v: data[i].val_1
-			})
-			row.c.push({
-				v: data[i].val_2
-			})
-			row.c.push({
-				v: data[i].val_3
-			})
-			$scope.chartObject.data.rows.push(row)
-		}
-
-		$scope.chartObject1 = {
-			type: "ComboChart",
-			displayed: true,
-			data: {
-				cols: [{
-					id: "month",
-					label: "Month",
-					type: "date",
-					p: {}
-				}, {
-					id: "total-stable-ul-id",
-					label: "Total Stable UL",
-					type: "number",
-					p: {}
-				}, {
-					id: "droped-ul-id",
-					label: "Dropped UL",
-					type: "number",
-					p: {}
-				}, {
-					id: "ul-retention-id",
-					label: "Uplifter Retention",
-					type: "number"
-				}],
-				rows: []
-			},
-			options: {
-				title: "Bloom Overview",
-				isStacked: "true",
-				fill: 20,
-				displayExactValues: true,
-				hAxis: {
-					"title": "Date",
-					"format": 'MMM-yy'
-				},
-				seriesType: 'bars',
-				series: {
-					2: {
-						type: 'line',
-						targetAxisIndex: 1
+				1: {
+					title: "UL Retention",
+					gridlines: {
+						"count": 10
 					},
-				},
-				vAxes: {
-					0: {
-						title: "Stable Uplifter",
-						gridlines: {
-							"count": 10
-						}
-					},
-					1: {
-						title: "UL Retention",
-						gridlines: {
-							"count": 10
-						},
-						format: '#%',
-						maxValue: 1,
-						minValue: 0
-					}
-				},
-				width: 800,
-				height: 400
-
+					format: '#%',
+					maxValue: 1,
+					minValue: 0
+				}
 			},
-			formatters: {}
+			width: 800,
+			height: 400
 		}
-		for (var i in data) {
-			var row = {
-				c: []
-			};
+		var chart = new google.visualization.ColumnChart(document.getElementById('chart_div2'));
 
-			row.c.push({
-				v: data[i].x
-			})
-			row.c.push({
-				v: data[i].val_0
-			})
-			row.c.push({
-				v: (0 - Math.floor((Math.random() * 10) + 1))
-			})
-			row.c.push({
-				v: data[i].val_4
-			})
-			$scope.chartObject1.data.rows.push(row)
-		}
+		chart.draw(data2, options2);
+
 	}
 ]);
 

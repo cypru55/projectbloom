@@ -8,7 +8,6 @@
 
 var dashboardApp = angular.module('dashboardApp', [
   'ngRoute',
-  'googlechart',
   'dashboardControllers',
 ]);
 
