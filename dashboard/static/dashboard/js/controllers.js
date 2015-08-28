@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-08-26
+ * @Last Modified 2015-08-28
  */
 
 'use strict';
@@ -21,52 +21,82 @@ var dashboardControllers = angular.module('dashboardControllers', []);
 
 dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 	function($scope, $http) {
-		// google charts
-		var data = google.visualization.arrayToDataTable([
+		// retrieve data
+		var url = "../api/overview";
+		var data_array = [
 			["Month", "Total Stable UL", "New UL", "Stable SP", "New SP"],
-			[new Date('2014/6/1'), 0, 4, 0, 1],
-			[new Date('2014/7/1'), 0, 5, 0, 1],
-			[new Date('2014/8/1'), 3, 9, 1, 3],
-			[new Date('2014/9/1'), 5, 16, 1, 4],
-			[new Date('2014/10/1'), 12, 13, 4, 1],
-			[new Date('2014/11/1'), 19, 5, 5, 0],
-			[new Date('2014/12/1'), 22, 3, 5, 0],
-			[new Date('2015/1/1'), 23, 6, 5, 0],
-			[new Date('2015/2/1'), 23, 22, 5, 6],
-			[new Date('2015/3/1'), 26, 59, 5, 13],
-			[new Date('2015/4/1'), 30, 37, 10, 8],
-			[new Date('2015/5/1'), 40, 26, 13, 4],
-			[new Date('2015/6/1'), 49, 23, 12, 6],
-			[new Date('2015/7/1'), 53, 52, 14, 15],
-			[new Date('2015/8/1'), 60, 35, 17, 10]
-		]);
-		var options = {
-			title: "Bloom Overview",
-			isStacked: "true",
-			fill: 20,
-			displayExactValues: true,
-			hAxis: {
-				"title": "Date",
-				"format": 'MMM-yy',
-				gridlines: {
+			[new Date('2014/6/1'), null, null, null, null],
+			[new Date('2014/7/1'), null, null, null, null],
+			[new Date('2014/8/1'), null, null, null, null],
+			[new Date('2014/9/1'), null, null, null, null],
+			[new Date('2014/10/1'), null, null, null, null],
+			[new Date('2014/11/1'), null, null, null, null],
+			[new Date('2014/12/1'), null, null, null, null],
+			[new Date('2015/1/1'), null, null, null, null],
+			[new Date('2015/2/1'), null, null, null, null],
+			[new Date('2015/3/1'), null, null, null, null],
+			[new Date('2015/4/1'), null, null, null, null],
+			[new Date('2015/5/1'), null, null, null, null],
+			[new Date('2015/6/1'), null, null, null, null],
+			[new Date('2015/7/1'), null, null, null, null],
+			[new Date('2015/8/1'), null, null, null, null]
+		];
+		$http.get(url).success(function(data) {
+
+			for (var i in data['ul_overview']) {
+				var month = moment(data['ul_overview'][i]['month'], "MMM-YY");
+				var startDate = moment('2014/6/1');
+				var index = monthDiff(startDate, month) + 1;
+				if (data['ul_overview'][i]['status'] == 'EE') {
+					data_array[index][1] = data['ul_overview'][i]['count']
+				} else if (data['ul_overview'][i]['status'] == 'N') {
+					data_array[index][2] = data['ul_overview'][i]['count']
+				}
+			}
+
+			for (var i in data['sp_overview']) {
+				var month = moment(data['sp_overview'][i]['month'], "MMM-YY");
+				var startDate = moment('2014/6/1');
+				var index = monthDiff(startDate, month) + 1;
+				if (data['sp_overview'][i]['status'] == 'SP') {
+					data_array[index][3] = data['sp_overview'][i]['count']
+				} else if (data['sp_overview'][i]['status'] == 'N') {
+					data_array[index][4] = data['sp_overview'][i]['count']
+				}
+			}
+
+			// google charts
+			var data = google.visualization.arrayToDataTable(data_array);
+			var options = {
+				title: "Bloom Overview",
+				isStacked: "true",
+				fill: 20,
+				displayExactValues: true,
+				hAxis: {
+					"title": "Date",
+					"format": 'MMM-yy',
+					gridlines: {
 						"count": 15
 					}
-			},
-			seriesType: 'bars',
-			vAxis: {
-				title: "Entrepreneur",
-				gridlines: {
-					"count": 10
-				}
-			},
-			width: 800,
-			height: 400
+				},
+				seriesType: 'bars',
+				vAxis: {
+					title: "Entrepreneur",
+					gridlines: {
+						"count": 10
+					}
+				},
+				width: 800,
+				height: 400
 
-		}
+			}
 
-		var chart = new google.visualization.ColumnChart(document.getElementById('chart_div1'));
+			var chart = new google.visualization.ColumnChart(document.getElementById('chart_div1'));
+			chart.draw(data, options);
+		});
 
-		chart.draw(data, options);
+
+		
 		// another chart
 
 		var data2 = google.visualization.arrayToDataTable([
@@ -97,8 +127,8 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 				title: "Date",
 				format: 'MMM-yy',
 				gridlines: {
-						"count": 15
-					}
+					"count": 15
+				}
 			},
 			seriesType: 'bars',
 			series: {
@@ -197,11 +227,11 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 		var headers = []
 
 		// initialize date picker
-		var today = new Date();
-		var four_weeks_ago = new Date();
-		four_weeks_ago.setDate(today.getDate() - 27);
-		params['sd'] = four_weeks_ago.format('yyyy-mm-dd');
-		params['ed'] = today.format('yyyy-mm-dd');
+		var today = moment();
+		var four_weeks_ago = moment();
+		four_weeks_ago.subtract(27, 'days');
+		params['sd'] = four_weeks_ago.format('YYYY-MM-DD');
+		params['ed'] = today.format('YYYY-MM-DD');
 
 		$('.input-daterange').datepicker({
 			orientation: 'auto',
@@ -221,8 +251,8 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 			retriveAndDrawPivotTable(url, params, headers, $http, $scope);
 		});
 		// set default to 4 weeks agon to today
-		$('.input-daterange #date-picker-start').datepicker('update', four_weeks_ago);
-		$('.input-daterange #date-picker-end').datepicker('update', today);
+		$('.input-daterange #date-picker-start').datepicker('update', four_weeks_ago.toDate());
+		$('.input-daterange #date-picker-end').datepicker('update', today.toDate());
 
 		// configure the url according to pivot table type
 		switch ($routeParams['table_type']) {
@@ -389,14 +419,14 @@ var parseHeader = function(header, option) {
 		}
 		return result.trim();
 	} else {
-		var start = new Date(header);
+		var start = moment(header);
 
 		if (option == "weekly") {
-			var end = new Date();
-			end.setDate(start.getDate() + 6);
-			return start.format('yyyy/mm/dd') + " To " + end.format('yyyy/mm/dd');
+			var end = moment(header);
+			end.add(6, 'days');
+			return start.format('YYYY/MM/DD') + " To " + end.format('YYYY/MM/DD');
 		} else if (option == "monthly") {
-			return start.format('mmm-yy')
+			return start.format('MMM-YY')
 		}
 	}
 }
@@ -405,114 +435,11 @@ function capitalizeFirstLetter(string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-var dateFormat = function() {
-	var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
-		timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
-		timezoneClip = /[^-+\dA-Z]/g,
-		pad = function(val, len) {
-			val = String(val);
-			len = len || 2;
-			while (val.length < len) val = "0" + val;
-			return val;
-		};
-
-	// Regexes and supporting functions are cached through closure
-	return function(date, mask, utc) {
-		var dF = dateFormat;
-
-		// You can't provide utc if you skip other args (use the "UTC:" mask prefix)
-		if (arguments.length == 1 && Object.prototype.toString.call(date) == "[object String]" && !/\d/.test(date)) {
-			mask = date;
-			date = undefined;
-		}
-
-		// Passing date through Date applies Date.parse, if necessary
-		date = date ? new Date(date) : new Date;
-		if (isNaN(date)) throw SyntaxError("invalid date");
-
-		mask = String(dF.masks[mask] || mask || dF.masks["default"]);
-
-		// Allow setting the utc argument via the mask
-		if (mask.slice(0, 4) == "UTC:") {
-			mask = mask.slice(4);
-			utc = true;
-		}
-
-		var _ = utc ? "getUTC" : "get",
-			d = date[_ + "Date"](),
-			D = date[_ + "Day"](),
-			m = date[_ + "Month"](),
-			y = date[_ + "FullYear"](),
-			H = date[_ + "Hours"](),
-			M = date[_ + "Minutes"](),
-			s = date[_ + "Seconds"](),
-			L = date[_ + "Milliseconds"](),
-			o = utc ? 0 : date.getTimezoneOffset(),
-			flags = {
-				d: d,
-				dd: pad(d),
-				ddd: dF.i18n.dayNames[D],
-				dddd: dF.i18n.dayNames[D + 7],
-				m: m + 1,
-				mm: pad(m + 1),
-				mmm: dF.i18n.monthNames[m],
-				mmmm: dF.i18n.monthNames[m + 12],
-				yy: String(y).slice(2),
-				yyyy: y,
-				h: H % 12 || 12,
-				hh: pad(H % 12 || 12),
-				H: H,
-				HH: pad(H),
-				M: M,
-				MM: pad(M),
-				s: s,
-				ss: pad(s),
-				l: pad(L, 3),
-				L: pad(L > 99 ? Math.round(L / 10) : L),
-				t: H < 12 ? "a" : "p",
-				tt: H < 12 ? "am" : "pm",
-				T: H < 12 ? "A" : "P",
-				TT: H < 12 ? "AM" : "PM",
-				Z: utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
-				o: (o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
-				S: ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
-			};
-
-		return mask.replace(token, function($0) {
-			return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
-		});
-	};
-}();
-
-// Some common format strings
-dateFormat.masks = {
-	"default": "ddd mmm dd yyyy HH:MM:ss",
-	shortDate: "m/d/yy",
-	mediumDate: "mmm d, yyyy",
-	longDate: "mmmm d, yyyy",
-	fullDate: "dddd, mmmm d, yyyy",
-	shortTime: "h:MM TT",
-	mediumTime: "h:MM:ss TT",
-	longTime: "h:MM:ss TT Z",
-	isoDate: "yyyy-mm-dd",
-	isoTime: "HH:MM:ss",
-	isoDateTime: "yyyy-mm-dd'T'HH:MM:ss",
-	isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
-};
-
-// Internationalization strings
-dateFormat.i18n = {
-	dayNames: [
-		"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
-		"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
-	],
-	monthNames: [
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-		"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
-	]
-};
-
-// For convenience...
-Date.prototype.format = function(mask, utc) {
-	return dateFormat(this, mask, utc);
-};
+// helper function to calculate month difference, using moment
+function monthDiff(d1, d2) {
+	var months;
+	months = (d2.year() - d1.year()) * 12;
+	months -= d1.month() + 1;
+	months += d2.month();
+	return months <= 0 ? 0 : months;
+}
