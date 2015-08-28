@@ -2,7 +2,7 @@
     File name: models.py
     Author: Liu Tuo
     Date created: 2015-08-11
-    Date last modified: 2015-08-26
+    Date last modified: 2015-08-28
     Python Version: 2.7.6
 '''
 from django.db import models
@@ -74,6 +74,21 @@ class ProductMargin(models.Model):
     class Meta:
        managed = False
        db_table = 'product_margin'
+
+    def __str__(self):              # __unicode__ on Python 2
+        return self.name
+
+class EntrepreneurStatus(models.Model):
+    id = models.AutoField(primary_key=True)
+    entrepreneur_id = models.IntegerField()
+    name = models.CharField(max_length = 50)
+    type = models.CharField(max_length = 10)
+    month = models.CharField(max_length = 10)
+    status = models.CharField(max_length = 5)
+
+    class Meta:
+       managed = False
+       db_table = 'entrepreneur_status'
 
     def __str__(self):              # __unicode__ on Python 2
         return self.name

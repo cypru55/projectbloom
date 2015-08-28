@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-08-26
+    Date last modified: 2015-08-28
     Python Version: 2.7.6
 '''
 
@@ -18,8 +18,8 @@ from decimal import Decimal
 from rest_framework import viewsets, generics
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
-from api.serializers import SaleSerializer, DeliverySerializer, ProductMarginSerializer
-from api.models import Sale, Delivery, ProductMargin
+from api.serializers import SaleSerializer, DeliverySerializer, ProductMarginSerializer, EntrepreneurStatusSerializer
+from api.models import Sale, Delivery, ProductMargin, EntrepreneurStatus
 import json
 import datetime
 import calendar
@@ -65,6 +65,14 @@ class ProductMarginViewSet(generics.ListAPIView):
             queryset = queryset.filter(type='old')
         elif product_margin_type == 'lp4y':
             queryset = queryset.filter(type='lp4y')
+        return queryset
+
+class StatusViewSet(generics.ListAPIView):
+    serializer_class = EntrepreneurStatusSerializer
+    paginate_by_param = 'page_size'
+    http_method_names = ['get']
+    def get_queryset(self):
+        queryset = EntrepreneurStatus.objects.using('projectbloom_data').all().filter(type=self.kwargs['type'])
         return queryset
 
 # stockpoint product sold pivot table
@@ -194,6 +202,86 @@ def sp_income(request):
 
         return HttpResponse(json_str, content_type="application/json")
 
+# get project bloom overview data
+@login_required(login_url='/login/')
+def bloom_overview(request):
+    query1 = """
+        SELECT 
+        COUNT(*) as count, t2.month, t2.status
+        FROM
+            (SELECT 
+                t.month AS month,
+                    (CASE
+                        WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
+                        WHEN t.status = 'D1' OR t.status = 'DD1' THEN 'D'
+                        ELSE t.status
+                    END) AS status,
+                    t.type
+            FROM
+                entrepreneur_status AS t) AS t2
+        WHERE
+            (t2.type = 'TSPI_UL'
+                OR t2.type = 'LP4Y_UL')
+                AND t2.status IS NOT NULL
+                AND t2.status <> 'D2'
+                AND t2.status <> 'DD2'
+                AND t2.status <> 'NP1'
+                AND t2.status <> 'NP2'
+                AND t2.status <> 'NPP1'
+                AND t2.status <> 'NPP2'
+                AND t2.status <> 'EP1'
+                AND t2.status <> 'EP2'
+                AND t2.status <> 'EPP1'
+                AND t2.status <> 'EPP2'
+        GROUP BY t2.month , t2.status
+        ORDER BY STR_TO_DATE(t2.month, '%b-%y');
+    """
+
+    query2 = """
+        SELECT 
+            COUNT(*) as count, t2.month, t2.status
+        FROM
+            (SELECT 
+                t.month AS month,
+                    (CASE
+                        WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
+                        WHEN t.status = 'NP1' OR t.status = 'NP2' THEN 'NP'
+                        ELSE t.status
+                    END) AS status,
+                    t.type
+            FROM
+                entrepreneur_status AS t) AS t2
+        WHERE
+            (t2.type = 'TSPI_SP'
+                OR t2.type = 'LP4Y_SP')
+                AND t2.status IS NOT NULL
+                AND t2.status <> 'D2'
+                AND t2.status <> 'NP'
+        GROUP BY t2.month , t2.status
+        ORDER BY STR_TO_DATE(t2.month, '%b-%y');
+    """
+
+    # execute the queries  
+    result = {}
+    result["ul_overview"] = execute_query(query1)
+    result["sp_overview"] = execute_query(query2)
+
+    json_str = json.dumps(result, default=defaultencode)
+    return HttpResponse(json_str, content_type="application/json")
+
+# helper function to executing custom query
+def execute_query(query):
+    cursor = connections['projectbloom_data'].cursor()
+    cursor.execute(query)
+    desc = cursor.description
+    row = [
+            dict(zip([col[0] for col in desc], row))
+
+            for row in cursor.fetchall()
+            ]
+    cursor.close()
+
+    return row
 # parse the date into period
 def parse_date_to_period(request):
     # read the start date and end date
@@ -418,7 +506,7 @@ def generate_sp_income_query(periods):
     query += """from projectbloom.sale as t where area is not null and stockpoint_name is not null)
     as t2
     group by area, stockpoint_name\n"""
-    
+
     return (query, col_name)
 
 class JSONResponse(HttpResponse):

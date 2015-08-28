@@ -2,12 +2,12 @@
     File name: serializers.py
     Author: Liu Tuo
     Date created: 2015-08-11
-    Date last modified: 2015-08-26
+    Date last modified: 2015-08-28
     Python Version: 2.7.6
 '''
 
 from rest_framework import serializers
-from api.models import Sale, Delivery, ProductMargin
+from api.models import Sale, Delivery, ProductMargin, EntrepreneurStatus
 
 class SaleSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
@@ -29,3 +29,8 @@ class ProductMarginSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = ProductMargin
 		fields = ('product', 'uplifter_margin', 'wholesale_margin', 'sts_margin', 'retail_margin', 'type')
+
+class EntrepreneurStatusSerializer(serializers.HyperlinkedModelSerializer):
+	class Meta:
+		model = EntrepreneurStatus
+		fields = ('entrepreneur_id', 'name', 'type', 'month', 'status')
