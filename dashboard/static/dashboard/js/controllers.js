@@ -15,6 +15,56 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 		var url = "../api/overview";
 
 		$http.get(url).success(function(data) {
+			//parse ajax data to data array
+			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+			var now = moment();
+			now.add(2, 'months');
+			var data_array = [];
+			while (monthDiff(startDate, now) != 0) {
+				data_array.push(
+					[new Date(startDate.format('YYYY-MM-DD')) //0 months
+						, 0 //1 total stable ul
+						, 0 //2 new ul
+						, 0 //3 dropped ul
+						, 0 //4 stable sp
+						, 0 //5 new sp
+						, 0 //6 dropped sp
+					]
+				);
+
+				startDate.add(1, 'months');
+			}
+
+			// parse data from ajax for first chart, all original
+			for (var i in data['ul_overview']) {
+				var month = moment(data['ul_overview'][i]['month'], "MMM-YY");
+				var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+				var index = monthDiff(startDate, month);
+				if (data['ul_overview'][i]['status'] == 'EE') {
+					data_array[index][1] = data['ul_overview'][i]['count']
+
+				} else if (data['ul_overview'][i]['status'] == 'N') {
+					data_array[index][2] = data['ul_overview'][i]['count']
+				} else if (data['ul_overview'][i]['status'] == 'D') {
+					data_array[index][3] = data['ul_overview'][i]['count']
+				}
+			}
+
+			for (var i in data['sp_overview']) {
+				var month = moment(data['sp_overview'][i]['month'], "MMM-YY");
+				var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+				var index = monthDiff(startDate, month);
+				if (data['sp_overview'][i]['status'] == 'SP') {
+					data_array[index][4] = data['sp_overview'][i]['count']
+				} else if (data['sp_overview'][i]['status'] == 'N') {
+					data_array[index][5] = data['sp_overview'][i]['count']
+				} else if (data['sp_overview'][i]['status'] == 'D1') {
+					data_array[index][6] = data['sp_overview'][i]['count']
+				}
+			}
+
+			console.log(data_array)
+
 			// initialize options and data structure
 			$scope.chartObject = {
 				type: "ColumnChart",
@@ -72,117 +122,246 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 				}],
 				rows: []
 			}
-			
 
-			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
-			var now = moment();
-			now.add(1, 'months');
-			var rows = [];
-			while (monthDiff(startDate, now) != 0) {
-				rows.push({
-					c: [{v:new Date(startDate.format('YYYY-MM-DD'))}, {v:0}, {v:0}, {v:0}, {v:0}]
-				});
 
-				startDate.add(1, 'months');
+			for (var i in data_array) {
+				chart_data.rows.push({
+					c: [{
+						v: data_array[i][0]
+					}, {
+						v: data_array[i][1]
+					}, {
+						v: data_array[i][2]
+					}, {
+						v: data_array[i][4]
+					}, {
+						v: data_array[i][5]
+					}, ]
+				})
 			}
 
-			// parse data from ajax
-			for (var i in data['ul_overview']) {
-				var month = moment(data['ul_overview'][i]['month'], "MMM-YY");
-				var startDate = moment('2014/6/1', 'YYYY-MM-DD');
-				var index = monthDiff(startDate, month);
-				if (data['ul_overview'][i]['status'] == 'EE') {
-					rows[index].c[1].v = data['ul_overview'][i]['count']
 
-				} else if (data['ul_overview'][i]['status'] == 'N') {
-					rows[index].c[2].v = data['ul_overview'][i]['count']
-				}
-			}
-
-			for (var i in data['sp_overview']) {
-				var month = moment(data['sp_overview'][i]['month'], "MMM-YY");
-				var startDate = moment('2014/6/1', 'YYYY-MM-DD');
-				var index = monthDiff(startDate, month);
-				if (data['sp_overview'][i]['status'] == 'SP') {
-					rows[index].c[3].v = data['sp_overview'][i]['count']
-				} else if (data['sp_overview'][i]['status'] == 'N') {
-					rows[index].c[4].v = data['sp_overview'][i]['count']
-				}
-			}
-
-			// update scope variable
-			chart_data.rows = rows;
+			// update scope variable for first chart
 
 			$scope.chartObject.data = chart_data;
 			$scope.chartObject.options = options;
+
+
+			// initialize the data structure for chart 2
+			$scope.chartObject2 = {
+				type: "ComboChart",
+				displayed: true,
+				formatter: {}
+			}
+
+			var chart_data2 = {
+				cols: [{
+					id: "month",
+					label: "Month",
+					type: "date",
+					p: {}
+				}, {
+					id: "total-stable-ul-id",
+					label: "Total Stable UL",
+					type: "number",
+					p: {}
+				}, {
+					id: "dropped-ul-id",
+					label: "Dropped UL",
+					type: "number",
+					p: {}
+				}, {
+					id: "retention-ul-id",
+					label: "Retention UL",
+					type: "number",
+					p: {}
+				}],
+				rows: []
+			}
+
+
+			for (var i in data_array) {
+				if (i != 0 && data_array[i - 1][1] != 0) {
+					chart_data2.rows.push({
+						c: [{
+							v: data_array[i][0]
+						}, {
+							v: data_array[i][1]
+						}, {
+							v: -data_array[i][3]
+						}, {
+							v: (data_array[i - 1][1] - data_array[i][3]) / data_array[i - 1][1]
+						}]
+					})
+				} else {
+					chart_data2.rows.push({
+						c: [{
+							v: data_array[i][0]
+						}, {
+							v: data_array[i][1]
+						}, {
+							v: -data_array[i][3]
+						}, {
+							v: null
+						}]
+					})
+				}
+
+			}
+
+			var options2 = {
+				title: "Uplifter Retention",
+				isStacked: "true",
+				fill: 20,
+				displayExactValues: true,
+				hAxis: {
+					title: "Date",
+					format: 'MMM-yy',
+					gridlines: {
+						"count": 15
+					}
+				},
+				seriesType: 'bars',
+				series: {
+					2: {
+						type: 'line',
+						targetAxisIndex: 1
+					},
+				},
+				interpolateNulls: true,
+				vAxes: {
+					0: {
+						title: "Stable Uplifter",
+						gridlines: {
+							"count": 10
+						}
+					},
+					1: {
+						title: "UL Retention",
+						gridlines: {
+							"count": 10
+						},
+						format: '#%',
+						maxValue: 1,
+						minValue: 0
+					}
+				},
+				width: 800,
+				height: 400
+			}
+
+			// update scope variable for first chart
+
+			$scope.chartObject2.data = chart_data2;
+			$scope.chartObject2.options = options2;
+
+			// initialize data for chart 3
+			$scope.chartObject3 = {
+				type: "ComboChart",
+				displayed: true,
+				formatter: {}
+			}
+
+			var chart_data3 = {
+				cols: [{
+					id: "month",
+					label: "Month",
+					type: "date",
+					p: {}
+				}, {
+					id: "total-stable-sp-id",
+					label: "Total Stable SP",
+					type: "number",
+					p: {}
+				}, {
+					id: "dropped-sp-id",
+					label: "Dropped SP",
+					type: "number",
+					p: {}
+				}, {
+					id: "retention-ul-id",
+					label: "Retention SP",
+					type: "number",
+					p: {}
+				}],
+				rows: []
+			}
+
+			for (var i in data_array) {
+				if (i != 0 && data_array[i - 1][4] != 0) {
+					chart_data3.rows.push({
+						c: [{
+							v: data_array[i][0]
+						}, {
+							v: data_array[i][4]
+						}, {
+							v: -data_array[i][6]
+						}, {
+							v: (data_array[i - 1][4] - data_array[i][6]) / data_array[i - 1][4]
+						}]
+					})
+				} else {
+					chart_data3.rows.push({
+						c: [{
+							v: data_array[i][0]
+						}, {
+							v: data_array[i][4]
+						}, {
+							v: -data_array[i][6]
+						}, {
+							v: null
+						}]
+					})
+				}
+
+			}
+
+			var options3 = {
+				title: "Stockpoint Retention",
+				isStacked: "true",
+				fill: 20,
+				displayExactValues: true,
+				hAxis: {
+					title: "Date",
+					format: 'MMM-yy',
+					gridlines: {
+						"count": 15
+					}
+				},
+				seriesType: 'bars',
+				series: {
+					2: {
+						type: 'line',
+						targetAxisIndex: 1
+					},
+				},
+				interpolateNulls: true,
+				vAxes: {
+					0: {
+						title: "Stable Stockpoint",
+						gridlines: {
+							"count": 10
+						}
+					},
+					1: {
+						title: "SP Retention",
+						gridlines: {
+							"count": 10
+						},
+						format: '#%',
+						maxValue: 1,
+						minValue: 0
+					}
+				},
+				width: 800,
+				height: 400
+			}
+
+			// update scope variable for first chart
+
+			$scope.chartObject3.data = chart_data3;
+			$scope.chartObject3.options = options3;
 		});
-
-
-
-		// another chart
-
-		// var data2 = google.visualization.arrayToDataTable([
-		// 	["Month", "Total Stable SP", "Dropped UL", "Retention UL"],
-		// 	[new Date('2014/6/1'), 0, 0, null],
-		// 	[new Date('2014/7/1'), 0, 0, null],
-		// 	[new Date('2014/8/1'), 3, 0, null],
-		// 	[new Date('2014/9/1'), 5, 0, null],
-		// 	[new Date('2014/10/1'), 12, 0, 1],
-		// 	[new Date('2014/11/1'), 19, 0, 1],
-		// 	[new Date('2014/12/1'), 22, 0, 1],
-		// 	[new Date('2015/1/1'), 23, -1, 0.94],
-		// 	[new Date('2015/2/1'), 23, -1, 0.94],
-		// 	[new Date('2015/3/1'), 26, -1, 0.93],
-		// 	[new Date('2015/4/1'), 30, -2, 0.90],
-		// 	[new Date('2015/5/1'), 40, -1, 0.97],
-		// 	[new Date('2015/6/1'), 49, 0, 1],
-		// 	[new Date('2015/7/1'), 53, -9, 0.8],
-		// 	[new Date('2015/8/1'), 60, -3, 0.94]
-		// ]);
-
-		// var options2 = {
-		// 	title: "Uplifter Retention",
-		// 	isStacked: "true",
-		// 	fill: 20,
-		// 	displayExactValues: true,
-		// 	hAxis: {
-		// 		title: "Date",
-		// 		format: 'MMM-yy',
-		// 		gridlines: {
-		// 			"count": 15
-		// 		}
-		// 	},
-		// 	seriesType: 'bars',
-		// 	series: {
-		// 		2: {
-		// 			type: 'line',
-		// 			targetAxisIndex: 1
-		// 		},
-		// 	},
-		// 	interpolateNulls: true,
-		// 	vAxes: {
-		// 		0: {
-		// 			title: "Stable Uplifter",
-		// 			gridlines: {
-		// 				"count": 10
-		// 			}
-		// 		},
-		// 		1: {
-		// 			title: "UL Retention",
-		// 			gridlines: {
-		// 				"count": 10
-		// 			},
-		// 			format: '#%',
-		// 			maxValue: 1,
-		// 			minValue: 0
-		// 		}
-		// 	},
-		// 	width: 800,
-		// 	height: 400
-		// }
-		// var chart = new google.visualization.ColumnChart(document.getElementById('chart_div2'));
-
-		// chart.draw(data2, options2);
 
 	}
 ]);
@@ -218,7 +397,7 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 		$('#product-margin-type-list').click(function(event) {
 			var type = event.target.getAttribute("value");
 			url = "../api/product_margin/" + type;
-			$scope.type = '- '+type;
+			$scope.type = '- ' + type;
 			retriveAndDrawDataTable(url, 1, 10, $http, $scope, $('#data-table-paginator'));
 		});
 
