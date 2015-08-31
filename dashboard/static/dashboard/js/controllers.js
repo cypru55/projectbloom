@@ -1,20 +1,10 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-08-28
+ * @Last Modified 2015-08-31
  */
 
 'use strict';
-
-// Bootstrap the angular app after google chart is loaded
-
-google.load('visualization', '1', {
-	packages: ['corechart']
-});
-
-google.setOnLoadCallback(function() {
-	angular.bootstrap(document.body, ['dashboardApp']);
-});
 
 // Define angular controllers
 var dashboardControllers = angular.module('dashboardControllers', []);
@@ -23,50 +13,14 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 	function($scope, $http) {
 		// retrieve data
 		var url = "../api/overview";
-		var data_array = [
-			["Month", "Total Stable UL", "New UL", "Stable SP", "New SP"],
-			[new Date('2014/6/1'), null, null, null, null],
-			[new Date('2014/7/1'), null, null, null, null],
-			[new Date('2014/8/1'), null, null, null, null],
-			[new Date('2014/9/1'), null, null, null, null],
-			[new Date('2014/10/1'), null, null, null, null],
-			[new Date('2014/11/1'), null, null, null, null],
-			[new Date('2014/12/1'), null, null, null, null],
-			[new Date('2015/1/1'), null, null, null, null],
-			[new Date('2015/2/1'), null, null, null, null],
-			[new Date('2015/3/1'), null, null, null, null],
-			[new Date('2015/4/1'), null, null, null, null],
-			[new Date('2015/5/1'), null, null, null, null],
-			[new Date('2015/6/1'), null, null, null, null],
-			[new Date('2015/7/1'), null, null, null, null],
-			[new Date('2015/8/1'), null, null, null, null]
-		];
+
 		$http.get(url).success(function(data) {
-
-			for (var i in data['ul_overview']) {
-				var month = moment(data['ul_overview'][i]['month'], "MMM-YY");
-				var startDate = moment('2014/6/1');
-				var index = monthDiff(startDate, month) + 1;
-				if (data['ul_overview'][i]['status'] == 'EE') {
-					data_array[index][1] = data['ul_overview'][i]['count']
-				} else if (data['ul_overview'][i]['status'] == 'N') {
-					data_array[index][2] = data['ul_overview'][i]['count']
-				}
+			// initialize options and data structure
+			$scope.chartObject = {
+				type: "ColumnChart",
+				displayed: true,
+				formatter: {}
 			}
-
-			for (var i in data['sp_overview']) {
-				var month = moment(data['sp_overview'][i]['month'], "MMM-YY");
-				var startDate = moment('2014/6/1');
-				var index = monthDiff(startDate, month) + 1;
-				if (data['sp_overview'][i]['status'] == 'SP') {
-					data_array[index][3] = data['sp_overview'][i]['count']
-				} else if (data['sp_overview'][i]['status'] == 'N') {
-					data_array[index][4] = data['sp_overview'][i]['count']
-				}
-			}
-
-			// google charts
-			var data = google.visualization.arrayToDataTable(data_array);
 			var options = {
 				title: "Bloom Overview",
 				isStacked: "true",
@@ -90,77 +44,145 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 				height: 400
 
 			}
+			var chart_data = {
+				cols: [{
+					id: "month",
+					label: "Month",
+					type: "date",
+					p: {}
+				}, {
+					id: "total-stable-ul-id",
+					label: "Total Stable UL",
+					type: "number",
+					p: {}
+				}, {
+					id: "new-ul-id",
+					label: "New UL",
+					type: "number",
+					p: {}
+				}, {
+					id: "stable-sp-id",
+					label: "Stable SP",
+					type: "number",
+					p: {}
+				}, {
+					id: "new-sp-id",
+					label: "New SP",
+					type: "number"
+				}],
+				rows: []
+			}
+			
 
-			var chart = new google.visualization.ColumnChart(document.getElementById('chart_div1'));
-			chart.draw(data, options);
+			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+			var now = moment();
+			now.add(1, 'months');
+			var rows = [];
+			while (monthDiff(startDate, now) != 0) {
+				rows.push({
+					c: [{v:new Date(startDate.format('YYYY-MM-DD'))}, {v:0}, {v:0}, {v:0}, {v:0}]
+				});
+
+				startDate.add(1, 'months');
+			}
+
+			// parse data from ajax
+			for (var i in data['ul_overview']) {
+				var month = moment(data['ul_overview'][i]['month'], "MMM-YY");
+				var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+				var index = monthDiff(startDate, month);
+				if (data['ul_overview'][i]['status'] == 'EE') {
+					rows[index].c[1].v = data['ul_overview'][i]['count']
+
+				} else if (data['ul_overview'][i]['status'] == 'N') {
+					rows[index].c[2].v = data['ul_overview'][i]['count']
+				}
+			}
+
+			for (var i in data['sp_overview']) {
+				var month = moment(data['sp_overview'][i]['month'], "MMM-YY");
+				var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+				var index = monthDiff(startDate, month);
+				if (data['sp_overview'][i]['status'] == 'SP') {
+					rows[index].c[3].v = data['sp_overview'][i]['count']
+				} else if (data['sp_overview'][i]['status'] == 'N') {
+					rows[index].c[4].v = data['sp_overview'][i]['count']
+				}
+			}
+
+			// update scope variable
+			chart_data.rows = rows;
+
+			$scope.chartObject.data = chart_data;
+			$scope.chartObject.options = options;
 		});
 
 
-		
+
 		// another chart
 
-		var data2 = google.visualization.arrayToDataTable([
-			["Month", "Total Stable SP", "Dropped UL", "Retention UL"],
-			[new Date('2014/6/1'), 0, 0, null],
-			[new Date('2014/7/1'), 0, 0, null],
-			[new Date('2014/8/1'), 3, 0, null],
-			[new Date('2014/9/1'), 5, 0, null],
-			[new Date('2014/10/1'), 12, 0, 1],
-			[new Date('2014/11/1'), 19, 0, 1],
-			[new Date('2014/12/1'), 22, 0, 1],
-			[new Date('2015/1/1'), 23, -1, 0.94],
-			[new Date('2015/2/1'), 23, -1, 0.94],
-			[new Date('2015/3/1'), 26, -1, 0.93],
-			[new Date('2015/4/1'), 30, -2, 0.90],
-			[new Date('2015/5/1'), 40, -1, 0.97],
-			[new Date('2015/6/1'), 49, 0, 1],
-			[new Date('2015/7/1'), 53, -9, 0.8],
-			[new Date('2015/8/1'), 60, -3, 0.94]
-		]);
+		// var data2 = google.visualization.arrayToDataTable([
+		// 	["Month", "Total Stable SP", "Dropped UL", "Retention UL"],
+		// 	[new Date('2014/6/1'), 0, 0, null],
+		// 	[new Date('2014/7/1'), 0, 0, null],
+		// 	[new Date('2014/8/1'), 3, 0, null],
+		// 	[new Date('2014/9/1'), 5, 0, null],
+		// 	[new Date('2014/10/1'), 12, 0, 1],
+		// 	[new Date('2014/11/1'), 19, 0, 1],
+		// 	[new Date('2014/12/1'), 22, 0, 1],
+		// 	[new Date('2015/1/1'), 23, -1, 0.94],
+		// 	[new Date('2015/2/1'), 23, -1, 0.94],
+		// 	[new Date('2015/3/1'), 26, -1, 0.93],
+		// 	[new Date('2015/4/1'), 30, -2, 0.90],
+		// 	[new Date('2015/5/1'), 40, -1, 0.97],
+		// 	[new Date('2015/6/1'), 49, 0, 1],
+		// 	[new Date('2015/7/1'), 53, -9, 0.8],
+		// 	[new Date('2015/8/1'), 60, -3, 0.94]
+		// ]);
 
-		var options2 = {
-			title: "Uplifter Retention",
-			isStacked: "true",
-			fill: 20,
-			displayExactValues: true,
-			hAxis: {
-				title: "Date",
-				format: 'MMM-yy',
-				gridlines: {
-					"count": 15
-				}
-			},
-			seriesType: 'bars',
-			series: {
-				2: {
-					type: 'line',
-					targetAxisIndex: 1
-				},
-			},
-			interpolateNulls: true,
-			vAxes: {
-				0: {
-					title: "Stable Uplifter",
-					gridlines: {
-						"count": 10
-					}
-				},
-				1: {
-					title: "UL Retention",
-					gridlines: {
-						"count": 10
-					},
-					format: '#%',
-					maxValue: 1,
-					minValue: 0
-				}
-			},
-			width: 800,
-			height: 400
-		}
-		var chart = new google.visualization.ColumnChart(document.getElementById('chart_div2'));
+		// var options2 = {
+		// 	title: "Uplifter Retention",
+		// 	isStacked: "true",
+		// 	fill: 20,
+		// 	displayExactValues: true,
+		// 	hAxis: {
+		// 		title: "Date",
+		// 		format: 'MMM-yy',
+		// 		gridlines: {
+		// 			"count": 15
+		// 		}
+		// 	},
+		// 	seriesType: 'bars',
+		// 	series: {
+		// 		2: {
+		// 			type: 'line',
+		// 			targetAxisIndex: 1
+		// 		},
+		// 	},
+		// 	interpolateNulls: true,
+		// 	vAxes: {
+		// 		0: {
+		// 			title: "Stable Uplifter",
+		// 			gridlines: {
+		// 				"count": 10
+		// 			}
+		// 		},
+		// 		1: {
+		// 			title: "UL Retention",
+		// 			gridlines: {
+		// 				"count": 10
+		// 			},
+		// 			format: '#%',
+		// 			maxValue: 1,
+		// 			minValue: 0
+		// 		}
+		// 	},
+		// 	width: 800,
+		// 	height: 400
+		// }
+		// var chart = new google.visualization.ColumnChart(document.getElementById('chart_div2'));
 
-		chart.draw(data2, options2);
+		// chart.draw(data2, options2);
 
 	}
 ]);

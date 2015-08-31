@@ -3,7 +3,7 @@
 {% load staticfiles %}
 
 {% block content %}
- <body>
+ <body ng-app="dashboardApp">
 
     <div id="wrapper">
 
@@ -321,9 +321,6 @@
 {% endblock extrastyles %}
 
 {% block extrascripts %}
-    <!-- Google JavaScript API -->
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-
     <!-- JavaScript For Angular JS  -->
     <script src="{% static 'bower_components/angular/angular.min.js' %}"></script>
 
@@ -332,6 +329,9 @@
     <!--<script src="{% static 'bower_components/angular-resource/angular-resource.min.js' %}"></script>
 
     <script src="{% static 'bower_components/angular-animate/angular-animate.min.js' %}"></script>-->
+
+    <!-- Angular Google Charts -->
+    <script src="{% static 'bower_components/angular-google-chart/ng-google-chart.js' %}"></script>
 
     <!-- JavaScript For Moment -->
     <script src="{% static 'bower_components/moment/min/moment.min.js' %}"></script>
