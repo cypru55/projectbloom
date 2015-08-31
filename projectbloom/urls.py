@@ -24,6 +24,8 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 	url(r'^api/', include('api.urls')),
     url(r'^login/$', projectbloom_views.login_user),
+    url(r'^logout/$', 'django.contrib.auth.views.logout',
+                          {'next_page': '/login/'}),
     url(r'^admin/', include(admin.site.urls)),
 
 ]

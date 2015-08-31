@@ -193,13 +193,14 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 		var url;
 		if ($routeParams.data_type == 'sale') {
 			$scope.title = 'Sale Table'
+			$scope.type = "";
 			url = '../api/' + $routeParams.data_type;
 			$('#product-margin-type-selector').hide();
 
 		} else if ($routeParams.data_type == 'product_margin') {
 			$scope.title = 'Product Margin Table'
 			url = '../api/' + $routeParams.data_type + '/latest';
-			$scope.type = 'latest';
+			$scope.type = '- latest';
 			$('#product-margin-type-selector').show();
 
 
@@ -207,6 +208,7 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 
 		} else if ($routeParams.data_type == 'delivery') {
 			$scope.title = 'Delivery Table'
+			$scope.type = "";
 			url = '../api/' + $routeParams.data_type;
 			$('#product-margin-type-selector').hide();
 
@@ -216,7 +218,7 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 		$('#product-margin-type-list').click(function(event) {
 			var type = event.target.getAttribute("value");
 			url = "../api/product_margin/" + type;
-			$scope.type = type;
+			$scope.type = '- '+type;
 			retriveAndDrawDataTable(url, 1, 10, $http, $scope, $('#data-table-paginator'));
 		});
 

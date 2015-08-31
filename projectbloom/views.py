@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Author: archer
 # @Date:   2015-08-03 17:37:19
-# @Last Modified 2015-08-12
+# @Last Modified 2015-08-31
 
 
 from django.http import *
@@ -29,3 +29,7 @@ def login_user(request):
                 login(request, user)
                 return HttpResponseRedirect('/')
     return render_to_response('projectbloom/login.html', context_instance=RequestContext(request))
+
+def logout_view(request):
+    logout(request)
+    # Redirect to a success page.
