@@ -293,7 +293,7 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 					type: "number",
 					p: {}
 				}, {
-					id: "retention-ul-id",
+					id: "retention-sp-id",
 					label: "Retention SP",
 					type: "number",
 					p: {}
@@ -302,7 +302,7 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 			}
 
 			for (var i in data_array) {
-				if (i != 0 && data_array[i - 1][4] != 0) {
+				if (i != 0 && data_array[i - 1][4] > 1) {
 					chart_data3.rows.push({
 						c: [{
 							v: data_array[i][0]
@@ -311,7 +311,7 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 						}, {
 							v: -data_array[i][6]
 						}, {
-							v: (data_array[i - 1][4] - data_array[i][6]) / data_array[i - 1][4]
+							v: (data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)
 						}]
 					})
 				} else {
