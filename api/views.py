@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-08-28
+    Date last modified: 2015-08-31
     Python Version: 2.7.6
 '''
 
@@ -260,11 +260,41 @@ def bloom_overview(request):
         GROUP BY t2.month , t2.status
         ORDER BY STR_TO_DATE(t2.month, '%b-%y');
     """
-
+    query3 = """
+    SELECT 
+        COUNT(*) as count, t2.month, t2.status
+        FROM
+            (SELECT 
+                t.month AS month,
+                    (CASE
+                        WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
+                        WHEN t.status = 'D1' OR t.status = 'DD1' THEN 'D'
+                        ELSE t.status
+                    END) AS status,
+                    t.type
+            FROM
+                entrepreneur_status AS t) AS t2
+        WHERE
+                t2.type = 'TSPI_UL'
+                AND t2.status IS NOT NULL
+                AND t2.status <> 'D2'
+                AND t2.status <> 'DD2'
+                AND t2.status <> 'NP1'
+                AND t2.status <> 'NP2'
+                AND t2.status <> 'NPP1'
+                AND t2.status <> 'NPP2'
+                AND t2.status <> 'EP1'
+                AND t2.status <> 'EP2'
+                AND t2.status <> 'EPP1'
+                AND t2.status <> 'EPP2'
+        GROUP BY t2.month , t2.status
+        ORDER BY STR_TO_DATE(t2.month, '%b-%y');
+    """
     # execute the queries  
     result = {}
     result["ul_overview"] = execute_query(query1)
     result["sp_overview"] = execute_query(query2)
+    result["ul_without_lp4y_overview"] = execute_query(query3)
 
     json_str = json.dumps(result, default=defaultencode)
     return HttpResponse(json_str, content_type="application/json")

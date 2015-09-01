@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-08-31
+ * @Last Modified 2015-09-01
  */
 
 'use strict';
@@ -29,6 +29,9 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 						, 0 //4 stable sp
 						, 0 //5 new sp
 						, 0 //6 dropped sp
+						, 0 //7 total stable ul without lp4y
+						, 0 //8 new ul without lp4y
+						, 0 //9 dropped ul without lp4y
 					]
 				);
 
@@ -63,10 +66,22 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 				}
 			}
 
-			console.log(data_array)
+			for (var i in data['ul_without_lp4y_overview']) {
+				var month = moment(data['ul_without_lp4y_overview'][i]['month'], "MMM-YY");
+				var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+				var index = monthDiff(startDate, month);
+				if (data['ul_without_lp4y_overview'][i]['status'] == 'EE') {
+					data_array[index][7] = data['ul_without_lp4y_overview'][i]['count']
+				} else if (data['ul_without_lp4y_overview'][i]['status'] == 'N') {
+					data_array[index][8] = data['ul_without_lp4y_overview'][i]['count']
+				} else if (data['ul_without_lp4y_overview'][i]['status'] == 'D') {
+					data_array[index][9] = data['ul_without_lp4y_overview'][i]['count']
+				}
+			}
 
-			// initialize options and data structure
-			$scope.chartObject = {
+
+			// initialize options and data structure, bloom project overview
+			$scope.overviewChartObject = {
 				type: "ColumnChart",
 				displayed: true,
 				formatter: {}
@@ -143,12 +158,12 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 
 			// update scope variable for first chart
 
-			$scope.chartObject.data = chart_data;
-			$scope.chartObject.options = options;
+			$scope.overviewChartObject.data = chart_data;
+			$scope.overviewChartObject.options = options;
 
 
-			// initialize the data structure for chart 2
-			$scope.chartObject2 = {
+			// initialize the data structure for chart 2, uplifter retention
+			$scope.ulRententionChartObject = {
 				type: "ComboChart",
 				displayed: true,
 				formatter: {}
@@ -179,9 +194,8 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 				rows: []
 			}
 
-
 			for (var i in data_array) {
-				if (i != 0 && data_array[i - 1][1] != 0) {
+				if (i != 0 && data_array[i - 1][7] != 0) {
 					chart_data2.rows.push({
 						c: [{
 							v: data_array[i][0]
@@ -190,7 +204,7 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 						}, {
 							v: -data_array[i][3]
 						}, {
-							v: (data_array[i - 1][1] - data_array[i][3]) / data_array[i - 1][1]
+							v: (data_array[i - 1][7] - data_array[i][9]) / data_array[i - 1][7]
 						}]
 					})
 				} else {
@@ -252,11 +266,11 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 
 			// update scope variable for first chart
 
-			$scope.chartObject2.data = chart_data2;
-			$scope.chartObject2.options = options2;
+			$scope.ulRententionChartObject.data = chart_data2;
+			$scope.ulRententionChartObject.options = options2;
 
-			// initialize data for chart 3
-			$scope.chartObject3 = {
+			// initialize data for chart 3， stockpoint retention
+			$scope.spRetentionChartObject = {
 				type: "ComboChart",
 				displayed: true,
 				formatter: {}
@@ -359,8 +373,8 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 
 			// update scope variable for first chart
 
-			$scope.chartObject3.data = chart_data3;
-			$scope.chartObject3.options = options3;
+			$scope.spRetentionChartObject.data = chart_data3;
+			$scope.spRetentionChartObject.options = options3;
 		});
 
 	}
