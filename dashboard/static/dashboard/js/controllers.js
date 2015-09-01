@@ -18,7 +18,7 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 			//parse ajax data to data array
 			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
 			var now = moment();
-			now.add(2, 'months');
+			now.add(1, 'months');
 			var data_array = [];
 			while (monthDiff(startDate, now) != 0) {
 				data_array.push(
@@ -656,7 +656,7 @@ function capitalizeFirstLetter(string) {
 function monthDiff(d1, d2) {
 	var months;
 	months = (d2.year() - d1.year()) * 12;
-	months -= d1.month() + 1;
+	months -= d1.month();
 	months += d2.month();
 	return months <= 0 ? 0 : months;
 }
