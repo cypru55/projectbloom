@@ -601,6 +601,8 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 			$('#dataTable').show();
 			$('#paginator-div').show();
 			$('#no-data-sign').hide();
+			// to determine the starting of the date columns
+			$scope.data_column_start_index = headers.length;
 			var header_structure = headers.concat(data.headers);
 			var parsed_headers = []
 			for (var k in header_structure) {
@@ -611,6 +613,7 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 			$scope.header_structure = header_structure;
 			$scope.parsed_headers = parsed_headers;
 			$scope.data = data.data;
+			console.log(data);
 		} else {
 			$('#dataTable').hide();
 			$('#paginator-div').hide();

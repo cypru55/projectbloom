@@ -26,3 +26,36 @@
 .input-daterange input {
   cursor: pointer;
 }
+
+.table .plus, .table .minus {
+    font-weight: bold;
+    padding-left: 18px;
+    position: relative;
+}
+.table .plus:before, .table .minus:before {
+    content:"";
+    border-width: 4px;
+    border-style:solid;
+    left: 8px;
+    top: 50%;
+    position: absolute;
+    margin-top: -2px;
+}
+.table .plus {
+    color: green;
+}
+.table .plus:before {
+    border-color: green;
+    border-top:none;
+    border-left:4px solid transparent;
+    border-right:4px solid transparent;
+}
+.table .minus {
+    color: red;
+}
+.table .minus:before {
+    border-color: red;
+    border-bottom:none;
+    border-left:4px solid transparent;
+    border-right:4px solid transparent;
+}

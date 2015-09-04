@@ -42,7 +42,7 @@
                         </thead>
                         <tbody>
                             <tr ng-repeat="row in data">
-                                <td ng-repeat="key in header_structure">{{row[key]}}</td>
+                                <td ng-repeat="key in header_structure" class="{{$index>data_column_start_index?(row[header_structure[$index-1]]>row[header_structure[$index]]?'minus':'plus'):''}}">{{row[key]}}</td>
                             </tr>
                         </tbody>
                     </table>
