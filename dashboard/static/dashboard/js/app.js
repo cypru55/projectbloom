@@ -1,7 +1,7 @@
 /* 
 * @Author: archer
 * @Date:   2015-08-12 17:52:19
-* @Last Modified 2015-08-31
+* @Last Modified 2015-09-04
 */
 
 'use strict';
@@ -27,9 +27,9 @@ dashboardApp.config(['$routeProvider',
         templateUrl: '/static/dashboard/partials/pivot-table.html',
         controller: 'DashboardPivotCtrl'
       }).
-      when('/chart', {
-        templateUrl: '/static/dashboard/partials/charts.html',
-        controller: 'DashboardChartCtrl'
+      when('/survey', {
+        templateUrl: '/static/dashboard/partials/survey.html',
+        controller: 'DashboardSurveyCtrl'
       }).
       when('/export', {
         templateUrl: '/static/dashboard/partials/export.html',

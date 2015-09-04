@@ -518,9 +518,9 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 	}
 ]);
 
-dashboardControllers.controller('DashboardChartCtrl', ['$scope', '$http',
+dashboardControllers.controller('DashboardSurveyCtrl', ['$scope', '$http',
 	function($scope, $http) {
-		console.log('c')
+		console.log('survey')
 	}
 ]);
 

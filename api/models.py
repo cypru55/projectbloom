@@ -80,6 +80,21 @@ class Delivery(models.Model):
     def __str__(self):              # __unicode__ on Python 2
         return self.name
 
+class DeliveryPricing(models.Model):
+    product = models.CharField(max_length = 100)
+    gsv_per_case = models.IntegerField()
+    delivery_per_case = models.DecimalField(max_digits=65, decimal_places=5)
+    servings_per_case = models.IntegerField()
+    rsv_per_case = models.IntegerField()
+    inner_bags_per_case = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'delivery_pricing'
+        
+    def __str__(self):              # __unicode__ on Python 2
+        return self.name
+
 class Product(models.Model):
     id = models.AutoField(primary_key=True)
     product = models.CharField(max_length = 100)
