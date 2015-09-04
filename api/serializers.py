@@ -2,33 +2,38 @@
     File name: serializers.py
     Author: Liu Tuo
     Date created: 2015-08-11
-    Date last modified: 2015-08-28
+    Date last modified: 2015-09-04
     Python Version: 2.7.6
 '''
 
 from rest_framework import serializers
-from api.models import Sale, Delivery, ProductMargin, EntrepreneurStatus
+from api.models import Sale, Delivery, Entrepreneur, Product, EntrepreneurStatus
+
+class EntrepreneurSerializer(serializers.HyperlinkedModelSerializer):
+	class Meta:
+		model = Entrepreneur
+		fields = ('id', 'area', 'name', 'role', 'work_profile', 'vest', 'visor', 'name_card', 
+			'detailer', 'backpack', 'cooler_box', 'metal_trolley', 'clip_board', 'others', 
+			'tools_requested', 'remarks_on_tools', 'contact', 'address', 'organization')
 
 class SaleSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = Sale
-		fields = ('id','date', 'stockpoint_id', 'stockpoint_name', 'uplifter_id', 
-			'uplifter_name', 'work_profile', 'product', 'issued', 'returned', 'sold', 
-			'own_sts', 'used_for_retail', 'fiscal_year', 'quarter', 'period', 'week', 
-			'area', 'uplifter_profit', 'stockpoint_profit', 'hours_per_day', 'ul_days', 
-			'sp_days')
+		fields = ('id', 'date', 'area', 'stockpoint_id', 'stockpoint_name', 'uplifter_id', 
+			'uplifter_name', 'hours_per_day', 'sold', 'own_sts', 'used_for_retail', 'uplifter_profit',
+			 'stockpoint_profit', 'product')
 
 class DeliverySerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = Delivery
-		fields = ('id', 'stockpoint_id', 'stockpoint_name', 'area', 'product', 'qty', 
-			'peso', 'fiscal_year', 'period', 'week', 'date', 'gsv', 'to_distributors', 
-			'servings', 'rsv', 'inner_bags_per_case')
+		fields = ('id', 'date', 'area', 'stockpoint_id', 'stockpoint_name', 'product', 'qty', 'peso', 
+			'gsv', 'to_distributors', 'servings', 'rsv', 'inner_bags' )
 
-class ProductMarginSerializer(serializers.HyperlinkedModelSerializer):
+class ProductSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
-		model = ProductMargin
-		fields = ('product', 'uplifter_margin', 'wholesale_margin', 'sts_margin', 'retail_margin', 'type')
+		model = Product
+		fields = ('id', 'product', 'company', 'uplifter_margin', 'wholesale_margin', 'sts_margin',
+		 'retail_margin', 'type')
 
 class EntrepreneurStatusSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:

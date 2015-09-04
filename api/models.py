@@ -2,60 +2,77 @@
     File name: models.py
     Author: Liu Tuo
     Date created: 2015-08-11
-    Date last modified: 2015-08-28
+    Date last modified: 2015-09-04
     Python Version: 2.7.6
 '''
 from django.db import models
 
 # Create your models here.
+class Entrepreneur(models.Model):
+    id = models.AutoField(primary_key=True)
+    area = models.CharField(max_length = 25)
+    name = models.CharField(max_length = 50)
+    role = models.CharField(max_length = 10)
+    work_profile = models.CharField(max_length = 20)
+    vest = models.IntegerField()
+    visor = models.IntegerField()
+    name_card = models.IntegerField()
+    detailer = models.IntegerField()
+    backpack = models.IntegerField()
+    cooler_box = models.IntegerField()
+    metal_trolley = models.IntegerField()
+    clip_board = models.IntegerField()
+    others = models.CharField(max_length = 100)
+    tools_requested = models.CharField(max_length = 100)
+    remarks_on_tools = models.CharField(max_length = 100)
+    contact = models.CharField(max_length = 50)
+    address = models.CharField(max_length = 200)
+    organization = models.CharField(max_length = 20)
+
+    class Meta:
+        managed = False
+        db_table = 'entrepreneur'
+    def __str__(self):              # __unicode__ on Python 2
+        return self.name
+
 class Sale(models.Model):
     id = models.AutoField(primary_key=True)
     date = models.DateField()
+    area = models.CharField(max_length = 25)
     stockpoint_id = models.IntegerField()
     stockpoint_name = models.CharField(max_length = 50)
     uplifter_id = models.IntegerField()
     uplifter_name = models.CharField(max_length = 50)
-    work_profile = models.CharField(max_length = 25)
-    product = models.CharField(max_length = 100)
-    issued = models.DecimalField(max_digits=65, decimal_places=5)
-    returned = models.DecimalField(max_digits=65, decimal_places=5)
+    hours_per_day = models.DecimalField(max_digits=2, decimal_places=1)
     sold = models.DecimalField(max_digits=65, decimal_places=5)
     own_sts = models.IntegerField()
-    used_for_retail = models.IntegerField()
-    fiscal_year = models.IntegerField()
-    quarter = models.IntegerField()
-    period = models.IntegerField()
-    week = models.IntegerField()
-    area = models.CharField(max_length = 25)
+    used_for_retail = models.DecimalField(max_digits=65, decimal_places=2)
     uplifter_profit = models.DecimalField(max_digits=65, decimal_places=5)
     stockpoint_profit = models.DecimalField(max_digits=65, decimal_places=5)
-    hours_per_day = models.DecimalField(max_digits=10, decimal_places=1)
-    ul_days = models.DecimalField(max_digits=10, decimal_places=5)
-    sp_days = models.DecimalField(max_digits=10, decimal_places=5)
+    product = models.CharField(max_length = 100)
+
     class Meta:
        managed = False
-       db_table = 'sale'
+       db_table = 'sale_db'
 
     def __str__(self):              # __unicode__ on Python 2
         return self.name
 
 class Delivery(models.Model):
     id = models.AutoField(primary_key=True)
+    date = models.DateField()
+    area = models.CharField(max_length = 25)
     stockpoint_id = models.IntegerField()
     stockpoint_name = models.CharField(max_length = 50)
-    area = models.CharField(max_length = 25)
     product = models.CharField(max_length = 100)
     qty = models.IntegerField()
     peso = models.DecimalField(max_digits=65, decimal_places=2)
-    fiscal_year = models.IntegerField()
-    period = models.IntegerField()
-    week = models.IntegerField()
-    date = models.DateField()
     gsv = models.IntegerField()
     to_distributors = models.DecimalField(max_digits=65, decimal_places=5)
     servings = models.IntegerField()
     rsv = models.IntegerField()
-    inner_bags_per_case = models.IntegerField()
+    inner_bags = models.IntegerField()
+
     class Meta:
        managed = False
        db_table = 'delivery'
@@ -63,9 +80,10 @@ class Delivery(models.Model):
     def __str__(self):              # __unicode__ on Python 2
         return self.name
 
-class ProductMargin(models.Model):
+class Product(models.Model):
     id = models.AutoField(primary_key=True)
     product = models.CharField(max_length = 100)
+    company = models.CharField(max_length = 25)
     uplifter_margin = models.DecimalField(max_digits=65, decimal_places=2)
     wholesale_margin = models.DecimalField(max_digits=65, decimal_places=2)
     sts_margin = models.DecimalField(max_digits=65, decimal_places=2)
@@ -73,7 +91,7 @@ class ProductMargin(models.Model):
     type = models.CharField(max_length = 10)
     class Meta:
        managed = False
-       db_table = 'product_margin'
+       db_table = 'product'
 
     def __str__(self):              # __unicode__ on Python 2
         return self.name

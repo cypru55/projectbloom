@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-01
+    Date last modified: 2015-09-04
     Python Version: 2.7.6
 '''
 
@@ -18,8 +18,8 @@ from decimal import Decimal
 from rest_framework import viewsets, generics
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
-from api.serializers import SaleSerializer, DeliverySerializer, ProductMarginSerializer, EntrepreneurStatusSerializer
-from api.models import Sale, Delivery, ProductMargin, EntrepreneurStatus
+from api.serializers import SaleSerializer, DeliverySerializer, ProductSerializer, EntrepreneurStatusSerializer, EntrepreneurSerializer
+from api.models import Entrepreneur, Sale, Delivery, Product, EntrepreneurStatus
 import json
 import datetime
 import calendar
@@ -49,8 +49,17 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     max_paginate_by = 100
     http_method_names = ['get', 'post']
 
-class ProductMarginViewSet(generics.ListAPIView):
-    serializer_class = ProductMarginSerializer
+class EntrepreneurViewSet(viewsets.ModelViewSet):
+    queryset = Entrepreneur.objects.using('projectbloom_data').all()
+    serializer_class = EntrepreneurSerializer
+    paginate_by = 10
+    paginate_by_param = 'page_size'
+    # Set MAX results per page
+    max_paginate_by = 100
+    http_method_names = ['get', 'post']
+
+class ProductViewSet(generics.ListAPIView):
+    serializer_class = ProductSerializer
     paginate_by = 10
     paginate_by_param = 'page_size'
     # Set MAX results per page
@@ -58,7 +67,7 @@ class ProductMarginViewSet(generics.ListAPIView):
     http_method_names = ['get']
     def get_queryset(self):
         product_margin_type = self.kwargs['type']
-        queryset = ProductMargin.objects.using('projectbloom_data').all()
+        queryset = Product.objects.using('projectbloom_data').all()
         if product_margin_type == 'latest':
             queryset = queryset.filter(type='latest')
         elif product_margin_type == 'old':
@@ -442,7 +451,7 @@ def generate_sp_product_sold_table_query(periods):
     select
     area ,stockpoint_name, product,\n"""
     query += query_part_2
-    query += """from projectbloom.sale  as t where area is not null and stockpoint_name is not null and product is not null)
+    query += """from sale_db  as t where area is not null and stockpoint_name is not null and product is not null)
     as t2
     group by stockpoint_name, product
     order by area, stockpoint_name, product\n"""
@@ -457,8 +466,8 @@ def generate_ul_worked_days_query(periods):
     # use start date as the column name
     for period in periods:
         col_name.append(period['start_date'])
-        query_part_1 += "sum(`%s`) as `%s`,\n" % (period['start_date'], period['start_date'])
-        query_part_2 += "case when date between '%s' and '%s' then ul_days end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
+        query_part_1 += "count(distinct `%s`) as `%s`,\n" % (period['start_date'], period['start_date'])
+        query_part_2 += "case when date between '%s' and '%s' then date end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
     # remove the last colon
     query_part_1 = query_part_1[:-2]
     query_part_1 += "\n"
@@ -473,7 +482,7 @@ def generate_ul_worked_days_query(periods):
     select
     area ,stockpoint_name, uplifter_name,\n"""
     query += query_part_2
-    query += """from projectbloom.sale as t where area is not null and stockpoint_name is not null and uplifter_name is not null and uplifter_name <> '')
+    query += """from sale_db as t where area is not null and stockpoint_name is not null and uplifter_name is not null and uplifter_name <> '')
     as t2
     group by uplifter_name
     order by area, stockpoint_name, uplifter_name\n"""
@@ -504,7 +513,7 @@ def generate_ul_income_query(periods):
     select
     area ,stockpoint_name, uplifter_name,\n"""
     query += query_part_2
-    query += """from projectbloom.sale as t where area is not null and stockpoint_name is not null and uplifter_name is not null and uplifter_name <> '')
+    query += """from sale_db as t where area is not null and stockpoint_name is not null and uplifter_name is not null and uplifter_name <> '')
     as t2
     group by uplifter_name
     order by area, stockpoint_name, uplifter_name\n"""
@@ -536,7 +545,7 @@ def generate_sp_income_query(periods):
     select
     area ,stockpoint_name,\n"""
     query += query_part_2
-    query += """from projectbloom.sale as t where area is not null and stockpoint_name is not null)
+    query += """from sale_db as t where area is not null and stockpoint_name is not null)
     as t2
     group by stockpoint_name
     order by area, stockpoint_name\n"""
