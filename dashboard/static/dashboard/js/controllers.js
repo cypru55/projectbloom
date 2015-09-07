@@ -43,7 +43,7 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 				var month = moment(data['ul_overview'][i]['month'], "MMM-YY");
 				var startDate = moment('2014/6/1', 'YYYY-MM-DD');
 				var index = monthDiff(startDate, month);
-				if (data['ul_overview'][i]['status'] == 'EE') {
+				if (data['ul_overview'][i]['status'] == 'S') {
 					data_array[index][1] = data['ul_overview'][i]['count']
 
 				} else if (data['ul_overview'][i]['status'] == 'N') {
@@ -57,11 +57,11 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 				var month = moment(data['sp_overview'][i]['month'], "MMM-YY");
 				var startDate = moment('2014/6/1', 'YYYY-MM-DD');
 				var index = monthDiff(startDate, month);
-				if (data['sp_overview'][i]['status'] == 'SP') {
+				if (data['sp_overview'][i]['status'] == 'S') {
 					data_array[index][4] = data['sp_overview'][i]['count']
 				} else if (data['sp_overview'][i]['status'] == 'N') {
 					data_array[index][5] = data['sp_overview'][i]['count']
-				} else if (data['sp_overview'][i]['status'] == 'D1') {
+				} else if (data['sp_overview'][i]['status'] == 'D') {
 					data_array[index][6] = data['sp_overview'][i]['count']
 				}
 			}

@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-04
+    Date last modified: 2015-09-07
     Python Version: 2.7.6
 '''
 
@@ -20,6 +20,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from api.serializers import SaleSerializer, DeliverySerializer, ProductSerializer, EntrepreneurStatusSerializer, EntrepreneurSerializer
 from api.models import Entrepreneur, Sale, Delivery, Product, EntrepreneurStatus
+from rest_framework import filters
 import json
 import datetime
 import calendar
@@ -32,6 +33,8 @@ def index(request):
 
 # Rest Framework API for models, to be used to display original table
 class SaleViewSet(viewsets.ModelViewSet):
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_fields = ('id',)
     queryset = Sale.objects.using('projectbloom_data').all()
     serializer_class = SaleSerializer
     paginate_by = 10
@@ -222,7 +225,8 @@ def bloom_overview(request):
                 t.month AS month,
                     (CASE
                         WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
-                        WHEN t.status = 'D1' OR t.status = 'DD1' THEN 'D'
+                        WHEN t.status = 'D1' THEN 'D'
+                        WHEN t.status = 'S' OR t.status = 'S1' OR t.status = 'S2' THEN 'S'
                         ELSE t.status
                     END) AS status,
                     t.type
@@ -234,14 +238,7 @@ def bloom_overview(request):
                 AND t2.status IS NOT NULL
                 AND t2.status <> 'D2'
                 AND t2.status <> 'DD2'
-                AND t2.status <> 'NP1'
-                AND t2.status <> 'NP2'
-                AND t2.status <> 'NPP1'
-                AND t2.status <> 'NPP2'
-                AND t2.status <> 'EP1'
-                AND t2.status <> 'EP2'
-                AND t2.status <> 'EPP1'
-                AND t2.status <> 'EPP2'
+
         GROUP BY t2.month , t2.status
         ORDER BY STR_TO_DATE(t2.month, '%b-%y');
     """
@@ -254,7 +251,7 @@ def bloom_overview(request):
                 t.month AS month,
                     (CASE
                         WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
-                        WHEN t.status = 'NP1' OR t.status = 'NP2' THEN 'NP'
+                        WHEN t.status = 'D1' THEN 'D'
                         ELSE t.status
                     END) AS status,
                     t.type
