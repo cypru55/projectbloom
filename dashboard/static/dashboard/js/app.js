@@ -1,7 +1,7 @@
 /* 
 * @Author: archer
 * @Date:   2015-08-12 17:52:19
-* @Last Modified 2015-09-04
+* @Last Modified 2015-09-07
 */
 
 'use strict';
@@ -10,7 +10,18 @@ var dashboardApp = angular.module('dashboardApp', [
   'ngRoute',
   'googlechart',
   'dashboardControllers',
-]);
+]).directive('onFinishRender', function ($timeout) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attr) {
+            if (scope.$last === true) {
+                $timeout(function () {
+                    scope.$emit('ngRepeatFinished');
+                });
+            }
+        }
+    }
+});
 
 dashboardApp.config(['$routeProvider',
   function ($routeProvider) {

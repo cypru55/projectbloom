@@ -26,6 +26,7 @@ urlpatterns = [
     url(r'^login/$', projectbloom_views.login_user),
     url(r'^logout/$', 'django.contrib.auth.views.logout',
                           {'next_page': '/login/'}),
+    url(r'^docs/', include('rest_framework_swagger.urls')),
     url(r'^admin/', include(admin.site.urls)),
 
 ]

@@ -2,7 +2,7 @@
     File name: urls.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-04
+    Date last modified: 2015-09-07
     Python Version: 2.7.6
 '''
 
@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^sale/ul-days-worked', views.ul_days_worked, name='ul-days-worked'),
     url(r'^sale/ul-income', views.ul_income, name='ul-income'),
     url(r'^sale/sp-income', views.sp_income, name='sp-income'),
+    url(r'fo-area', views.fo_area, name='fo-area'),
     url( r'^overview', views.bloom_overview, name="overview")
 
 ]
