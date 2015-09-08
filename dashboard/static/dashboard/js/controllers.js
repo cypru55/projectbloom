@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-07
+ * @Last Modified 2015-09-08
  */
 
 'use strict';
@@ -15,7 +15,7 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 		initializeTab($http, $scope);
 		var url = "../api/overview";
 
-		retriveAndDrawChart(url, $scope, $http);
+		retriveAndDrawChart(url, 'Bloom', $scope, $http);
 
 	}
 ]);
@@ -320,7 +320,7 @@ function monthDiff(d1, d2) {
 
 function initializeTab($http, $scope) {
 	var url = '../api/fo-area';
-
+	$('#Overview-tab a').tab('show');
 	$http.get(url).success(function(data) {
 		var fo = {}
 		for (var i in data) {
@@ -334,6 +334,7 @@ function initializeTab($http, $scope) {
 
 	});
 
+	// add listener after ng-repeat finish render the tabs
 	$scope.$on('ngRepeatFinished', function(ngRepeatFinishedEvent) {
 		$('.fo-area-selection').each(
 			function() {
@@ -346,18 +347,25 @@ function initializeTab($http, $scope) {
 
 	var tabSelectListener = function() {
 		var el = this;
+		// find the tab to activate
+		var tabid = '#' + el.id.split('-')[0] + '-tab a';
+		$(this).tab('show');
 		var id = el.id;
 		var url_with_param = '../api/overview';
 		var params = {};
+		var title = '';
 
-		if(id == 'bloom-overview') {
+		if (id == 'bloom-overview') {
 			var params = {};
-		}
-		else if (id.indexOf('fo-') === 0) {
+			title = 'Bloom'
+		} else if (id.indexOf('fo-') === 0) {
 			var fo_name = id.split('-')[1];
 			params['fo'] = fo_name;
+			title = fo_name;
+
 		} else {
-			params['area'] = id;
+			params['area'] = id.split('-')[1];
+			title = id.split('-')[1];
 		}
 
 
@@ -371,13 +379,13 @@ function initializeTab($http, $scope) {
 			}
 		}
 		// console.log(params, $scope, $http);
-		retriveAndDrawChart(url_with_param, $scope, $http)
+		retriveAndDrawChart(url_with_param, title, $scope, $http)
 	}
 }
 
 
 
-function retriveAndDrawChart(url, $scope, $http) {
+function retriveAndDrawChart(url, title, $scope, $http) {
 	$http.get(url).success(function(data) {
 		//parse ajax data to data array
 		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
@@ -451,7 +459,7 @@ function retriveAndDrawChart(url, $scope, $http) {
 			formatter: {}
 		}
 		var options = {
-			title: "Bloom Overview",
+			title: title + " Overview",
 			isStacked: "true",
 			fill: 20,
 			displayExactValues: true,
@@ -588,7 +596,7 @@ function retriveAndDrawChart(url, $scope, $http) {
 		}
 
 		var options2 = {
-			title: "Uplifter Retention",
+			title: title + " Uplifter Retention",
 			isStacked: "true",
 			fill: 20,
 			displayExactValues: true,
@@ -695,7 +703,7 @@ function retriveAndDrawChart(url, $scope, $http) {
 		}
 
 		var options3 = {
-			title: "Stockpoint Retention",
+			title: title + " Stockpoint Retention",
 			isStacked: "true",
 			fill: 20,
 			displayExactValues: true,

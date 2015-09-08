@@ -5,15 +5,15 @@
     <!-- /.col-lg-12 -->
 </div>
 <ul class="nav nav-tabs ">
-  <li role="presentation" class="active"><a id="bloom-overview" class="fo-area-selection" >All</a></li>
-  <li role="presentation" class="dropdown" ng-repeat="(fo_name, areas) in fo" on-finish-render="ngRepeatFinished">
+  <li role="presentation" id="bloom-tab"><a id="bloom-overview" class="fo-area-selection" >All</a></li>
+  <li role="presentation" class="dropdown" id="{{fo_name}}-tab" ng-repeat="(fo_name, areas) in fo" on-finish-render="ngRepeatFinished">
     <a class="dropdown-toggle" data-toggle="dropdown"  role="button" aria-haspopup="true" aria-expanded="false">
       {{fo_name}} <span class="caret"></span>
     </a>
     <ul class="dropdown-menu">
     	<li ><a class="fo-area-selection" id="fo-{{fo_name}}">All</a></li>
     	<li role="separator" class="divider"></li>
-      <li ng-repeat="area in areas"><a id="{{area}}" class="fo-area-selection" >{{area}}</a></li>
+      <li ng-repeat="area in areas"><a role="button" id="{{fo_name}}-{{area}}" class="fo-area-selection" >{{area}}</a></li>
     </ul>
 </ul>
 
