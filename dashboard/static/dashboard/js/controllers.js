@@ -15,6 +15,7 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 		initializeTab($http, $scope);
 		var url = "../api/overview";
 
+		$('#bloom-tab a').tab('show');
 		retriveAndDrawChart(url, 'Bloom', $scope, $http);
 
 	}
