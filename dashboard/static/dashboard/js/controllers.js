@@ -798,7 +798,7 @@ function retriveAndDrawChart(params, title, $scope, $http) {
 			displayed: true,
 			formatter: {},
 			options: {
-				title: title + " Tenure",
+				title: title + ": Total of " + data.length + " entrepreneurs",
 				height: 400
 			}
 		}
