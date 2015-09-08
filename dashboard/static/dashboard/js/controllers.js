@@ -552,9 +552,9 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 				}, {
 					v: data_array[i][5]
 				}, {
-					v: data_array[i][1]+data_array[i][2]+data_array[i][3]+data_array[i][4]+data_array[i][5]
+					v: data_array[i][1]+data_array[i][2]+data_array[i][4]+data_array[i][5]
 				}, {
-					v: data_array[i][1]+data_array[i][2]+data_array[i][3]+data_array[i][4]+data_array[i][5]
+					v: data_array[i][1]+data_array[i][2]+data_array[i][4]+data_array[i][5]
 				}]
 			})
 		}
