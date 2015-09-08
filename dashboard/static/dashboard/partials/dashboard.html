@@ -5,7 +5,7 @@
     <!-- /.col-lg-12 -->
 </div>
 <ul class="nav nav-tabs ">
-  <li role="presentation" id="bloom-tab"><a id="bloom-overview" class="fo-area-selection" >All</a></li>
+  <li role="presentation" id="bloom-tab"><a id="bloom-overview" class="fo-area-selection" role="button">All</a></li>
   <li role="presentation" class="dropdown" id="{{fo_name}}-tab" ng-repeat="(fo_name, areas) in fo" on-finish-render="ngRepeatFinished">
     <a class="dropdown-toggle" data-toggle="dropdown"  role="button" aria-haspopup="true" aria-expanded="false">
       {{fo_name}} <span class="caret"></span>
@@ -56,6 +56,21 @@
             <!-- /.panel-heading -->
             <div class="panel-body">
                 <div google-chart chart="spRetentionChartObject" style="{{cssStyle}}"></div>
+            </div>
+            <!-- /.panel-body -->
+        </div>
+        <!-- /.panel -->
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Tenure Chart
+            </div>
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <div google-chart chart="ulTenureChartObject" style="{{cssStyle}}"></div>
             </div>
             <!-- /.panel-body -->
         </div>

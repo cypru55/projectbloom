@@ -354,7 +354,7 @@ function initializeTab($http, $scope) {
 		var tabid = '#' + el.id.split('-')[0] + '-tab a';
 		$(this).tab('show');
 		var id = el.id;
-		var url_with_param = '../api/overview';
+
 		var params = {};
 		var title = '';
 
@@ -378,24 +378,29 @@ function initializeTab($http, $scope) {
 		}
 
 
-		var isFirst = true
-		for (var key in params) {
-			if (isFirst) {
-				url_with_param += '?' + key + '=' + params[key];
-				isFirst = false;
-			} else {
-				url_with_param += '&' + key + '=' + params[key];
-			}
-		}
 		// console.log(params, $scope, $http);
-		retriveAndDrawChart(url_with_param, title, $scope, $http)
+		retriveAndDrawChart(params, title, $scope, $http)
 	}
 }
 
+function appendParamsToUrl(url, params) {
+	var url_with_param = url
+	var isFirst = true
+	for (var key in params) {
+		if (isFirst) {
+			url_with_param += '?' + key + '=' + params[key];
+			isFirst = false;
+		} else {
+			url_with_param += '&' + key + '=' + params[key];
+		}
+	}
+	return url_with_param;
+}
 
-
-function retriveAndDrawChart(url, title, $scope, $http) {
-	$http.get(url).success(function(data) {
+function retriveAndDrawChart(params, title, $scope, $http) {
+	// http get for bloom overview
+	var url1 = appendParamsToUrl('../api/overview', params);
+	$http.get(url1).success(function(data) {
 		//parse ajax data to data array
 		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
 		var now = moment();
@@ -552,9 +557,9 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 				}, {
 					v: data_array[i][5]
 				}, {
-					v: data_array[i][1]+data_array[i][2]+data_array[i][4]+data_array[i][5]
+					v: data_array[i][1] + data_array[i][2] + data_array[i][4] + data_array[i][5]
 				}, {
-					v: data_array[i][1]+data_array[i][2]+data_array[i][4]+data_array[i][5]
+					v: data_array[i][1] + data_array[i][2] + data_array[i][4] + data_array[i][5]
 				}]
 			})
 		}
@@ -777,9 +782,79 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 			height: 400
 		}
 
-		// update scope variable for first chart
+		// update scope variable for  chart
 
 		$scope.spRetentionChartObject.data = chart_data3;
 		$scope.spRetentionChartObject.options = options3;
+
+	});
+	
+	// http get for entrepreneur tenure
+	var url2 = appendParamsToUrl('../api/entrepreneur/tenure', params);
+	$http.get(url2).success(function(data) {
+		// initialize data for uplifter tenure
+		$scope.ulTenureChartObject = {
+			type: "PieChart",
+			displayed: true,
+			formatter: {},
+			options: {
+				title: title + " Tenure",
+				height: 400
+			}
+		}
+
+		// build chart data and option
+		var chart_data = {
+			cols: [{
+				id: "t",
+				label: "Topping",
+				type: "string"
+			}, {
+				id: "s",
+				label: "Slices",
+				type: "number"
+			}],
+			rows: [{
+				c: [{
+					v: "less than 3 months"
+				}, {
+					v: 0
+				}, ]
+			}, {
+				c: [{
+					v: "3 to 6 months"
+				}, {
+					v: 0
+				}]
+			}, {
+				c: [{
+					v: "6 to 12 months"
+				}, {
+					v: 0
+				}, ]
+			}, {
+				c: [{
+					v: "more than or equal 12"
+				}, {
+					v: 0
+				}, ]
+			}]
+		}
+
+		// parse data from ajax
+		for (var i in data) {
+			if (data[i].tenure < 3) {
+				chart_data.rows[0].c[1].v += 1;
+			} else if (data[i].tenure >= 3 && data[i].tenure < 6) {
+				chart_data.rows[1].c[1].v += 1;
+			} else if (data[i].tenure >= 6 && data[i].tenure < 12) {
+				chart_data.rows[2].c[1].v += 1;
+			} else if (data[i].tenure >= 12) {
+				chart_data.rows[3].c[1].v += 1;
+			}
+		}
+
+		//update scope varibale for tenure pie chart
+		$scope.ulTenureChartObject.data = chart_data;
 	});
 }

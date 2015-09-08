@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-07
+    Date last modified: 2015-09-08
     Python Version: 2.7.6
 '''
 
@@ -319,6 +319,47 @@ def bloom_overview(request):
         result["ul_overview"] = execute_query(query1)
         result["sp_overview"] = execute_query(query2)
         result["ul_without_lp4y_overview"] = execute_query(query3)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# get entreprenur tenure
+@login_required(login_url='/login/')
+def entrepreneur_tenure(request):
+    if request.method == 'GET':
+        filter_query = ' '
+        if 'area' in request.GET:
+            filter_query = "exists (select * from entrepreneur where entrepreneur_id=id and area='"+request.GET['area']+"') AND "
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='"""+request.GET['fo']+"'")
+            filter_query=" exists (select * from entrepreneur where entrepreneur_id=id and ("
+            for i in areas:
+                filter_query += "area='"+i['area']+"' OR "
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")) and"
+        
+        query = """
+            SELECT 
+            t.id as id, MAX(MONTHDIFF(date)) AS tenure
+            FROM
+                sale_db,
+                (SELECT 
+                    entrepreneur_id as id
+                FROM
+                    entrepreneur_status
+                WHERE
+                    """+filter_query+"""
+                        month = 'Aug-15'
+                        and (type = 'LP4Y_UL' OR type = 'TSPI_UL')
+                        AND (status <> 'D')) as t
+            WHERE
+                uplifter_id = t.id
+            group by id
+
+        """
+        result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
