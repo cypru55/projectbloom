@@ -16,6 +16,8 @@ dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 		var url = "../api/overview";
 
 		$('#bloom-tab a').tab('show');
+		$scope.fo_name = 'Bloom';
+		$scope.area = 'Overall';
 		retriveAndDrawChart(url, 'Bloom', $scope, $http);
 
 	}
@@ -359,14 +361,20 @@ function initializeTab($http, $scope) {
 		if (id == 'bloom-overview') {
 			var params = {};
 			title = 'Bloom'
+			$scope.fo_name = 'Bloom';
+			$scope.area = 'Overall';
 		} else if (id.indexOf('fo-') === 0) {
 			var fo_name = id.split('-')[1];
 			params['fo'] = fo_name;
 			title = fo_name;
+			$scope.fo_name = fo_name;
+			$scope.area = 'Overall';
 
 		} else {
 			params['area'] = id.split('-')[1];
 			title = id.split('-')[1];
+			$scope.fo_name = id.split('-')[0];
+			$scope.area = id.split('-')[1];
 		}
 
 
@@ -443,7 +451,7 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 			var month = moment(data['ul_without_lp4y_overview'][i]['month'], "MMM-YY");
 			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
 			var index = monthDiff(startDate, month);
-			if (data['ul_without_lp4y_overview'][i]['status'] == 'EE') {
+			if (data['ul_without_lp4y_overview'][i]['status'] == 'S') {
 				data_array[index][7] = data['ul_without_lp4y_overview'][i]['count']
 			} else if (data['ul_without_lp4y_overview'][i]['status'] == 'N') {
 				data_array[index][8] = data['ul_without_lp4y_overview'][i]['count']
@@ -460,7 +468,7 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 			formatter: {}
 		}
 		var options = {
-			title: title + " Overview",
+			title: title + " Recruitment",
 			isStacked: "true",
 			fill: 20,
 			displayExactValues: true,
@@ -474,8 +482,18 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 			seriesType: 'bars',
 			vAxis: {
 				title: "Entrepreneur",
-				gridlines: {
-					"count": 10
+				format: '#',
+				// gridlines: {
+				// 	"count": 10
+				// }
+			},
+			series: {
+				4: {
+					type: 'line',
+					color: 'grey',
+					lineWidth: 0,
+					pointSize: 0,
+					visibleInLegend: false
 				}
 			},
 			// width: 800,
@@ -507,6 +525,15 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 				id: "new-sp-id",
 				label: "New SP",
 				type: "number"
+			}, {
+				type: "number"
+			}, {
+				type: "number",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
+
 			}],
 			rows: []
 		}
@@ -524,7 +551,11 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 					v: data_array[i][4]
 				}, {
 					v: data_array[i][5]
-				}, ]
+				}, {
+					v: data_array[i][1]+data_array[i][2]+data_array[i][3]+data_array[i][4]+data_array[i][5]
+				}, {
+					v: data_array[i][1]+data_array[i][2]+data_array[i][3]+data_array[i][4]+data_array[i][5]
+				}]
 			})
 		}
 
@@ -577,7 +608,7 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 					}, {
 						v: -data_array[i][3]
 					}, {
-						v: (data_array[i - 1][7] - data_array[i][9]) / data_array[i - 1][7]
+						v: ((data_array[i - 1][7] - data_array[i][9]) / data_array[i - 1][7]).toFixed(2)
 					}]
 				})
 			} else {
@@ -619,9 +650,10 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 			vAxes: {
 				0: {
 					title: "Stable Uplifter",
-					gridlines: {
-						"count": 10
-					}
+					format: '#',
+					// gridlines: {
+					// 	"count": 10
+					// }
 				},
 				1: {
 					title: "UL Retention",
@@ -633,7 +665,7 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 					minValue: 0
 				}
 			},
-			width: 800,
+			// width: 800,
 			height: 400
 		}
 
@@ -684,7 +716,7 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 					}, {
 						v: -data_array[i][6]
 					}, {
-						v: (data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)
+						v: ((data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)).toFixed(2)
 					}]
 				})
 			} else {
@@ -726,9 +758,10 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 			vAxes: {
 				0: {
 					title: "Stable Stockpoint",
-					gridlines: {
-						"count": 10
-					}
+					format: '#',
+					// gridlines: {
+					// 	"count": 10
+					// }
 				},
 				1: {
 					title: "SP Retention",
@@ -740,7 +773,7 @@ function retriveAndDrawChart(url, title, $scope, $http) {
 					minValue: 0
 				}
 			},
-			width: 800,
+			// width: 800,
 			height: 400
 		}
 
