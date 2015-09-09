@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-08
+ * @Last Modified 2015-09-09
  */
 
 'use strict';
@@ -268,135 +268,8 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 }
 
 /**
- * Helper function to check is the string is a validate date
+ * Helper function to retrieve data and draw charts
  */
-var isDate = function(date) {
-	return ((new Date(date) !== "Invalid Date" && !isNaN(new Date(date))));
-}
-
-/**
- * Helper function to parse header for display
- */
-
-var parseHeader = function(header, option) {
-	if (!isDate(header)) {
-		var words = header.split("_");
-		var result = "";
-
-		for (var i in words) {
-			result += " " + capitalizeFirstLetter(words[i]);
-		}
-		return result.trim();
-	} else {
-		var start = moment(header);
-
-		if (option == "weekly") {
-			var end = moment(header);
-			end.add(6, 'days');
-			return start.format('YYYY/MM/DD') + " To " + end.format('YYYY/MM/DD');
-		} else if (option == "monthly") {
-			return start.format('MMM-YY')
-		}
-	}
-}
-
-/**
- * Helper function to capitalize first letter
- * @param  {String} string input word
- * @return {String}        capitalized word
- */
-function capitalizeFirstLetter(string) {
-	return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-/**
- * helper function to calculate month difference, using moment
- */
-
-function monthDiff(d1, d2) {
-	var months;
-	months = (d2.year() - d1.year()) * 12;
-	months -= d1.month();
-	months += d2.month();
-	return months <= 0 ? 0 : months;
-}
-
-function initializeTab($http, $scope) {
-	var url = '../api/fo-area';
-	$('#Overview-tab a').tab('show');
-	$http.get(url).success(function(data) {
-		var fo = {}
-		for (var i in data) {
-			if (fo[data[i].fo_name] == undefined) {
-				fo[data[i].fo_name] = [];
-			}
-			fo[data[i].fo_name].push(data[i].area)
-
-		}
-		$scope.fo = fo;
-
-	});
-
-	// add listener after ng-repeat finish render the tabs
-	$scope.$on('ngRepeatFinished', function(ngRepeatFinishedEvent) {
-		$('.fo-area-selection').each(
-			function() {
-				$(this).click(
-					tabSelectListener
-				)
-			}
-		);
-	});
-
-	var tabSelectListener = function() {
-		var el = this;
-		// find the tab to activate
-		var tabid = '#' + el.id.split('-')[0] + '-tab a';
-		$(this).tab('show');
-		var id = el.id;
-
-		var params = {};
-		var title = '';
-
-		if (id == 'bloom-overview') {
-			var params = {};
-			title = 'Bloom'
-			$scope.fo_name = 'Bloom';
-			$scope.area = 'Overall';
-		} else if (id.indexOf('fo-') === 0) {
-			var fo_name = id.split('-')[1];
-			params['fo'] = fo_name;
-			title = fo_name;
-			$scope.fo_name = fo_name;
-			$scope.area = 'Overall';
-
-		} else {
-			params['area'] = id.split('-')[1];
-			title = id.split('-')[1];
-			$scope.fo_name = id.split('-')[0];
-			$scope.area = id.split('-')[1];
-		}
-
-
-		// console.log(params, $scope, $http);
-		retriveAndDrawChart(params, title, $scope, $http)
-	}
-}
-
-function appendParamsToUrl(url, params) {
-	var url_with_param = url
-	var isFirst = true
-	for (var key in params) {
-		if (isFirst) {
-			url_with_param += '?' + key + '=' + params[key];
-			isFirst = false;
-		} else {
-			url_with_param += '&' + key + '=' + params[key];
-		}
-	}
-	return url_with_param;
-}
-
 function retriveAndDrawChart(params, title, $scope, $http) {
 	// http get for bloom overview
 	var url1 = appendParamsToUrl('../api/overview', params);
@@ -858,3 +731,143 @@ function retriveAndDrawChart(params, title, $scope, $http) {
 		$scope.ulTenureChartObject.data = chart_data;
 	});
 }
+
+/**
+ * Helper function to check is the string is a validate date
+ */
+function isDate(date) {
+	return ((new Date(date) !== "Invalid Date" && !isNaN(new Date(date))));
+}
+
+/**
+ * Helper function to parse header for display
+ */
+
+function parseHeader(header, option) {
+	if (!isDate(header)) {
+		var words = header.split("_");
+		var result = "";
+
+		for (var i in words) {
+			result += " " + capitalizeFirstLetter(words[i]);
+		}
+		return result.trim();
+	} else {
+		var start = moment(header);
+
+		if (option == "weekly") {
+			var end = moment(header);
+			end.add(6, 'days');
+			return start.format('YYYY/MM/DD') + " To " + end.format('YYYY/MM/DD');
+		} else if (option == "monthly") {
+			return start.format('MMM-YY')
+		}
+	}
+}
+
+/**
+ * Helper function to capitalize first letter
+ * @param  {String} string input word
+ * @return {String}        capitalized word
+ */
+function capitalizeFirstLetter(string) {
+	return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+/**
+ * helper function to calculate month difference, using moment
+ */
+
+function monthDiff(d1, d2) {
+	var months;
+	months = (d2.year() - d1.year()) * 12;
+	months -= d1.month();
+	months += d2.month();
+	return months <= 0 ? 0 : months;
+}
+
+/**
+ * initialize the dashboard tabs
+ */
+function initializeTab($http, $scope) {
+	var url = '../api/fo-area';
+	$('#Overview-tab a').tab('show');
+	$http.get(url).success(function(data) {
+		var fo = {}
+		for (var i in data) {
+			if (fo[data[i].fo_name] == undefined) {
+				fo[data[i].fo_name] = [];
+			}
+			fo[data[i].fo_name].push(data[i].area)
+
+		}
+		$scope.fo = fo;
+
+	});
+
+	// add listener after ng-repeat finish render the tabs
+	$scope.$on('ngRepeatFinished', function(ngRepeatFinishedEvent) {
+		$('.fo-area-selection').each(
+			function() {
+				$(this).click(
+					tabSelectListener
+				)
+			}
+		);
+	});
+
+	var tabSelectListener = function() {
+		var el = this;
+		// find the tab to activate
+		var tabid = '#' + el.id.split('-')[0] + '-tab a';
+		$(this).tab('show');
+		var id = el.id;
+
+		var params = {};
+		var title = '';
+
+		if (id == 'bloom-overview') {
+			var params = {};
+			title = 'Bloom'
+			$scope.fo_name = 'Bloom';
+			$scope.area = 'Overall';
+		} else if (id.indexOf('fo-') === 0) {
+			var fo_name = id.split('-')[1];
+			params['fo'] = fo_name;
+			title = fo_name;
+			$scope.fo_name = fo_name;
+			$scope.area = 'Overall';
+
+		} else {
+			params['area'] = id.split('-')[1];
+			title = id.split('-')[1];
+			$scope.fo_name = id.split('-')[0];
+			$scope.area = id.split('-')[1];
+		}
+
+
+		// console.log(params, $scope, $http);
+		retriveAndDrawChart(params, title, $scope, $http)
+	}
+}
+
+/**
+ * Helper function to append dictionary of parameters to a url for HTTP GET
+ * @param  {string} url    base url string
+ * @param  {dictionary} params dictionary of parameters
+ * @return {string}        url with parameters
+ */
+function appendParamsToUrl(url, params) {
+	var url_with_param = url
+	var isFirst = true
+	for (var key in params) {
+		if (isFirst) {
+			url_with_param += '?' + key + '=' + params[key];
+			isFirst = false;
+		} else {
+			url_with_param += '&' + key + '=' + params[key];
+		}
+	}
+	return url_with_param;
+}
+

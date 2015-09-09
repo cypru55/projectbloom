@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-08
+    Date last modified: 2015-09-09
     Python Version: 2.7.6
 '''
 
@@ -313,7 +313,9 @@ def bloom_overview(request):
             GROUP BY t2.month , t2.status
             ORDER BY STR_TO_DATE(t2.month, '%b-%y');
         """
-
+        print query1
+        print query2
+        print query3
         # execute the queries  
         result = {}
         result["ul_overview"] = execute_query(query1)
@@ -363,6 +365,8 @@ def entrepreneur_tenure(request):
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
+
+####################### Helper Functions ############################
 
 # helper function to executing custom query
 def execute_query(query):
