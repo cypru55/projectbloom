@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-09
+ * @Last Modified 2015-09-10
  */
 
 'use strict';
@@ -11,17 +11,27 @@ var dashboardControllers = angular.module('dashboardControllers', []);
 
 dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 	function($scope, $http) {
-		// retrieve data
-		initializeTab($http, $scope);
-		var url = "../api/overview";
-
-		$('#bloom-tab a').tab('show');
-		$scope.fo_name = 'Bloom';
-		$scope.area = 'Overall';
-		retriveAndDrawChart(url, 'Bloom', $scope, $http);
-
+		retriveAndDrawChart({}, "Bloom", $scope, $http);
+		retriveAndDrawSummaryCharts($scope, $http);
 	}
 ]);
+
+dashboardControllers.controller('DashboardFOOverviewCtrl', ['$scope', '$http',
+	function($scope, $http) {
+		// retrieve data
+		initializeTab($http, $scope);
+		var params = {
+			fo: "Mark"
+		}
+		$scope.fo_name="Mark"
+		$scope.area="Overall"
+		retriveAndDrawChart(params, "Mark", $scope, $http);
+	}
+]);
+
+dashboardControllers.controller('DashboardAreaOverviewCtrl', ['$scope', '$http', function($scope, $http) {
+
+}]);
 
 dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams', '$http',
 	function($scope, $routeParams, $http) {
@@ -302,8 +312,8 @@ function retriveAndDrawChart(params, title, $scope, $http) {
 			var month = moment(data['ul_overview'][i]['month'], "MMM-YY");
 			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
 			var index = monthDiff(startDate, month);
-			if (data['ul_overview'][i]['status'] == 'S') {
-				data_array[index][1] = data['ul_overview'][i]['count']
+			if (data['ul_overview'][i]['status'] == 'S' || data['ul_overview'][i]['status'] == 'S1' || data['ul_overview'][i]['status'] == 'S2') {
+				data_array[index][1] += data['ul_overview'][i]['count']
 
 			} else if (data['ul_overview'][i]['status'] == 'N') {
 				data_array[index][2] = data['ul_overview'][i]['count']
@@ -661,7 +671,7 @@ function retriveAndDrawChart(params, title, $scope, $http) {
 		$scope.spRetentionChartObject.options = options3;
 
 	});
-	
+
 	// http get for entrepreneur tenure
 	var url2 = appendParamsToUrl('../api/entrepreneur/tenure', params);
 	$http.get(url2).success(function(data) {
@@ -730,8 +740,245 @@ function retriveAndDrawChart(params, title, $scope, $http) {
 		//update scope varibale for tenure pie chart
 		$scope.ulTenureChartObject.data = chart_data;
 	});
+
+	// http get for ul and sp potential
+	var url3 = appendParamsToUrl('../api/target', params);
+	$http.get(url3).success(function(data) {
+		// initialize data for uplifter tenure
+		$scope.ulOverviewChartObject = {
+			type: "ComboChart",
+			displayed: true,
+			formatter: {},
+			options: {
+				title: title + " Uplifter Overview",
+				isStacked: "true",
+				seriesType: 'bars',
+				height: 400,
+				legend: {
+					position: "top"
+				}
+			}
+		}
+
+		$scope.spOverviewChartObject = {
+			type: "ComboChart",
+			displayed: true,
+			formatter: {},
+			options: {
+				title: title + " Stockpoint Overview",
+				isStacked: "true",
+				seriesType: 'bars',
+				height: 400,
+				legend: {
+					position: "top"
+				}
+			}
+		}
+
+		// build chart data
+		var ul_chart_data = {
+			cols: [{
+				id: "month",
+				label: "Month",
+				type: "string",
+				p: {}
+			}, {
+				id: "stable-active-ul-id",
+				label: "Stable UL - Active",
+				type: "number",
+				p: {}
+			}, {
+				id: "stable-inactive-ul-id",
+				label: "Stable UL - InActive",
+				type: "number",
+				p: {}
+			}, {
+				id: "dropped-ul-id",
+				label: "Dropped UL",
+				type: "number",
+				p: {}
+			}, {
+				id: "new-ul-id",
+				label: "New UL",
+				type: "number",
+				p: {}
+			}, {
+				id: "prescreened-ul-id",
+				label: "UL candidate - Prescreened",
+				type: "number",
+				p: {}
+			}],
+			rows: [{
+				c: [{
+					v: "Last Month"
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: data.ul.last_month_potential[0].count
+				}]
+			}, {
+				c: [{
+					v: "Month To Date"
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: data.ul.this_month_potential[0].count
+				}]
+			}, {
+				c: [{
+					v: "Target this month"
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}]
+			}]
+		}
+
+		var sp_chart_data = {
+			cols: [{
+				id: "month",
+				label: "Month",
+				type: "string",
+				p: {}
+			}, {
+				id: "stable-sp-id",
+				label: "Stable SP",
+				type: "number",
+				p: {}
+			}, {
+				id: "dropped-sp-id",
+				label: "Dropped SP",
+				type: "number",
+				p: {}
+			}, {
+				id: "new-sp-id",
+				label: "New SP",
+				type: "number",
+				p: {}
+			}, {
+				id: "prescreened-sp-id",
+				label: "SP candidate - Prescreened",
+				type: "number",
+				p: {}
+			}],
+			rows: [{
+				c: [{
+					v: "Last Month"
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: data.sp.last_month_potential[0].count
+				}]
+			}, {
+				c: [{
+					v: "Month To Date"
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: data.sp.this_month_potential[0].count
+				}]
+			}, {
+				c: [{
+					v: "Target this month"
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}]
+			}]
+		}
+
+		// consolidate data for last month ul
+		for (var i in data.ul.last_month) {
+			var ob = data.ul.last_month[i];
+			if (ob.status == 'D') {
+				ul_chart_data.rows[0].c[3].v += ob.count
+			} else if (ob.status == 'S') {
+				ul_chart_data.rows[0].c[1].v += ob.count
+			} else if (ob.status == 'S1' || ob.status == 'S2') {
+				ul_chart_data.rows[0].c[2].v += ob.count
+			} else if (ob.status == 'N') {
+				ul_chart_data.rows[0].c[4].v += ob.count
+			}
+		}
+		for (var i in data.ul.this_month) {
+			var ob = data.ul.this_month[i];
+			if (ob.status == 'D') {
+				ul_chart_data.rows[1].c[3].v += ob.count
+			} else if (ob.status == 'S') {
+				ul_chart_data.rows[1].c[1].v += ob.count
+			} else if (ob.status == 'S1' || ob.status == 'S2') {
+				ul_chart_data.rows[1].c[2].v += ob.count
+			} else if (ob.status == 'N') {
+				ul_chart_data.rows[1].c[4].v += ob.count
+			}
+		}
+
+		// consolidate data for this month
+		for (var i in data.sp.last_month) {
+			var ob = data.sp.last_month[i]
+			if (ob.status == 'D') {
+				sp_chart_data.rows[0].c[2].v += ob.count
+			} else if (ob.status == 'S') {
+				sp_chart_data.rows[0].c[1].v += ob.count
+			} else if (ob.status == 'N') {
+				sp_chart_data.rows[0].c[3].v += ob.count
+			}
+		}
+		for (var i in data.sp.this_month) {
+			var ob = data.sp.last_month[i]
+			if (ob.status == 'D') {
+				sp_chart_data.rows[1].c[2].v += ob.count
+			} else if (ob.status == 'S') {
+				sp_chart_data.rows[1].c[1].v += ob.count
+			} else if (ob.status == 'N') {
+				sp_chart_data.rows[1].c[3].v += ob.count
+			}
+		}
+
+		// draw charts
+		$scope.ulOverviewChartObject.data = ul_chart_data;
+		$scope.spOverviewChartObject.data = sp_chart_data
+	});
 }
 
+/**
+ * Draw More charts which are project bloom specific and summaize data for the whole project
+ */
+function retriveAndDrawSummaryCharts($scope, $http) {
+
+}
 /**
  * Helper function to check is the string is a validate date
  */
@@ -870,4 +1117,3 @@ function appendParamsToUrl(url, params) {
 	}
 	return url_with_param;
 }
-

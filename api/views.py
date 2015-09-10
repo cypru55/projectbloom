@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-09
+    Date last modified: 2015-09-10
     Python Version: 2.7.6
 '''
 
@@ -198,129 +198,18 @@ def fo_area(request):
 @login_required(login_url='/login/')
 def bloom_overview(request):
     if request.method == 'GET':
-        filter_query = ' '
+        params = {}
         if 'area' in request.GET:
-            filter_query = "area='"+request.GET['area']+"' AND "
+            params['area'] = request.GET['area']
         elif 'fo' in request.GET:
-            areas = execute_query("""
-                SELECT area From fo_area WHERE fo_name='"""+request.GET['fo']+"'")
-            filter_query="("
-            for i in areas:
-                filter_query += "area='"+i['area']+"' OR "
-            # change last logic operator to and
-            filter_query = filter_query[:-3]
-            filter_query += ") AND "
+            params['fo'] = request.GET['fo']
 
 
-        query1 = """
-            SELECT 
-            COUNT(*) as count, t2.month, t2.status
-            FROM
-                (SELECT 
-                    t.month AS month,
-                        (CASE
-                            WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
-                            WHEN t.status = 'D1' THEN 'D'
-                            WHEN t.status = 'S' OR t.status = 'S1' OR t.status = 'S2' THEN 'S'
-                            ELSE t.status
-                        END) AS status,
-                        t.type
-                FROM
-                    entrepreneur_status AS t  
-                WHERE
-                EXISTS( SELECT 
-                    *
-                FROM
-                    entrepreneur
-                WHERE
-                    """+ filter_query +"""
-                    entrepreneur.id = t.entrepreneur_id)
-            ) AS t2
-            WHERE
-                (t2.type = 'TSPI_UL'
-                    OR t2.type = 'LP4Y_UL')
-                    AND t2.status IS NOT NULL
-                    AND t2.status <> 'D2'
-                    AND t2.status <> 'NP1'
-                    AND t2.status <> 'NP2'
-
-            GROUP BY t2.month , t2.status
-            ORDER BY STR_TO_DATE(t2.month, '%b-%y');
-        """
-
-        query2 = """
-            SELECT 
-                COUNT(*) as count, t2.month, t2.status
-            FROM
-                (SELECT 
-                    t.month AS month,
-                        (CASE
-                            WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
-                            WHEN t.status = 'D1' THEN 'D'
-                            ELSE t.status
-                        END) AS status,
-                        t.type
-                FROM
-                    entrepreneur_status AS t
-                WHERE
-                EXISTS( SELECT 
-                    *
-                FROM
-                    entrepreneur
-                WHERE
-                    """+ filter_query +"""
-                    entrepreneur.id = t.entrepreneur_id)
-            ) AS t2
-            WHERE
-                (t2.type = 'TSPI_SP'
-                    OR t2.type = 'LP4Y_SP')
-                    AND t2.status IS NOT NULL
-                    AND t2.status <> 'D2'
-                    AND t2.status <> 'NP1'
-                    AND t2.status <> 'NP2'
-            GROUP BY t2.month , t2.status
-            ORDER BY STR_TO_DATE(t2.month, '%b-%y');
-        """
-        query3 = """
-        SELECT 
-            COUNT(*) as count, t2.month, t2.status
-            FROM
-                (SELECT 
-                    t.month AS month,
-                        (CASE
-                            WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
-                            WHEN t.status = 'D1' THEN 'D'
-                            ELSE t.status
-                        END) AS status,
-                        t.type
-                FROM
-                    entrepreneur_status AS t
-                WHERE
-                EXISTS( SELECT 
-                    *
-                FROM
-                    entrepreneur
-                WHERE
-                    """+ filter_query + """
-                    entrepreneur.id = t.entrepreneur_id)
-                    ) AS t2
-            WHERE
-                    t2.type = 'TSPI_UL'
-                    AND t2.status IS NOT NULL
-                    AND t2.status <> 'D2'
-                    AND t2.status <> 'NP1'
-                    AND t2.status <> 'NP2'
-            GROUP BY t2.month , t2.status
-            ORDER BY STR_TO_DATE(t2.month, '%b-%y');
-        """
-        print query1
-        print query2
-        print query3
         # execute the queries  
         result = {}
-        result["ul_overview"] = execute_query(query1)
-        result["sp_overview"] = execute_query(query2)
-        result["ul_without_lp4y_overview"] = execute_query(query3)
+        result["ul_overview"] = execute_query(generate_bloom_overview_query(params,'ul_overview', None))
+        result["sp_overview"] = execute_query(generate_bloom_overview_query(params,'sp_overview', None))
+        result["ul_without_lp4y_overview"] = execute_query(generate_bloom_overview_query(params,'ul_without_lp4y_overview', None))
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
@@ -362,6 +251,192 @@ def entrepreneur_tenure(request):
 
         """
         result = execute_query(query)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# update status table
+@login_required(login_url='/login/')
+def update_status_table(request):
+    if request.method == 'GET':
+        now = datetime.datetime.now().strftime("%b-%y")
+        cursor = connections['projectbloom_data'].cursor()
+        query="""
+            truncate entrepreneur_status;
+            call Update_SP_StatusTable("Jun-14","%s");
+            call Update_UL_StatusTable("Jun-14","%s");
+        """ % (now, now)
+        try:
+            execute_query(query)
+            result={"status":"success"}
+        except:
+            result={"status":"fail"}
+        
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")       
+
+# get target count for this month
+@login_required(login_url='/login/')
+def target(request):
+    if request.method == 'GET':
+        params = {}
+        now = datetime.datetime.now()
+        filter_query=""
+        (first_day, last_day) = get_month_day_range(now)
+        lastmonth = first_day - datetime.timedelta(days=1)
+        now = now.strftime('%b-%y')
+        (first_day_lastmonth, last_day_lastmonth) = get_month_day_range(lastmonth)
+        lastmonth = lastmonth.strftime('%b-%y')
+
+        if 'area' in request.GET:
+            area = request.GET['area'].replace (" ", "_")
+            params['area'] = request.GET['area']
+            filter_query = "residence_area='%s' AND "%area
+        elif 'fo' in request.GET and request.GET['fo'] != 'All':
+            fo = request.GET['fo'].lower()
+            params['fo'] = request.GET['fo']
+            filter_query = "username='%s' AND "%fo
+        query1 = """
+            SELECT 
+                COUNT(*) as count
+            FROM
+                ul_prescreening
+            WHERE
+                %s
+                    date_of_interview BETWEEN DATE('%s') AND DATE('%s');
+        """ % (filter_query, first_day.strftime('%Y-%m-%d'), last_day.strftime('%Y-%m-%d'))
+
+        query2 = """
+            SELECT 
+                COUNT(*) as count
+            FROM
+                sp_prescreening
+            WHERE
+                %s
+                    date_of_interview BETWEEN DATE('%s') AND DATE('%s');
+        """ %  (filter_query, first_day.strftime('%Y-%m-%d'), last_day.strftime('%Y-%m-%d'))
+
+        query3 = """
+            SELECT 
+                COUNT(*) as count
+            FROM
+                ul_prescreening
+            WHERE
+                %s
+                    date_of_interview BETWEEN DATE('%s') AND DATE('%s');
+        """ % (filter_query, first_day_lastmonth.strftime('%Y-%m-%d'), last_day_lastmonth.strftime('%Y-%m-%d'))
+
+        query4 = """
+            SELECT 
+                COUNT(*) as count
+            FROM
+                sp_prescreening
+            WHERE
+                %s
+                    date_of_interview BETWEEN DATE('%s') AND DATE('%s');
+        """ %  (filter_query, first_day_lastmonth.strftime('%Y-%m-%d'), last_day_lastmonth.strftime('%Y-%m-%d'))
+
+        result = {"ul":{}, "sp":{}}
+
+
+        result['ul']['this_month'] = execute_query(generate_bloom_overview_query(params, 'ul_overview', now))
+        result['sp']['this_month'] = execute_query(generate_bloom_overview_query(params, 'sp_overview', now))
+        result['ul']['last_month'] = execute_query(generate_bloom_overview_query(params, 'ul_overview', lastmonth))
+        result['sp']['last_month'] = execute_query(generate_bloom_overview_query(params, 'sp_overview', lastmonth))
+        result['ul']['this_month_potential'] = execute_query(query1)  
+        result['sp']['this_month_potential'] = execute_query(query2)  
+        result['ul']['last_month_potential'] = execute_query(query3)  
+        result['sp']['last_month_potential'] = execute_query(query4)  
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# get uplifter count by month and area
+def uplifter_by_area(request):
+    if request.method == 'GET':
+        query = """
+        SELECT count(DISTINCT
+            uplifter_id) as count, area, DATE_FORMAT(date, '%b-%y') AS month
+        FROM
+            sale_db
+        where uplifter_id>0
+        GROUP BY area , DATE_FORMAT(date, '%b-%y')
+        ORDER BY STR_TO_DATE(month, '%b-%y')
+        """
+        result = execute_query(query);
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# get estimated man hour
+def estimated_man_hour(request):
+    if request.method == 'GET':
+        query = """
+        SELECT 
+            SUM(hours_per_day) AS sum,
+            area,
+            DATE_FORMAT(date, '%b-%y') AS month
+        FROM
+            (SELECT 
+                uplifter_id, hours_per_day, area, date
+            FROM
+                sale_db
+            WHERE
+                uplifter_id > 0
+            GROUP BY date , uplifter_id
+            ORDER BY date) AS t
+        GROUP BY area , month
+        ORDER BY STR_TO_DATE(month, '%b-%y');
+        """
+        result = execute_query(query);
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# get estmiate income per hour TODO
+def estimated_income_per_hour(request):
+    if request.method == 'GET':
+        query = """
+        SELECT 
+            SUM(t.uplifter_profit)/sum(t.hours_per_day) AS profit_per_hour,
+            month,
+            area
+        FROM
+            (SELECT 
+                uplifter_id, uplifter_profit, hours_per_day, area, DATE_FORMAT(date, '%b-%y') as month
+            FROM
+                sale_db
+            WHERE
+                uplifter_id > 0
+            GROUP BY date , uplifter_id
+            ORDER BY date) AS t
+        WHERE
+            t.uplifter_id > 0
+               and isStableUL(t.uplifter_id,t.month)>0
+        GROUP BY area , month
+        ORDER BY STR_TO_DATE(month, '%b-%y')
+        """
+        result = execute_query(query);
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# get rsv sold
+def rsv_sold(request):
+    if request.method == 'GET':
+        query = """
+        """
+        result = execute_query(query);
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# get case sold
+def case_sold(request):
+    if request.method == 'GET':
+        query = """
+        """
+        result = execute_query(query);
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
@@ -581,7 +656,7 @@ def generate_ul_income_query(periods):
     return (query, col_name)
 
     
-# hlper function for generating stockpoint monthly income query
+# helper function for generating stockpoint monthly income query
 def generate_sp_income_query(periods):
     query_part_1 = ""
     query_part_2 = ""
@@ -612,12 +687,127 @@ def generate_sp_income_query(periods):
 
     return (query, col_name)
 
-class JSONResponse(HttpResponse):
-    """
-    An HttpResponse that renders its content into JSON.
-    """
-    def __init__(self, data, **kwargs):
-        content = JSONRenderer().render(data)
-        kwargs['content_type'] = 'application/json'
-        super(JSONResponse, self).__init__(content, **kwargs)
+# helper function for generating bloom overview query
+def generate_bloom_overview_query(params, type, month):
+    filter_query = ' '
+    filter_query2 = ''
+    if 'area' in params:
+        filter_query = "area='%s' AND " % params['area']
+    elif 'fo' in params:
+        areas = execute_query("""
+            SELECT area From fo_area WHERE fo_name='%s'""" % params['fo'])
+        filter_query="("
+        for i in areas:
+            filter_query += "area='%s' OR " % i['area']
+        # change last logic operator to and
+        filter_query = filter_query[:-3]
+        filter_query += ") AND "
+    if month is not None:
+        filter_query2 = "AND t2.month='%s'" % month
 
+    if type == 'ul_overview':
+        query = """
+            SELECT 
+            COUNT(*) as count, t2.month, t2.status
+            FROM
+                (SELECT 
+                    t.month AS month,
+                        (CASE
+                            WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
+                            WHEN t.status = 'D1' THEN 'D'
+                            ELSE t.status
+                        END) AS status,
+                        t.type
+                FROM
+                    entrepreneur_status AS t  
+                WHERE
+                EXISTS( SELECT 
+                    *
+                FROM
+                    entrepreneur
+                WHERE
+                    {0}
+                    entrepreneur.id = t.entrepreneur_id)
+            ) AS t2
+            WHERE
+                (t2.type = 'TSPI_UL'
+                    OR t2.type = 'LP4Y_UL')
+                    AND t2.status IS NOT NULL
+                    AND t2.status <> 'D2'
+                    AND t2.status <> 'NP1'
+                    AND t2.status <> 'NP2'
+                    {1}
+            GROUP BY t2.month , t2.status
+            ORDER BY STR_TO_DATE(t2.month, '%b-%y');
+        """.format(filter_query, filter_query2)
+    elif type == 'sp_overview':
+        query = """
+            SELECT 
+                COUNT(*) as count, t2.month, t2.status
+            FROM
+                (SELECT 
+                    t.month AS month,
+                        (CASE
+                            WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
+                            WHEN t.status = 'D1' THEN 'D'
+                            ELSE t.status
+                        END) AS status,
+                        t.type
+                FROM
+                    entrepreneur_status AS t
+                WHERE
+                EXISTS( SELECT 
+                    *
+                FROM
+                    entrepreneur
+                WHERE
+                    {0}
+                    entrepreneur.id = t.entrepreneur_id)
+            ) AS t2
+            WHERE
+                (t2.type = 'TSPI_SP'
+                    OR t2.type = 'LP4Y_SP')
+                    AND t2.status IS NOT NULL
+                    AND t2.status <> 'D2'
+                    AND t2.status <> 'NP1'
+                    AND t2.status <> 'NP2'
+                    {1}
+            GROUP BY t2.month , t2.status
+            ORDER BY STR_TO_DATE(t2.month, '%b-%y');
+        """.format(filter_query, filter_query2)
+    elif type == 'ul_without_lp4y_overview':
+        query = """
+            SELECT 
+                COUNT(*) as count, t2.month, t2.status
+            FROM
+                (SELECT 
+                    t.month AS month,
+                        (CASE
+                            WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
+                            WHEN t.status = 'D1' THEN 'D'
+                            ELSE t.status
+                        END) AS status,
+                        t.type
+                FROM
+                    entrepreneur_status AS t
+                WHERE
+                EXISTS( SELECT 
+                    *
+                FROM
+                    entrepreneur
+                WHERE
+                    {0}
+                    entrepreneur.id = t.entrepreneur_id)
+                    ) AS t2
+            WHERE
+                    t2.type = 'TSPI_UL'
+                    AND t2.status IS NOT NULL
+                    AND t2.status <> 'D2'
+                    AND t2.status <> 'NP1'
+                    AND t2.status <> 'NP2'
+                    {1}
+            GROUP BY t2.month , t2.status
+            ORDER BY STR_TO_DATE(t2.month, '%b-%y');
+        """.format (filter_query, filter_query2)
+
+    return query
