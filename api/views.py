@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-10
+    Date last modified: 2015-09-16
     Python Version: 2.7.6
 '''
 
@@ -26,6 +26,8 @@ import datetime
 import calendar
 
 # root url for api, testing purpose.
+
+
 @login_required(login_url='/login/')
 def index(request):
     return HttpResponse("Hello, world. You're at the api index.")
@@ -43,6 +45,7 @@ class SaleViewSet(viewsets.ModelViewSet):
     max_paginate_by = 100
     http_method_names = ['get', 'post']
 
+
 class DeliveryViewSet(viewsets.ModelViewSet):
     queryset = Delivery.objects.using('projectbloom_data').all()
     serializer_class = DeliverySerializer
@@ -51,6 +54,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     # Set MAX results per page
     max_paginate_by = 100
     http_method_names = ['get', 'post']
+
 
 class EntrepreneurViewSet(viewsets.ModelViewSet):
     queryset = Entrepreneur.objects.using('projectbloom_data').all()
@@ -61,6 +65,7 @@ class EntrepreneurViewSet(viewsets.ModelViewSet):
     max_paginate_by = 100
     http_method_names = ['get', 'post']
 
+
 class ProductViewSet(generics.ListAPIView):
     serializer_class = ProductSerializer
     paginate_by = 10
@@ -68,6 +73,7 @@ class ProductViewSet(generics.ListAPIView):
     # Set MAX results per page
     max_paginate_by = 100
     http_method_names = ['get']
+
     def get_queryset(self):
         product_margin_type = self.kwargs['type']
         queryset = Product.objects.using('projectbloom_data').all()
@@ -79,21 +85,26 @@ class ProductViewSet(generics.ListAPIView):
             queryset = queryset.filter(type='lp4y')
         return queryset
 
+
 class StatusViewSet(generics.ListAPIView):
     serializer_class = EntrepreneurStatusSerializer
     paginate_by_param = 'page_size'
     http_method_names = ['get']
+
     def get_queryset(self):
-        queryset = EntrepreneurStatus.objects.using('projectbloom_data').all().filter(type=self.kwargs['type'])
+        queryset = EntrepreneurStatus.objects.using(
+            'projectbloom_data').all().filter(type=self.kwargs['type'])
         return queryset
 
 # stockpoint product sold pivot table
+
+
 @login_required(login_url='/login/')
 def sp_products_sold(request):
     if request.method == 'GET':
         # parse the date in the http get parameter
         periods = parse_date_to_period(request)
-        
+
         # generate query using periods
         (query, column_name) = generate_sp_product_sold_table_query(periods)
 
@@ -101,7 +112,7 @@ def sp_products_sold(request):
         row = execute_query(query)
 
         # clean up rows with all null
-        row = clean_null_colunm(column_name,row)
+        row = clean_null_colunm(column_name, row)
 
         result = {}
         result['data'] = row
@@ -112,12 +123,14 @@ def sp_products_sold(request):
         return HttpResponse(json_str, content_type="application/json")
 
 # uplifter days worked
+
+
 @login_required(login_url='/login/')
 def ul_days_worked(request):
     if request.method == 'GET':
         # parse the date in the http get parameter
         periods = parse_date_to_period(request)
-        
+
         # generate query using periods
         (query, column_name) = generate_ul_worked_days_query(periods)
 
@@ -125,7 +138,7 @@ def ul_days_worked(request):
         row = execute_query(query)
 
         # clean up rows with all null
-        row = clean_null_colunm(column_name,row)
+        row = clean_null_colunm(column_name, row)
 
         result = {}
         result['data'] = row
@@ -136,12 +149,14 @@ def ul_days_worked(request):
         return HttpResponse(json_str, content_type="application/json")
 
 # uplifter weekly or monthly income
+
+
 @login_required(login_url='/login/')
 def ul_income(request):
     if request.method == 'GET':
         # parse the date in the http get parameter
         periods = parse_date_to_period(request)
-        
+
         # generate query using periods
         (query, column_name) = generate_ul_income_query(periods)
 
@@ -149,7 +164,7 @@ def ul_income(request):
         row = execute_query(query)
 
         # clean up rows with all null
-        row = clean_null_colunm(column_name,row)
+        row = clean_null_colunm(column_name, row)
 
         result = {}
         result['data'] = row
@@ -158,14 +173,16 @@ def ul_income(request):
         json_str = json.dumps(result, default=defaultencode)
 
         return HttpResponse(json_str, content_type="application/json")
-    
+
 # stock point monthly income
+
+
 @login_required(login_url='/login/')
 def sp_income(request):
     if request.method == 'GET':
         # parse the date in the http get parameter
         periods = parse_date_to_period(request)
-        
+
         # generate query using periods
         (query, column_name) = generate_sp_income_query(periods)
 
@@ -173,7 +190,7 @@ def sp_income(request):
         row = execute_query(query)
 
         # clean up rows with all null
-        row = clean_null_colunm(column_name,row)
+        row = clean_null_colunm(column_name, row)
 
         result = {}
         result['data'] = row
@@ -184,6 +201,8 @@ def sp_income(request):
         return HttpResponse(json_str, content_type="application/json")
 
 # get areas under each fo
+
+
 @login_required(login_url='/login/')
 def fo_area(request):
     if request.method == 'GET':
@@ -194,7 +213,32 @@ def fo_area(request):
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
+# update status table
+
+
+@login_required(login_url='/login/')
+def update_status_table(request):
+    if request.method == 'GET':
+        now = datetime.datetime.now().strftime("%b-%y")
+        cursor = connections['projectbloom_data'].cursor()
+        query = """
+            truncate entrepreneur_status;
+            call Update_SP_StatusTable("Jun-14","%s");
+            call Update_UL_StatusTable("Jun-14","%s");
+        """ % (now, now)
+        try:
+            execute_query(query)
+            result = {"status": "success"}
+        except:
+            result = {"status": "fail"}
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
 # get project bloom overview data
+
+################## both overview and area specific queries #####################
+
 @login_required(login_url='/login/')
 def bloom_overview(request):
     if request.method == 'GET':
@@ -204,33 +248,38 @@ def bloom_overview(request):
         elif 'fo' in request.GET:
             params['fo'] = request.GET['fo']
 
-
-        # execute the queries  
+        # execute the queries
         result = {}
-        result["ul_overview"] = execute_query(generate_bloom_overview_query(params,'ul_overview', None))
-        result["sp_overview"] = execute_query(generate_bloom_overview_query(params,'sp_overview', None))
-        result["ul_without_lp4y_overview"] = execute_query(generate_bloom_overview_query(params,'ul_without_lp4y_overview', None))
+        result["ul_overview"] = execute_query(
+            generate_bloom_overview_query(params, 'ul_overview', None))
+        result["sp_overview"] = execute_query(
+            generate_bloom_overview_query(params, 'sp_overview', None))
+        result["ul_without_lp4y_overview"] = execute_query(
+            generate_bloom_overview_query(params, 'ul_without_lp4y_overview', None))
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
 # get entreprenur tenure
+
+
 @login_required(login_url='/login/')
 def entrepreneur_tenure(request):
     if request.method == 'GET':
         filter_query = ' '
         if 'area' in request.GET:
-            filter_query = "exists (select * from entrepreneur where entrepreneur_id=id and area='"+request.GET['area']+"') AND "
+            filter_query = "exists (select * from entrepreneur where entrepreneur_id=id and area='" + \
+                request.GET['area'] + "') AND "
         elif 'fo' in request.GET:
             areas = execute_query("""
-                SELECT area From fo_area WHERE fo_name='"""+request.GET['fo']+"'")
-            filter_query=" exists (select * from entrepreneur where entrepreneur_id=id and ("
+                SELECT area From fo_area WHERE fo_name='""" + request.GET['fo'] + "'")
+            filter_query = " exists (select * from entrepreneur where entrepreneur_id=id and ("
             for i in areas:
-                filter_query += "area='"+i['area']+"' OR "
+                filter_query += "area='" + i['area'] + "' OR "
             # change last logic operator to and
             filter_query = filter_query[:-3]
             filter_query += ")) and"
-        
+
         query = """
             SELECT 
             t.id as id, MAX(MONTHDIFF(date)) AS tenure
@@ -241,7 +290,7 @@ def entrepreneur_tenure(request):
                 FROM
                     entrepreneur_status
                 WHERE
-                    """+filter_query+"""
+                    """ + filter_query + """
                         month = 'Aug-15'
                         and (type = 'LP4Y_UL' OR type = 'TSPI_UL')
                         AND (status <> 'D')) as t
@@ -255,47 +304,31 @@ def entrepreneur_tenure(request):
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
-# update status table
-@login_required(login_url='/login/')
-def update_status_table(request):
-    if request.method == 'GET':
-        now = datetime.datetime.now().strftime("%b-%y")
-        cursor = connections['projectbloom_data'].cursor()
-        query="""
-            truncate entrepreneur_status;
-            call Update_SP_StatusTable("Jun-14","%s");
-            call Update_UL_StatusTable("Jun-14","%s");
-        """ % (now, now)
-        try:
-            execute_query(query)
-            result={"status":"success"}
-        except:
-            result={"status":"fail"}
-        
-        json_str = json.dumps(result, default=defaultencode)
-        return HttpResponse(json_str, content_type="application/json")       
 
 # get target count for this month
+
+
 @login_required(login_url='/login/')
 def target(request):
     if request.method == 'GET':
         params = {}
         now = datetime.datetime.now()
-        filter_query=""
+        filter_query = ""
         (first_day, last_day) = get_month_day_range(now)
         lastmonth = first_day - datetime.timedelta(days=1)
         now = now.strftime('%b-%y')
-        (first_day_lastmonth, last_day_lastmonth) = get_month_day_range(lastmonth)
+        (first_day_lastmonth, last_day_lastmonth) = get_month_day_range(
+            lastmonth)
         lastmonth = lastmonth.strftime('%b-%y')
 
         if 'area' in request.GET:
-            area = request.GET['area'].replace (" ", "_")
+            area = request.GET['area'].replace(" ", "_")
             params['area'] = request.GET['area']
-            filter_query = "residence_area='%s' AND "%area
+            filter_query = "residence_area='%s' AND " % area
         elif 'fo' in request.GET and request.GET['fo'] != 'All':
             fo = request.GET['fo'].lower()
             params['fo'] = request.GET['fo']
-            filter_query = "username='%s' AND "%fo
+            filter_query = "username='%s' AND " % fo
         query1 = """
             SELECT 
                 COUNT(*) as count
@@ -336,22 +369,29 @@ def target(request):
                     date_of_interview BETWEEN DATE('%s') AND DATE('%s');
         """ %  (filter_query, first_day_lastmonth.strftime('%Y-%m-%d'), last_day_lastmonth.strftime('%Y-%m-%d'))
 
-        result = {"ul":{}, "sp":{}}
+        result = {"ul": {}, "sp": {}}
 
-
-        result['ul']['this_month'] = execute_query(generate_bloom_overview_query(params, 'ul_overview', now))
-        result['sp']['this_month'] = execute_query(generate_bloom_overview_query(params, 'sp_overview', now))
-        result['ul']['last_month'] = execute_query(generate_bloom_overview_query(params, 'ul_overview', lastmonth))
-        result['sp']['last_month'] = execute_query(generate_bloom_overview_query(params, 'sp_overview', lastmonth))
-        result['ul']['this_month_potential'] = execute_query(query1)  
-        result['sp']['this_month_potential'] = execute_query(query2)  
-        result['ul']['last_month_potential'] = execute_query(query3)  
-        result['sp']['last_month_potential'] = execute_query(query4)  
+        result['ul']['this_month'] = execute_query(
+            generate_bloom_overview_query(params, 'ul_overview', now))
+        result['sp']['this_month'] = execute_query(
+            generate_bloom_overview_query(params, 'sp_overview', now))
+        result['ul']['last_month'] = execute_query(
+            generate_bloom_overview_query(params, 'ul_overview', lastmonth))
+        result['sp']['last_month'] = execute_query(
+            generate_bloom_overview_query(params, 'sp_overview', lastmonth))
+        result['ul']['this_month_potential'] = execute_query(query1)
+        result['sp']['this_month_potential'] = execute_query(query2)
+        result['ul']['last_month_potential'] = execute_query(query3)
+        result['sp']['last_month_potential'] = execute_query(query4)
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
+################## project bloom overview specific queries #####################
+
 # get uplifter count by month and area
+
+@login_required(login_url='/login/')
 def uplifter_by_area(request):
     if request.method == 'GET':
         query = """
@@ -363,17 +403,19 @@ def uplifter_by_area(request):
         GROUP BY area , DATE_FORMAT(date, '%b-%y')
         ORDER BY STR_TO_DATE(month, '%b-%y')
         """
-        result = execute_query(query);
+        result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
 # get estimated man hour
+
+@login_required(login_url='/login/')
 def estimated_man_hour(request):
     if request.method == 'GET':
         query = """
         SELECT 
-            SUM(hours_per_day) AS sum,
+            SUM(hours_per_day) AS man_hour_sum,
             area,
             DATE_FORMAT(date, '%b-%y') AS month
         FROM
@@ -388,55 +430,286 @@ def estimated_man_hour(request):
         GROUP BY area , month
         ORDER BY STR_TO_DATE(month, '%b-%y');
         """
-        result = execute_query(query);
+        result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
-# get estmiate income per hour TODO
+# get estmiate income per hour
+
+@login_required(login_url='/login/')
 def estimated_income_per_hour(request):
     if request.method == 'GET':
         query = """
         SELECT 
-            SUM(t.uplifter_profit)/sum(t.hours_per_day) AS profit_per_hour,
+            SUM(t.profit) / SUM(t.hours_per_day) AS profit_per_hour,
             month,
             area
         FROM
             (SELECT 
-                uplifter_id, uplifter_profit, hours_per_day, area, DATE_FORMAT(date, '%b-%y') as month
+                uplifter_id,
+                    SUM(uplifter_profit) AS profit,
+                    hours_per_day,
+                    area,
+                    DATE_FORMAT(date, '%b-%y') AS month
             FROM
                 sale_db
             WHERE
                 uplifter_id > 0
-            GROUP BY date , uplifter_id
-            ORDER BY date) AS t
+            GROUP BY date , uplifter_id) AS t
         WHERE
             t.uplifter_id > 0
-               and isStableUL(t.uplifter_id,t.month)>0
+                AND ISSTABLEUL(t.uplifter_id, t.month) > 0
         GROUP BY area , month
         ORDER BY STR_TO_DATE(month, '%b-%y')
         """
-        result = execute_query(query);
+        result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
-# get rsv sold
+# get rsv sold TODO
+
+@login_required(login_url='/login/')
 def rsv_sold(request):
     if request.method == 'GET':
-        query = """
+        query1 = """
+        SELECT 
+            SUM(inner_bags) AS inner_bags_sum,
+            DATE_FORMAT(date, '%b-%y') AS month,
+            p.company as company
+        FROM
+            delivery as d
+        left join product as p on p.product=d.product and p.type="latest"
+        where d.date is not null 
+        GROUP BY month, company;
         """
-        result = execute_query(query);
+        query2 = """
+        SELECT 
+            SUM(rsv) AS rsv,
+            DATE_FORMAT(date, '%b-%y') AS month,
+            p.company AS company
+        FROM
+            delivery AS d
+                LEFT JOIN
+            product AS p ON p.product = d.product
+                AND p.type = 'latest'
+        WHERE
+            d.date IS NOT NULL
+        GROUP BY month , company;
+        """
+        result = {}
+        result['sku']= execute_query(query1)
+        result['rsv']= execute_query(query2)
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
-# get case sold
+# get case sold 
+
+@login_required(login_url='/login/')
 def case_sold(request):
     if request.method == 'GET':
-        query = """
+        query1 = """
+        SELECT 
+            SUM(qty) AS qty_sum,
+            DATE_FORMAT(date, '%b-%y') AS month,
+            p.company AS company
+        FROM
+            delivery AS d
+                LEFT JOIN
+            product AS p ON p.product = d.product
+                AND p.type = 'latest'
+        WHERE
+            d.date IS NOT NULL
+        GROUP BY month , company;
         """
-        result = execute_query(query);
+
+        query2 = """
+        SELECT 
+            SUM(qty) AS qty_sum,
+            product,
+            DATE_FORMAT(date, '%b-%y') AS month
+        FROM
+            delivery
+        WHERE
+            date IS NOT NULL
+        GROUP BY product , month
+        ORDER BY date
+        """
+        result = {}
+        result['by_product'] = execute_query(query2)
+        result['by_company'] = execute_query(query1)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+################## area specific queries #####################
+
+@login_required(login_url='/login/')
+def sp_three_month_income(request):
+    if request.method == 'GET':
+        area = request.GET['area']
+        now = datetime.datetime.now()
+        (this_month_first_day, last_day) = get_month_day_range(now)
+        three_month_ago = datetime.date(now.year, now.month - 2, 1)
+        query = """
+        SELECT 
+            SUM(stockpoint_profit) as profit,
+            stockpoint_name,
+            DATE_FORMAT(date, '%%b-%%y') AS month
+        FROM
+            sale_db
+        WHERE
+            area = '%s' and (date BETWEEN "%s" AND "%s")
+        GROUP BY stockpoint_name , month
+        """ % (area, three_month_ago.strftime("%Y-%m-%d"), last_day.strftime("%Y-%m-%d"))
+        result = execute_query(query)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# sum of peso for each stokpoint, each month
+
+@login_required(login_url='/login/')
+def sp_three_month_purchase_value(request):
+    if request.method == 'GET':
+        area = request.GET['area']
+        query = """
+        SELECT 
+            SUM(to_distributors) AS value_purchase,
+            stockpoint_name,
+            DATE_FORMAT(date, '%%b-%%y') AS month
+        FROM
+            delivery
+        WHERE
+            stockpoint_name <> 'LP4Y' and area="%s"
+        GROUP BY month, stockpoint_name
+        ORDER BY stockpoint_name
+        """ % area
+        result = execute_query(query)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# get uplifters income and man hour given area and month
+
+@login_required(login_url='/login/')
+def ul_income_and_man_hour(request):
+    if request.method == 'GET':
+        area = request.GET['area']
+        month = request.GET['month']
+        # man hour
+        query1 = """
+        SELECT 
+            *
+        FROM
+            (SELECT 
+                SUM(hours_per_day) AS man_hour_sum,
+                    uplifter_name,
+                    area,
+                    DATE_FORMAT(date, '%%b-%%y') AS month
+            FROM
+                (SELECT 
+                uplifter_id, uplifter_name, hours_per_day, area, date
+            FROM
+                sale_db
+            WHERE
+                uplifter_id > 0
+                    AND uplifter_name IS NOT NULL
+                    AND area = '%s'
+            GROUP BY date , uplifter_id
+            ORDER BY date) AS t
+            GROUP BY uplifter_id , month
+            ORDER BY STR_TO_DATE(month, '%%b-%%y')) AS t2
+        WHERE
+            t2.month = '%s'
+        """ % (area, month)
+
+        query2 = """
+        SELECT 
+            SUM(t.profit) AS profit, uplifter_name, month, area
+        FROM
+            (SELECT 
+                uplifter_id,
+                    uplifter_name,
+                    SUM(uplifter_profit) AS profit,
+                    hours_per_day,
+                    area,
+                    DATE_FORMAT(date, '%%b-%%y') AS month
+            FROM
+                sale_db
+            WHERE
+                uplifter_id > 0
+            GROUP BY date , uplifter_id) AS t
+        WHERE
+            t.uplifter_id > 0
+                AND ISSTABLEUL(t.uplifter_id, t.month) > 0
+                AND area = '%s'and t.month="%s"
+        GROUP BY uplifter_id , month
+        ORDER BY STR_TO_DATE(month, '%%b-%%y')
+        """ % (area, month)
+
+        result['man_hour'] = execute_query(query1)
+        result['income'] = execute_query(query2)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# compare the days worked for ul between this month and previous month
+
+@login_required(login_url='/login/')
+def most_improved_days_worked(request):
+    if request.method == 'GET':
+        this_month = request.GET['month']
+        area = request.GET['area']
+        pre_month = datetime.datetime.strptime(this_month, "%b-%y")
+        pre_month = datetime.date(pre_month.year, pre_month.month - 1, 1)
+        pre_month = pre_month.strftime("%b-%y")
+
+        query = """
+        SELECT 
+            *
+        FROM
+            (SELECT 
+                COUNT(DISTINCT date) AS count,
+                    uplifter_id,
+                    uplifter_name,
+                    DATE_FORMAT(date, '%%b-%%y') AS month
+            FROM
+                sale_db
+            WHERE
+                area = '%s' AND uplifter_name <> ''
+            GROUP BY uplifter_id , month) AS t
+        WHERE
+            t.month = '%s' OR t.month = '%s';
+        """ % (area, this_month, pre_month)
+        result = execute_query(query)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+################## stockpoint specific queries #####################
+
+# get the product delivery quantity for stockpoint per month
+
+@login_required(login_url='/login/')
+def product_sold_detail(request):
+    if request.method == 'GET':
+        stockpoint_name = request.GET['stockpoint_name']
+        query = """
+        SELECT 
+            SUM(qty) AS sum,
+            DATE_FORMAT(date, '%%b-%%y') AS month,
+            product,
+            stockpoint_name
+        FROM
+            delivery
+        WHERE
+            stockpoint_name = '%s'
+        GROUP BY month , product , stockpoint_id
+        """ % stockpoint_name
+        result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
@@ -444,19 +717,24 @@ def case_sold(request):
 ####################### Helper Functions ############################
 
 # helper function to executing custom query
+
 def execute_query(query):
     cursor = connections['projectbloom_data'].cursor()
     cursor.execute(query)
     desc = cursor.description
     row = [
-            dict(zip([col[0] for col in desc], row))
+        dict(zip([col[0] for col in desc], row))
 
-            for row in cursor.fetchall()
-            ]
+        for row in cursor.fetchall()
+    ]
     cursor.close()
 
     return row
+
+
 # parse the date into period
+
+
 def parse_date_to_period(request):
     # read the start date and end date
     # start date must be monday
@@ -465,7 +743,7 @@ def parse_date_to_period(request):
         option = "monthly"
     else:
         option = "weekly"
-        
+
     date_format = "%Y-%m-%d"
     if 'sd' in request.GET and 'ed' in request.GET:
         start_date = datetime.datetime.strptime(request.GET['sd'], date_format)
@@ -473,24 +751,32 @@ def parse_date_to_period(request):
         periods = period_generator(start_date, end_date, date_format, option)
     elif 'sd' not in request.GET and 'ed' in request.GET:
         end_date = datetime.datetime.strptime(request.GET['ed'], date_format)
-        start_date = end_date - datetime.timedelta(weeks=4) + datetime.timedelta(days=1)
+        start_date = end_date - \
+            datetime.timedelta(weeks=4) + datetime.timedelta(days=1)
         periods = period_generator(start_date, end_date, date_format, option)
     else:
         today = datetime.datetime.now()
         days_left_for_this_week = 6 - datetime.datetime.today().weekday()
         end_date = today + datetime.timedelta(days=days_left_for_this_week)
-        start_date = end_date - datetime.timedelta(weeks=4) + datetime.timedelta(days=1)
+        start_date = end_date - \
+            datetime.timedelta(weeks=4) + datetime.timedelta(days=1)
         periods = period_generator(start_date, end_date, date_format, option)
     return periods
 
 # helper class for serializing float
+
+
 class float_value(float):
+
     def __init__(self, value):
         self._value = value
+
     def __repr__(self):
         return str(self._value)
 
 # encoding function for dump
+
+
 def defaultencode(o):
     if isinstance(o, Decimal):
         # Subclass float with custom repr?
@@ -498,6 +784,8 @@ def defaultencode(o):
     raise TypeError(repr(o) + " is not JSON serializable")
 
 # hepler function to check if all value is null, if not change null to 0
+
+
 def is_all_null(json_object, column_name):
     for col in column_name:
         if json_object[col] is not None:
@@ -505,6 +793,8 @@ def is_all_null(json_object, column_name):
     return True
 
 # remove rows with all null in given column, change null to 0
+
+
 def clean_null_colunm(column_name, pivot_table_json):
     new_array = []
     for i in xrange(len(pivot_table_json)):
@@ -516,6 +806,8 @@ def clean_null_colunm(column_name, pivot_table_json):
     return new_array
 
 # helper function for getting first day and last day of the month
+
+
 def get_month_day_range(date):
     """
     For a date 'date' returns the start and end date for the month of 'date'.
@@ -530,39 +822,46 @@ def get_month_day_range(date):
     >>> get_month_day_range(date)
     (datetime.date(2011, 2, 1), datetime.date(2011, 2, 28))
     """
-    first_day = date.replace(day = 1)
-    last_day = date.replace(day = calendar.monthrange(date.year, date.month)[1])
+    first_day = date.replace(day=1)
+    last_day = date.replace(day=calendar.monthrange(date.year, date.month)[1])
     return first_day, last_day
 
-# helper function for getting the week period from given start date and end date
+# helper function for getting the week period from given start date and
+# end date
+
+
 def period_generator(start_date, end_date, date_format, option):
     periods = []
     one_day = datetime.timedelta(days=1)
-    
+
     if option == "weekly":
-        current_start_date = start_date   
+        current_start_date = start_date
         time_delta = datetime.timedelta(weeks=1)
         while current_start_date < end_date:
             period = {}
             period['start_date'] = current_start_date.strftime(date_format)
             if current_start_date + time_delta - one_day <= end_date:
-                period['end_date'] = (current_start_date + time_delta - one_day).strftime(date_format)
+                period['end_date'] = (
+                    current_start_date + time_delta - one_day).strftime(date_format)
             else:
                 period['end_date'] = end_date.strftime(date_format)
             periods.append(period)
             current_start_date = current_start_date + time_delta
     elif option == "monthly":
-         current_month_range = get_month_day_range(start_date)
-         end_date_month_range = get_month_day_range(end_date)
-         while current_month_range[1] <= end_date_month_range[1]:
-             period = {}
-             period['start_date'] = current_month_range[0].strftime(date_format)
-             period['end_date'] = current_month_range[1].strftime(date_format)
-             periods.append(period)
-             current_month_range = get_month_day_range(current_month_range[1] + one_day)
+        current_month_range = get_month_day_range(start_date)
+        end_date_month_range = get_month_day_range(end_date)
+        while current_month_range[1] <= end_date_month_range[1]:
+            period = {}
+            period['start_date'] = current_month_range[0].strftime(date_format)
+            period['end_date'] = current_month_range[1].strftime(date_format)
+            periods.append(period)
+            current_month_range = get_month_day_range(
+                current_month_range[1] + one_day)
     return periods
 
 # helper function for generating query for stockpoint product sold table
+
+
 def generate_sp_product_sold_table_query(periods):
     query_part_1 = ""
     query_part_2 = ""
@@ -570,8 +869,10 @@ def generate_sp_product_sold_table_query(periods):
     # use start date as the column name
     for period in periods:
         col_name.append(period['start_date'])
-        query_part_1 += "sum(`%s`) as `%s`,\n" % (period['start_date'], period['start_date'])
-        query_part_2 += "case when date between '%s' and '%s' then sold end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
+        query_part_1 += "sum(`%s`) as `%s`,\n" % (
+            period['start_date'], period['start_date'])
+        query_part_2 += "case when date between '%s' and '%s' then sold end as `%s`,\n" % (
+            period['start_date'], period['end_date'], period['start_date'])
     # remove the last colon
     query_part_1 = query_part_1[:-2]
     query_part_1 += "\n"
@@ -594,6 +895,8 @@ def generate_sp_product_sold_table_query(periods):
     return (query, col_name)
 
 # helper function for generating query for uplifter worked days
+
+
 def generate_ul_worked_days_query(periods):
     query_part_1 = ""
     query_part_2 = ""
@@ -601,8 +904,10 @@ def generate_ul_worked_days_query(periods):
     # use start date as the column name
     for period in periods:
         col_name.append(period['start_date'])
-        query_part_1 += "count(distinct `%s`) as `%s`,\n" % (period['start_date'], period['start_date'])
-        query_part_2 += "case when date between '%s' and '%s' then date end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
+        query_part_1 += "count(distinct `%s`) as `%s`,\n" % (
+            period['start_date'], period['start_date'])
+        query_part_2 += "case when date between '%s' and '%s' then date end as `%s`,\n" % (
+            period['start_date'], period['end_date'], period['start_date'])
     # remove the last colon
     query_part_1 = query_part_1[:-2]
     query_part_1 += "\n"
@@ -624,7 +929,10 @@ def generate_ul_worked_days_query(periods):
 
     return (query, col_name)
 
-# helper function for generating uplifter income over period query, can be weekly or monthly    
+# helper function for generating uplifter income over period query, can be
+# weekly or monthly
+
+
 def generate_ul_income_query(periods):
     query_part_1 = ""
     query_part_2 = ""
@@ -632,8 +940,10 @@ def generate_ul_income_query(periods):
     # use start date as the column name
     for period in periods:
         col_name.append(period['start_date'])
-        query_part_1 += "sum(`%s`) as `%s`,\n" % (period['start_date'], period['start_date'])
-        query_part_2 += "case when date between '%s' and '%s' then uplifter_profit end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
+        query_part_1 += "sum(`%s`) as `%s`,\n" % (
+            period['start_date'], period['start_date'])
+        query_part_2 += "case when date between '%s' and '%s' then uplifter_profit end as `%s`,\n" % (
+            period['start_date'], period['end_date'], period['start_date'])
     # remove the last colon
     query_part_1 = query_part_1[:-2]
     query_part_1 += "\n"
@@ -655,7 +965,7 @@ def generate_ul_income_query(periods):
 
     return (query, col_name)
 
-    
+
 # helper function for generating stockpoint monthly income query
 def generate_sp_income_query(periods):
     query_part_1 = ""
@@ -664,8 +974,10 @@ def generate_sp_income_query(periods):
     # use start date as the column name
     for period in periods:
         col_name.append(period['start_date'])
-        query_part_1 += "sum(`%s`) as `%s`,\n" % (period['start_date'], period['start_date'])
-        query_part_2 += "case when date between '%s' and '%s' then stockpoint_profit end as `%s`,\n" % (period['start_date'],period['end_date'], period['start_date'])
+        query_part_1 += "sum(`%s`) as `%s`,\n" % (
+            period['start_date'], period['start_date'])
+        query_part_2 += "case when date between '%s' and '%s' then stockpoint_profit end as `%s`,\n" % (
+            period['start_date'], period['end_date'], period['start_date'])
     # remove the last colon
     query_part_1 = query_part_1[:-2]
     query_part_1 += "\n"
@@ -688,6 +1000,8 @@ def generate_sp_income_query(periods):
     return (query, col_name)
 
 # helper function for generating bloom overview query
+
+
 def generate_bloom_overview_query(params, type, month):
     filter_query = ' '
     filter_query2 = ''
@@ -696,7 +1010,7 @@ def generate_bloom_overview_query(params, type, month):
     elif 'fo' in params:
         areas = execute_query("""
             SELECT area From fo_area WHERE fo_name='%s'""" % params['fo'])
-        filter_query="("
+        filter_query = "("
         for i in areas:
             filter_query += "area='%s' OR " % i['area']
         # change last logic operator to and

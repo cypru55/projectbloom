@@ -1,7 +1,7 @@
 /* 
 * @Author: archer
 * @Date:   2015-08-12 17:52:19
-* @Last Modified 2015-09-10
+* @Last Modified 2015-09-16
 */
 
 'use strict';
@@ -34,9 +34,9 @@ dashboardApp.config(['$routeProvider',
         templateUrl: '/static/dashboard/partials/dashboard_fo.html',
         controller: 'DashboardFOOverviewCtrl'
       }).
-      when('/dashboard_area', {
-        templateUrl: '/static/dashboard/partials/dashboard_area.html',
-        controller: 'DashboardAreaOverviewCtrl'
+      when('/dashboard_sp', {
+        templateUrl: '/static/dashboard/partials/dashboard_sp.html',
+        controller: 'DashboardStockpointOverviewCtrl'
       }).
       when('/data/:data_type', {
         templateUrl: '/static/dashboard/partials/data.html',

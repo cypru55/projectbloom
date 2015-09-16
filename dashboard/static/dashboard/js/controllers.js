@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-10
+ * @Last Modified 2015-09-16
  */
 
 'use strict';
@@ -12,7 +12,7 @@ var dashboardControllers = angular.module('dashboardControllers', []);
 dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 	function($scope, $http) {
 		retriveAndDrawChart({}, "Bloom", $scope, $http);
-		retriveAndDrawSummaryCharts($scope, $http);
+		// retriveAndDrawSummaryCharts($scope, $http);
 	}
 ]);
 
@@ -26,11 +26,12 @@ dashboardControllers.controller('DashboardFOOverviewCtrl', ['$scope', '$http',
 		$scope.fo_name="Mark"
 		$scope.area="Overall"
 		retriveAndDrawChart(params, "Mark", $scope, $http);
+		// retriveAndDrawAreaCharts(area, $scope, $http)
 	}
 ]);
 
-dashboardControllers.controller('DashboardAreaOverviewCtrl', ['$scope', '$http', function($scope, $http) {
-
+dashboardControllers.controller('DashboardStockpointOverviewCtrl', ['$scope', '$http', function($scope, $http) {
+	// retriveAndDrawSPCharts($scope, $http)
 }]);
 
 dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams', '$http',
@@ -977,8 +978,67 @@ function retriveAndDrawChart(params, title, $scope, $http) {
  * Draw More charts which are project bloom specific and summaize data for the whole project
  */
 function retriveAndDrawSummaryCharts($scope, $http) {
+	// uplifter by area bar chart
+	$http.get('../api/uplifter-by-area').success(function(data){
+		//console.log(data)
+	});
 
+	// estimated man hour
+	$http.get('../api/estimated-man-hour').success(function(data){
+		//console.log(data)
+	});
+
+	// estimated income per hour for stable uplifter
+	$http.get('../api/estimated-income-per-hour').success(function(data){
+		//console.log(data)
+	});
+
+	// rsv sold
+	$http.get('../api/rsv-sold').success(function(data){
+		//console.log(data)
+	});
+
+	// case sold
+	$http.get('../api/case-sold').success(function(data){
+		//console.log(data)
+	});
 }
+
+/**
+ * Draw More charts which are area specific charts
+ */
+function retriveAndDrawAreaCharts(area, $scope, $http) {
+	// given an area, draw charts that show the 3 months income for sp under this area
+	$http.get('../api/area/sp-three-month-income').success(function(data){
+		//console.log(data)
+	});
+
+	// given an area, draw charts that show the 3 months purchase value for sp under this area
+	$http.get('../api/area/sp-three-month-purchase-value').success(function(data){
+		//console.log(data)
+	});
+
+	// given an area and month , draw charts that show income and man-hours for ul under this area and month
+	$http.get('../api/ul-income-and-man-hour').success(function(data){
+		//console.log(data)
+	});
+
+	// given an area and month , draw charts that show the days worked for this month, and improvement compared to previous month
+	$http.get('../api/most-improved-days-worked').success(function(data){
+		//console.log(data)
+	});
+}
+
+/**
+ * Draw more charts which are stockpoint specific 
+ */
+function retriveAndDrawSPCharts($scope, $http) {
+	// given a sp name, draw charts that show the qty of each product deliveried to this sp per month
+	$http.get('../api/sp/product-sold-detail').success(function(data){
+		//console.log(data)
+	});
+}
+
 /**
  * Helper function to check is the string is a validate date
  */
