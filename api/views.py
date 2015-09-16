@@ -415,7 +415,7 @@ def estimated_man_hour(request):
     if request.method == 'GET':
         query = """
         SELECT 
-            SUM(hours_per_day) AS man_hour_sum,
+            SUM(hours_per_day) AS count,
             area,
             DATE_FORMAT(date, '%b-%y') AS month
         FROM
@@ -440,7 +440,7 @@ def estimated_man_hour(request):
 @login_required(login_url='/login/')
 def estimated_income_per_hour(request):
     if request.method == 'GET':
-        query = """
+        query1 = """
         SELECT 
             SUM(t.profit) / SUM(t.hours_per_day) AS profit_per_hour,
             month,
@@ -461,9 +461,31 @@ def estimated_income_per_hour(request):
             t.uplifter_id > 0
                 AND ISSTABLEUL(t.uplifter_id, t.month) > 0
         GROUP BY area , month
-        ORDER BY STR_TO_DATE(month, '%b-%y')
         """
-        result = execute_query(query)
+        query2 = """
+        SELECT 
+            SUM(t.profit) / SUM(t.hours_per_day) AS profit_per_hour,
+            month
+        FROM
+            (SELECT 
+                uplifter_id,
+                    SUM(uplifter_profit) AS profit,
+                    hours_per_day,
+                    area,
+                    DATE_FORMAT(date, '%b-%y') AS month
+            FROM
+                sale_db
+            WHERE
+                uplifter_id > 0
+            GROUP BY date , uplifter_id) AS t
+        WHERE
+            t.uplifter_id > 0
+                AND ISSTABLEUL(t.uplifter_id, t.month) > 0
+        GROUP BY  month
+        """
+        result = {}
+        result['by_area'] = execute_query(query1)
+        result['average'] = execute_query(query2)
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
@@ -482,7 +504,8 @@ def rsv_sold(request):
             delivery as d
         left join product as p on p.product=d.product and p.type="latest"
         where d.date is not null 
-        GROUP BY month, company;
+        GROUP BY month, company
+        ORDER BY date;
         """
         query2 = """
         SELECT 
@@ -496,7 +519,8 @@ def rsv_sold(request):
                 AND p.type = 'latest'
         WHERE
             d.date IS NOT NULL
-        GROUP BY month , company;
+        GROUP BY month , company
+        ORDER BY date;
         """
         result = {}
         result['sku']= execute_query(query1)
@@ -544,15 +568,17 @@ def case_sold(request):
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
-################## area specific queries #####################
+################## area and month specific queries #####################
 
 @login_required(login_url='/login/')
 def sp_three_month_income(request):
     if request.method == 'GET':
         area = request.GET['area']
-        now = datetime.datetime.now()
-        (this_month_first_day, last_day) = get_month_day_range(now)
-        three_month_ago = datetime.date(now.year, now.month - 2, 1)
+        this_month = request.GET['month']
+        this_month = datetime.datetime.strptime(this_month, "%b-%y")
+        (this_month_first_day, last_day) = get_month_day_range(this_month)
+
+        three_month_ago = datetime.date(this_month.year, this_month.month - 2, 1)
         query = """
         SELECT 
             SUM(stockpoint_profit) as profit,
@@ -575,6 +601,11 @@ def sp_three_month_income(request):
 def sp_three_month_purchase_value(request):
     if request.method == 'GET':
         area = request.GET['area']
+        this_month = request.GET['month']
+        this_month = datetime.datetime.strptime(this_month, "%b-%y")
+        (this_month_first_day, last_day) = get_month_day_range(this_month)
+
+        three_month_ago = datetime.date(this_month.year, this_month.month - 2, 1)
         query = """
         SELECT 
             SUM(to_distributors) AS value_purchase,
@@ -583,10 +614,10 @@ def sp_three_month_purchase_value(request):
         FROM
             delivery
         WHERE
-            stockpoint_name <> 'LP4Y' and area="%s"
+            stockpoint_name <> 'LP4Y' and area="%s" and (date BETWEEN "%s" AND "%s")
         GROUP BY month, stockpoint_name
         ORDER BY stockpoint_name
-        """ % area
+        """ % (area, three_month_ago.strftime("%Y-%m-%d"), last_day.strftime("%Y-%m-%d"))
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -650,6 +681,7 @@ def ul_income_and_man_hour(request):
         ORDER BY STR_TO_DATE(month, '%%b-%%y')
         """ % (area, month)
 
+        result = {}
         result['man_hour'] = execute_query(query1)
         result['income'] = execute_query(query2)
 

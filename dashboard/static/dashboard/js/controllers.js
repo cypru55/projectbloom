@@ -12,7 +12,7 @@ var dashboardControllers = angular.module('dashboardControllers', []);
 dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 	function($scope, $http) {
 		retriveAndDrawChart({}, "Bloom", $scope, $http);
-		// retriveAndDrawSummaryCharts($scope, $http);
+		retriveAndDrawSummaryCharts($scope, $http);
 	}
 ]);
 
@@ -23,8 +23,8 @@ dashboardControllers.controller('DashboardFOOverviewCtrl', ['$scope', '$http',
 		var params = {
 			fo: "Mark"
 		}
-		$scope.fo_name="Mark"
-		$scope.area="Overall"
+		$scope.fo_name = "Mark"
+		$scope.area = "Overall"
 		retriveAndDrawChart(params, "Mark", $scope, $http);
 		// retriveAndDrawAreaCharts(area, $scope, $http)
 	}
@@ -979,29 +979,84 @@ function retriveAndDrawChart(params, title, $scope, $http) {
  */
 function retriveAndDrawSummaryCharts($scope, $http) {
 	// uplifter by area bar chart
-	$http.get('../api/uplifter-by-area').success(function(data){
-		//console.log(data)
+	$http.get('../api/uplifter-by-area').success(function(data) {
+		// initialize options and data structure, bloom project overview
+
+		var options = {
+			title: "Uplifters by Area",
+			isStacked: "true",
+			fill: 20,
+			displayExactValues: true,
+			hAxis: {
+				"title": "Date",
+				"format": 'MMM-yy',
+				gridlines: {
+					"count": 15
+				}
+			},
+			seriesType: 'bars',
+			vAxis: {
+				title: "Uplifters",
+				format: '#',
+				// gridlines: {
+				// 	"count": 10
+				// }
+			},
+			// width: 800,
+			height: 450
+
+		}
+
+		timeseriersStackedColumnChart($scope, 'uplifterByAreaChartObject', options, data)
+
 	});
 
 	// estimated man hour
 	$http.get('../api/estimated-man-hour').success(function(data){
-		//console.log(data)
+
+
+		var options = {
+			title: "Estimated Uplifter Man-Hour By Area",
+			isStacked: "true",
+			fill: 20,
+			displayExactValues: true,
+			hAxis: {
+				"title": "Date",
+				"format": 'MMM-yy',
+				gridlines: {
+					"count": 15
+				}
+			},
+			seriesType: 'bars',
+			vAxis: {
+				title: "Estimated Man Hours",
+				format: '#',
+				// gridlines: {
+				// 	"count": 10
+				// }
+			},
+			// width: 800,
+			height: 450
+
+		}
+
+		timeseriersStackedColumnChart($scope, 'estimatedManHourByAreaChartObject', options, data)
 	});
 
 	// estimated income per hour for stable uplifter
 	$http.get('../api/estimated-income-per-hour').success(function(data){
-		//console.log(data)
+		console.log(data)
 	});
 
-	// rsv sold
-	$http.get('../api/rsv-sold').success(function(data){
-		//console.log(data)
-	});
+	// // rsv sold
+	// $http.get('../api/rsv-sold').success(function(data){
+	// 	//console.log(data)
+	// });
 
-	// case sold
-	$http.get('../api/case-sold').success(function(data){
-		//console.log(data)
-	});
+	// // case sold
+	// $http.get('../api/case-sold').success(function(data){
+	// 	//console.log(data)
+	// });
 }
 
 /**
@@ -1009,22 +1064,22 @@ function retriveAndDrawSummaryCharts($scope, $http) {
  */
 function retriveAndDrawAreaCharts(area, $scope, $http) {
 	// given an area, draw charts that show the 3 months income for sp under this area
-	$http.get('../api/area/sp-three-month-income').success(function(data){
+	$http.get('../api/area/sp-three-month-income').success(function(data) {
 		//console.log(data)
 	});
 
 	// given an area, draw charts that show the 3 months purchase value for sp under this area
-	$http.get('../api/area/sp-three-month-purchase-value').success(function(data){
+	$http.get('../api/area/sp-three-month-purchase-value').success(function(data) {
 		//console.log(data)
 	});
 
 	// given an area and month , draw charts that show income and man-hours for ul under this area and month
-	$http.get('../api/ul-income-and-man-hour').success(function(data){
+	$http.get('../api/ul-income-and-man-hour').success(function(data) {
 		//console.log(data)
 	});
 
 	// given an area and month , draw charts that show the days worked for this month, and improvement compared to previous month
-	$http.get('../api/most-improved-days-worked').success(function(data){
+	$http.get('../api/most-improved-days-worked').success(function(data) {
 		//console.log(data)
 	});
 }
@@ -1034,7 +1089,7 @@ function retriveAndDrawAreaCharts(area, $scope, $http) {
  */
 function retriveAndDrawSPCharts($scope, $http) {
 	// given a sp name, draw charts that show the qty of each product deliveried to this sp per month
-	$http.get('../api/sp/product-sold-detail').success(function(data){
+	$http.get('../api/sp/product-sold-detail').success(function(data) {
 		//console.log(data)
 	});
 }
@@ -1176,4 +1231,98 @@ function appendParamsToUrl(url, params) {
 		}
 	}
 	return url_with_param;
+}
+
+/**
+ * Helper function for drawing time series stacked column chart (for uplifter man hour and uplifter by area)
+ */
+
+function timeseriersStackedColumnChart($scope, chart_name, options, data) {
+		$scope[chart_name] = {
+			type: "ColumnChart",
+			displayed: true,
+			formatter: {}
+		}
+
+		var chart_data = {
+			cols: [{
+				id: "month",
+				label: "Month",
+				type: "date",
+			}],
+			rows: []
+		}
+
+		// fetch rows
+
+		var areas = [];
+		for (var i in data) {
+			if (areas.indexOf(data[i].area) == -1) {
+				areas.push(data[i].area);
+				chart_data.cols.push({
+					label: data[i].area,
+					type: "number"
+				});
+			}
+		}
+		// fill last col as annotation to show total count
+		chart_data.cols.push({
+			type: "number"
+		});
+		chart_data.cols.push({
+			type: "number",
+			role: "annotation",
+			p: {
+				role: "annotation"
+			}
+		});
+
+		options['series'] = {};
+		options.series[chart_data.cols.length - 3] = {
+			type: 'line',
+			color: 'grey',
+			lineWidth: 0,
+			pointSize: 0,
+			visibleInLegend: false
+		}
+
+		// fill cols with 0
+		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+		var now = moment();
+		now.add(1, 'months');
+		var data_array = [];
+		while (monthDiff(startDate, now) != 0) {
+			var row = {
+				c: [{
+					v: new Date(startDate.format('YYYY-MM-DD'))
+				}]
+			}
+			for (var i in areas) {
+				row.c.push({
+					v: 0
+				});
+			}
+			// last 2 cols, which is total count and invisible line, is also 0
+			row.c.push({
+				v: 0
+			});
+			row.c.push({
+				v: 0
+			});
+			chart_data.rows.push(row);
+			startDate.add(1, 'months');
+		}
+		// fill data
+		for (var i in data) {
+			var col_index = areas.indexOf(data[i].area) + 1;
+			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data[i].month, "MMM-YY"));
+			chart_data.rows[row_index].c[col_index].v = data[i].count;
+			chart_data.rows[row_index].c[chart_data.cols.length - 1].v += data[i].count;
+			chart_data.rows[row_index].c[chart_data.cols.length - 2].v += data[i].count;
+		}
+
+		// draw chart!
+		$scope[chart_name].data = chart_data;
+		$scope[chart_name].options = options;
+
 }
