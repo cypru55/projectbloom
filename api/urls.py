@@ -2,7 +2,7 @@
     File name: urls.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-16
+    Date last modified: 2015-09-17
     Python Version: 2.7.6
 '''
 
@@ -33,6 +33,8 @@ urlpatterns = [
     url(r'^update-status', views.update_status_table, name="update_-tatus"),
     url(r'^target', views.target, name="target"),
     url(r'^uplifter-by-area', views.uplifter_by_area, name="uplifter-by-area"),
+    url(r'^stockpoint-by-area', views.stockpoint_by_area, name="stockpoint-by-area"),
+    url(r'^case-sold-by-area', views.case_sold_by_area, name="case-sold-by-area"),
     url(r'^estimated-man-hour', views.estimated_man_hour, name="estimated-man-hour"),
     url(r'^estimated-income-per-hour', views.estimated_income_per_hour, name="estimated-income-per-hour"),
     url(r'^rsv-sold', views.rsv_sold, name="rsv_sold"),

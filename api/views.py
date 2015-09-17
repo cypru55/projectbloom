@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-16
+    Date last modified: 2015-09-17
     Python Version: 2.7.6
 '''
 
@@ -293,12 +293,14 @@ def entrepreneur_tenure(request):
                     """ + filter_query + """
                         month = 'Aug-15'
                         and (type = 'LP4Y_UL' OR type = 'TSPI_UL')
-                        AND (status <> 'D')) as t
+                        AND (status <> 'D')
+                        AND ISINPROGRAM(entrepreneur_id,"Aug-15") > 0) as t
             WHERE
                 uplifter_id = t.id
             group by id
 
         """
+        print query
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -402,6 +404,42 @@ def uplifter_by_area(request):
         where uplifter_id>0
         GROUP BY area , DATE_FORMAT(date, '%b-%y')
         ORDER BY STR_TO_DATE(month, '%b-%y')
+        """
+        result = execute_query(query)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+@login_required(login_url='/login/')
+def stockpoint_by_area(request):
+    if request.method == 'GET':
+        query = """
+        SELECT count(DISTINCT
+            stockpoint_id) as count, area, DATE_FORMAT(date, '%b-%y') AS month
+        FROM
+            sale_db
+        where stockpoint_id>0
+        GROUP BY area , DATE_FORMAT(date, '%b-%y')
+        ORDER BY STR_TO_DATE(month, '%b-%y')
+        """
+        result = execute_query(query)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+
+@login_required(login_url='/login/')
+def case_sold_by_area(request):
+    if request.method == 'GET':
+        query = """
+        SELECT 
+            SUM(qty) AS count,
+            area,
+            DATE_FORMAT(date, '%b-%y') AS month
+        FROM
+            projectbloom.delivery
+        GROUP BY area , DATE_FORMAT(date, '%b-%y')
+        order by date
         """
         result = execute_query(query)
 

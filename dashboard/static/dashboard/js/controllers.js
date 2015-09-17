@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-16
+ * @Last Modified 2015-09-17
  */
 
 'use strict';
@@ -11,7 +11,12 @@ var dashboardControllers = angular.module('dashboardControllers', []);
 
 dashboardControllers.controller('DashboardOverviewCtrl', ['$scope', '$http',
 	function($scope, $http) {
-		retriveAndDrawChart({}, "Bloom", $scope, $http);
+		initializeTab($http, $scope);
+		var params = {
+		}
+		$scope.fo_name = "Bloom"
+		$scope.area = "Overall"
+		retriveAndDrawChart(params, "Bloom", $scope, $http);
 		retriveAndDrawSummaryCharts($scope, $http);
 	}
 ]);
@@ -958,7 +963,7 @@ function retriveAndDrawChart(params, title, $scope, $http) {
 			}
 		}
 		for (var i in data.sp.this_month) {
-			var ob = data.sp.last_month[i]
+			var ob = data.sp.this_month[i]
 			if (ob.status == 'D') {
 				sp_chart_data.rows[1].c[2].v += ob.count
 			} else if (ob.status == 'S') {
@@ -983,7 +988,6 @@ function retriveAndDrawSummaryCharts($scope, $http) {
 		// initialize options and data structure, bloom project overview
 
 		var options = {
-			title: "Uplifters by Area",
 			isStacked: "true",
 			fill: 20,
 			displayExactValues: true,
@@ -1008,15 +1012,40 @@ function retriveAndDrawSummaryCharts($scope, $http) {
 		}
 
 		timeseriersStackedColumnChart($scope, 'uplifterByAreaChartObject', options, data)
-
 	});
 
+	// stockpoint by area chart
+	$http.get('../api/stockpoint-by-area').success(function(data){
+		var options = {
+			isStacked: "true",
+			fill: 20,
+			displayExactValues: true,
+			hAxis: {
+				"title": "Date",
+				"format": 'MMM-yy',
+				gridlines: {
+					"count": 15
+				}
+			},
+			seriesType: 'bars',
+			vAxis: {
+				title: "Stockpoints",
+				format: '#',
+				// gridlines: {
+				// 	"count": 10
+				// }
+			},
+			// width: 800,
+			height: 450
+
+		}
+		timeseriersStackedColumnChart($scope, 'stockpointByAreaChartObject', options, data)
+	});
 	// estimated man hour
-	$http.get('../api/estimated-man-hour').success(function(data){
+	$http.get('../api/estimated-man-hour').success(function(data) {
 
 
 		var options = {
-			title: "Estimated Uplifter Man-Hour By Area",
 			isStacked: "true",
 			fill: 20,
 			displayExactValues: true,
@@ -1044,19 +1073,375 @@ function retriveAndDrawSummaryCharts($scope, $http) {
 	});
 
 	// estimated income per hour for stable uplifter
-	$http.get('../api/estimated-income-per-hour').success(function(data){
-		console.log(data)
+	$http.get('../api/estimated-income-per-hour').success(function(data) {
+
+		$scope.estimatedIPHForSULChartObject = {
+			type: "ComboChart",
+			displayed: true,
+			formatter: {}
+		}
+
+		var chart_data = {
+			cols: [{
+				id: "month",
+				label: "Month",
+				type: "date",
+			}],
+			rows: []
+		}
+		var options = {
+			isStacked: "true",
+			fill: 20,
+			displayExactValues: true,
+			hAxis: {
+				title: "Date",
+				format: 'MMM-yy',
+				gridlines: {
+					"count": 15
+				}
+			},
+			seriesType: 'line',
+			series: {
+				0: {
+					type: 'bars',
+					targetAxisIndex: 1
+				}
+			},
+			interpolateNulls: true,
+			vAxes: {
+				0: {
+					title: "Average Income/hr",
+					format: '#',
+					// gridlines: {
+					// 	"count": 10
+					// }
+				}
+			},
+			// width: 800,
+			height: 400
+		}
+
+		// second column is averate
+		chart_data.cols.push({
+			label: 'Total Average',
+			type: 'number'
+		})
+
+		var areas = [];
+		for (var i in data['by_area']) {
+			if (areas.indexOf(data['by_area'][i].area) == -1) {
+				areas.push(data['by_area'][i].area);
+				chart_data.cols.push({
+					label: data['by_area'][i].area,
+					type: "number"
+				});
+			}
+		}
+
+		// fill cols with null
+		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+		var now = moment();
+		now.add(1, 'months');
+
+		while (monthDiff(startDate, now) != 0) {
+			var row = {
+				c: [{
+					v: new Date(startDate.format('YYYY-MM-DD'))
+				}]
+			}
+			for (var i in areas) {
+				row.c.push({
+					v: null
+				});
+			}
+			// the second col is average, put it as 0 first
+			row.c.push({
+				v: null
+			});
+
+			chart_data.rows.push(row);
+			startDate.add(1, 'months');
+		}
+
+		// fill data
+		for (var i in data['by_area']) {
+			var col_index = areas.indexOf(data['by_area'][i].area) + 2;
+			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['by_area'][i].month, "MMM-YY"));
+			chart_data.rows[row_index].c[col_index].v = data['by_area'][i].profit_per_hour;
+
+		}
+
+		for (var i in data['average']) {
+			var col_index = 1;
+			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['average'][i].month, "MMM-YY"));
+			chart_data.rows[row_index].c[col_index].v = data['average'][i].profit_per_hour;
+
+		}
+
+		// draw!
+		$scope.estimatedIPHForSULChartObject.data = chart_data;
+		$scope.estimatedIPHForSULChartObject.options = options;
 	});
 
-	// // rsv sold
-	// $http.get('../api/rsv-sold').success(function(data){
-	// 	//console.log(data)
-	// });
+	// rsv sold
+	$http.get('../api/rsv-sold').success(function(data) {
+		$scope.bisnuessContribChartObject = {
+			type: "ComboChart",
+			displayed: true,
+			formatter: {}
+		}
 
-	// // case sold
-	// $http.get('../api/case-sold').success(function(data){
-	// 	//console.log(data)
-	// });
+		var chart_data = {
+			cols: [{
+				id: "month",
+				label: "Month",
+				type: "date",
+			}, {
+				label: "Wrigley",
+				type: "number",
+			}, {
+				label: "Mars",
+				type: "number",
+			}, {
+				label: "Total RSV",
+				type: "number",
+			}, {
+				label: "Wrigley RSV",
+				type: "number",
+			}, {
+				label: "Mars RSV",
+				type: "number",
+			}],
+			rows: []
+		}
+		var options = {
+			isStacked: "true",
+			fill: 20,
+			displayExactValues: true,
+			hAxis: {
+				title: "Date",
+				format: 'MMM-yy',
+				gridlines: {
+					"count": 15
+				}
+			},
+			seriesType: 'line',
+			series: {
+				0: {
+					type: 'bars',
+					targetAxisIndex: 1
+				},
+				1: {
+					type: 'bars',
+					targetAxisIndex: 1
+				}
+			},
+			interpolateNulls: true,
+			vAxes: {
+				0: {
+					title: "SKU('000)",
+					format: '#,###',
+					// gridlines: {
+					// 	"count": 10
+					// }
+				},
+				1: {
+					title: "RSV(php'000)",
+					format: '#,###',
+					// gridlines: {
+					// 	"count": 10
+					// }
+				}
+			},
+			// width: 800,
+			height: 400
+		}
+
+		// fill cols with null
+		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+		var now = moment();
+		now.add(1, 'months');
+
+		while (monthDiff(startDate, now) != 0) {
+			var row = {
+				c: [{
+					v: new Date(startDate.format('YYYY-MM-DD'))
+				}]
+			}
+			for (var i = 0; i < 5; i++) {
+
+				row.c.push({
+					v: 0
+				});
+
+			}
+
+			chart_data.rows.push(row);
+			startDate.add(1, 'months');
+		}
+
+		// fill data
+		for (var i in data['sku']) {
+			var col_index = (data['sku'][i].company == 'Wrigley' ? 1 : 2)
+			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['sku'][i].month, "MMM-YY"));
+			chart_data.rows[row_index].c[col_index].v = data['sku'][i].inner_bags_sum;
+
+		}
+
+		for (var i in data['rsv']) {
+			var col_index = (data['rsv'][i].company == 'Wrigley' ? 4 : 5)
+			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['rsv'][i].month, "MMM-YY"));
+			chart_data.rows[row_index].c[col_index].v = data['rsv'][i].rsv;
+			// add to sum
+			chart_data.rows[row_index].c[3].v += data['rsv'][i].rsv;
+
+		}
+
+		// draw!
+		$scope.bisnuessContribChartObject.data = chart_data;
+		$scope.bisnuessContribChartObject.options = options;
+	});
+
+	// case sold
+	$http.get('../api/case-sold').success(function(data) {
+		$scope.caseSoldChartObject = {
+			type: "ComboChart",
+			displayed: true,
+			formatter: {}
+		}
+
+		var chart_data = {
+			cols: [{
+				id: "month",
+				label: "Month",
+				type: "date",
+			}],
+			rows: []
+		}
+		var options = {
+			isStacked: "true",
+			fill: 20,
+			displayExactValues: true,
+			hAxis: {
+				title: "Date",
+				format: 'MMM-yy',
+				gridlines: {
+					"count": 15
+				}
+			},
+			seriesType: 'bars',
+			interpolateNulls: true,
+			vAxes: {
+				0: {
+					title: "SKU Cases Sold",
+					format: '#',
+					// gridlines: {
+					// 	"count": 10
+					// }
+				}
+			},
+			// width: 800,
+			height: 400
+		}
+
+		// fetch cols 
+		var products = []
+		var companies = ['Mars', 'Wrigley']
+		for (var i in data['by_product']) {
+			if (products.indexOf(data['by_product'][i].product) == -1) {
+				products.push(data['by_product'][i].product);
+				chart_data.cols.push({
+					label: data['by_product'][i].product,
+					type: "number"
+				});
+			}
+		}
+		for (var i in companies) {
+			chart_data.cols.push({
+				label: companies[i],
+				type: "number"
+			});
+		}
+
+		// set companies to line chart
+		options['series'] = {};
+		options['series'][products.length] = {
+			type: 'line',
+			targetAxisIndex: 1
+		}
+		options['series'][products.length + 1] = {
+			type: 'line',
+			targetAxisIndex: 1
+		}
+
+		// fill cols with 0
+		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+		var now = moment();
+		now.add(1, 'months');
+		var data_array = [];
+		while (monthDiff(startDate, now) != 0) {
+			var row = {
+				c: [{
+					v: new Date(startDate.format('YYYY-MM-DD'))
+				}]
+			}
+			for (var i in products) {
+				row.c.push({
+					v: 0
+				});
+			}
+			for (var i in companies) {
+				row.c.push({
+					v: 0
+				});
+			}
+			chart_data.rows.push(row);
+			startDate.add(1, 'months');
+		}
+		// fill data
+		for (var i in data['by_product']) {
+			var col_index = products.indexOf(data['by_product'][i].product) + 1;
+			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['by_product'][i].month, "MMM-YY"));
+			chart_data.rows[row_index].c[col_index].v = data['by_product'][i].qty_sum;
+		}
+
+		for (var i in data['by_company']) {
+			var col_index = companies.indexOf(data['by_company'][i].company) + products.length + 1;
+			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['by_company'][i].month, "MMM-YY"));
+			chart_data.rows[row_index].c[col_index].v = data['by_company'][i].qty_sum;
+		}
+		// draw chart!
+		$scope.caseSoldChartObject.data = chart_data;
+		$scope.caseSoldChartObject.options = options;
+	});
+
+	// case sold by area
+	$http.get('../api/case-sold-by-area').success(function(data) {
+		// initialize options and data structure, bloom project overview
+		var options = {
+			isStacked: "true",
+			fill: 20,
+			displayExactValues: true,
+			hAxis: {
+				"title": "Date",
+				"format": 'MMM-yy',
+				gridlines: {
+					"count": 15
+				}
+			},
+			seriesType: 'bars',
+			vAxis: {
+				title: "SKU Cases Sold",
+				format: '#',
+				// gridlines: {
+				// 	"count": 10
+				// }
+			},
+			// width: 800,
+			height: 450
+		}
+		timeseriersStackedColumnChart($scope, 'caseSoldByAreaChartObject', options, data)
+	});
 }
 
 /**
@@ -1208,8 +1593,9 @@ function initializeTab($http, $scope) {
 		}
 
 
-		// console.log(params, $scope, $http);
 		retriveAndDrawChart(params, title, $scope, $http)
+		// retriveAndDrawSummaryCharts($scope, $http);
+
 	}
 }
 
@@ -1238,91 +1624,91 @@ function appendParamsToUrl(url, params) {
  */
 
 function timeseriersStackedColumnChart($scope, chart_name, options, data) {
-		$scope[chart_name] = {
-			type: "ColumnChart",
-			displayed: true,
-			formatter: {}
+	$scope[chart_name] = {
+		type: "ColumnChart",
+		displayed: true,
+		formatter: {}
+	}
+
+	var chart_data = {
+		cols: [{
+			id: "month",
+			label: "Month",
+			type: "date",
+		}],
+		rows: []
+	}
+
+	// fetch cols
+
+	var areas = [];
+	for (var i in data) {
+		if (areas.indexOf(data[i].area) == -1) {
+			areas.push(data[i].area);
+			chart_data.cols.push({
+				label: data[i].area,
+				type: "number"
+			});
 		}
-
-		var chart_data = {
-			cols: [{
-				id: "month",
-				label: "Month",
-				type: "date",
-			}],
-			rows: []
+	}
+	// fill last col as annotation to show total count
+	chart_data.cols.push({
+		type: "number"
+	});
+	chart_data.cols.push({
+		type: "number",
+		role: "annotation",
+		p: {
+			role: "annotation"
 		}
+	});
 
-		// fetch rows
+	options['series'] = {};
+	options.series[chart_data.cols.length - 3] = {
+		type: 'line',
+		color: 'grey',
+		lineWidth: 0,
+		pointSize: 0,
+		visibleInLegend: false
+	}
 
-		var areas = [];
-		for (var i in data) {
-			if (areas.indexOf(data[i].area) == -1) {
-				areas.push(data[i].area);
-				chart_data.cols.push({
-					label: data[i].area,
-					type: "number"
-				});
-			}
+	// fill cols with 0
+	var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+	var now = moment();
+	now.add(1, 'months');
+	var data_array = [];
+	while (monthDiff(startDate, now) != 0) {
+		var row = {
+			c: [{
+				v: new Date(startDate.format('YYYY-MM-DD'))
+			}]
 		}
-		// fill last col as annotation to show total count
-		chart_data.cols.push({
-			type: "number"
-		});
-		chart_data.cols.push({
-			type: "number",
-			role: "annotation",
-			p: {
-				role: "annotation"
-			}
-		});
-
-		options['series'] = {};
-		options.series[chart_data.cols.length - 3] = {
-			type: 'line',
-			color: 'grey',
-			lineWidth: 0,
-			pointSize: 0,
-			visibleInLegend: false
-		}
-
-		// fill cols with 0
-		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
-		var now = moment();
-		now.add(1, 'months');
-		var data_array = [];
-		while (monthDiff(startDate, now) != 0) {
-			var row = {
-				c: [{
-					v: new Date(startDate.format('YYYY-MM-DD'))
-				}]
-			}
-			for (var i in areas) {
-				row.c.push({
-					v: 0
-				});
-			}
-			// last 2 cols, which is total count and invisible line, is also 0
+		for (var i in areas) {
 			row.c.push({
 				v: 0
 			});
-			row.c.push({
-				v: 0
-			});
-			chart_data.rows.push(row);
-			startDate.add(1, 'months');
 		}
-		// fill data
-		for (var i in data) {
-			var col_index = areas.indexOf(data[i].area) + 1;
-			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data[i].month, "MMM-YY"));
-			chart_data.rows[row_index].c[col_index].v = data[i].count;
-			chart_data.rows[row_index].c[chart_data.cols.length - 1].v += data[i].count;
-			chart_data.rows[row_index].c[chart_data.cols.length - 2].v += data[i].count;
-		}
+		// last 2 cols, which is total count and invisible line, is also 0
+		row.c.push({
+			v: 0
+		});
+		row.c.push({
+			v: 0
+		});
+		chart_data.rows.push(row);
+		startDate.add(1, 'months');
+	}
+	// fill data
+	for (var i in data) {
+		var col_index = areas.indexOf(data[i].area) + 1;
+		var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data[i].month, "MMM-YY"));
+		chart_data.rows[row_index].c[col_index].v = data[i].count;
+		chart_data.rows[row_index].c[chart_data.cols.length - 1].v += data[i].count;
+		chart_data.rows[row_index].c[chart_data.cols.length - 2].v += data[i].count;
+	}
 
-		// draw chart!
-		$scope[chart_name].data = chart_data;
-		$scope[chart_name].options = options;
+	// draw chart!
+	$scope[chart_name].data = chart_data;
+	$scope[chart_name].options = options;
 
 }
