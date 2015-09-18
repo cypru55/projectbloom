@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-17
+    Date last modified: 2015-09-18
     Python Version: 2.7.6
 '''
 
@@ -235,9 +235,25 @@ def update_status_table(request):
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
-# get project bloom overview data
+# get last month with full data
+@login_required(login_url='/login/')
+def get_last_month(request):
+    if request.method == 'GET':
+        query="""
+        SELECT 
+            value
+        FROM
+            configuration
+        WHERE
+            name = 'last_full_data_month'
+        """
+        result = execute_query(query)
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
 
 ################## both overview and area specific queries #####################
+
+# get project bloom overview data
 
 @login_required(login_url='/login/')
 def bloom_overview(request):
@@ -396,15 +412,28 @@ def target(request):
 @login_required(login_url='/login/')
 def uplifter_by_area(request):
     if request.method == 'GET':
+        filter_query = ' '
+        if 'area' in request.GET:
+            filter_query = " AND area='%s'" % request.GET['area']
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
+            filter_query = " AND ("
+            for i in areas:
+                filter_query += "area='%s' OR " % i['area']
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")"
         query = """
         SELECT count(DISTINCT
-            uplifter_id) as count, area, DATE_FORMAT(date, '%b-%y') AS month
+            uplifter_id) as count, area, DATE_FORMAT(date, '%%b-%%y') AS month
         FROM
             sale_db
         where uplifter_id>0
-        GROUP BY area , DATE_FORMAT(date, '%b-%y')
-        ORDER BY STR_TO_DATE(month, '%b-%y')
-        """
+            %s
+        GROUP BY area , DATE_FORMAT(date, '%%b-%%y')
+        ORDER BY STR_TO_DATE(month, '%%b-%%y')
+        """ % filter_query
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -413,15 +442,28 @@ def uplifter_by_area(request):
 @login_required(login_url='/login/')
 def stockpoint_by_area(request):
     if request.method == 'GET':
+        filter_query = ' '
+        if 'area' in request.GET:
+            filter_query = " AND area='%s'" % request.GET['area']
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
+            filter_query = " AND ("
+            for i in areas:
+                filter_query += "area='%s' OR " % i['area']
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")"
         query = """
         SELECT count(DISTINCT
-            stockpoint_id) as count, area, DATE_FORMAT(date, '%b-%y') AS month
+            stockpoint_id) as count, area, DATE_FORMAT(date, '%%b-%%y') AS month
         FROM
             sale_db
         where stockpoint_id>0
-        GROUP BY area , DATE_FORMAT(date, '%b-%y')
-        ORDER BY STR_TO_DATE(month, '%b-%y')
-        """
+            %s
+        GROUP BY area , DATE_FORMAT(date, '%%b-%%y')
+        ORDER BY STR_TO_DATE(month, '%%b-%%y')
+        """ % filter_query
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -431,16 +473,30 @@ def stockpoint_by_area(request):
 @login_required(login_url='/login/')
 def case_sold_by_area(request):
     if request.method == 'GET':
+        filter_query = ' '
+        if 'area' in request.GET:
+            filter_query = " WHERE area='%s'" % request.GET['area']
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
+            filter_query = " WHERE ("
+            for i in areas:
+                filter_query += "area='%s' OR " % i['area']
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")"
+
         query = """
         SELECT 
             SUM(qty) AS count,
             area,
-            DATE_FORMAT(date, '%b-%y') AS month
+            DATE_FORMAT(date, '%%b-%%y') AS month
         FROM
-            projectbloom.delivery
-        GROUP BY area , DATE_FORMAT(date, '%b-%y')
+            delivery
+        %s
+        GROUP BY area , DATE_FORMAT(date, '%%b-%%y')
         order by date
-        """
+        """ % filter_query
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -451,23 +507,36 @@ def case_sold_by_area(request):
 @login_required(login_url='/login/')
 def estimated_man_hour(request):
     if request.method == 'GET':
+        filter_query = ' '
+        if 'area' in request.GET:
+            filter_query = " AND area='%s'" % request.GET['area']
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
+            filter_query = " AND ("
+            for i in areas:
+                filter_query += "area='%s' OR " % i['area']
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")"
         query = """
         SELECT 
             SUM(hours_per_day) AS count,
             area,
-            DATE_FORMAT(date, '%b-%y') AS month
+            DATE_FORMAT(date, '%%b-%%y') AS month
         FROM
             (SELECT 
                 uplifter_id, hours_per_day, area, date
             FROM
-                sale_db
+                sale_db      
             WHERE
                 uplifter_id > 0
+                %s
             GROUP BY date , uplifter_id
             ORDER BY date) AS t
         GROUP BY area , month
-        ORDER BY STR_TO_DATE(month, '%b-%y');
-        """
+        ORDER BY STR_TO_DATE(month, '%%b-%%y');
+        """ % filter_query
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -478,6 +547,18 @@ def estimated_man_hour(request):
 @login_required(login_url='/login/')
 def estimated_income_per_hour(request):
     if request.method == 'GET':
+        filter_query = ' '
+        if 'area' in request.GET:
+            filter_query = " AND area='%s'" % request.GET['area']
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
+            filter_query = " AND ("
+            for i in areas:
+                filter_query += "area='%s' OR " % i['area']
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")"
         query1 = """
         SELECT 
             SUM(t.profit) / SUM(t.hours_per_day) AS profit_per_hour,
@@ -489,17 +570,18 @@ def estimated_income_per_hour(request):
                     SUM(uplifter_profit) AS profit,
                     hours_per_day,
                     area,
-                    DATE_FORMAT(date, '%b-%y') AS month
+                    DATE_FORMAT(date, '%%b-%%y') AS month
             FROM
                 sale_db
             WHERE
                 uplifter_id > 0
+                %s
             GROUP BY date , uplifter_id) AS t
         WHERE
             t.uplifter_id > 0
                 AND ISSTABLEUL(t.uplifter_id, t.month) > 0
         GROUP BY area , month
-        """
+        """ % filter_query
         query2 = """
         SELECT 
             SUM(t.profit) / SUM(t.hours_per_day) AS profit_per_hour,
@@ -510,17 +592,18 @@ def estimated_income_per_hour(request):
                     SUM(uplifter_profit) AS profit,
                     hours_per_day,
                     area,
-                    DATE_FORMAT(date, '%b-%y') AS month
+                    DATE_FORMAT(date, '%%b-%%y') AS month
             FROM
                 sale_db
             WHERE
                 uplifter_id > 0
+                %s
             GROUP BY date , uplifter_id) AS t
         WHERE
             t.uplifter_id > 0
                 AND ISSTABLEUL(t.uplifter_id, t.month) > 0
         GROUP BY  month
-        """
+        """ % filter_query
         result = {}
         result['by_area'] = execute_query(query1)
         result['average'] = execute_query(query2)
@@ -572,10 +655,23 @@ def rsv_sold(request):
 @login_required(login_url='/login/')
 def case_sold(request):
     if request.method == 'GET':
+        filter_query = ' '
+        if 'area' in request.GET:
+            filter_query = " AND d.area='%s'" % request.GET['area']
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
+            filter_query = " AND ("
+            for i in areas:
+                filter_query += "d.area='%s' OR " % i['area']
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")"
+
         query1 = """
         SELECT 
             SUM(qty) AS qty_sum,
-            DATE_FORMAT(date, '%b-%y') AS month,
+            DATE_FORMAT(date, '%%b-%%y') AS month,
             p.company AS company
         FROM
             delivery AS d
@@ -584,21 +680,23 @@ def case_sold(request):
                 AND p.type = 'latest'
         WHERE
             d.date IS NOT NULL
+            %s
         GROUP BY month , company;
-        """
+        """ % filter_query
 
         query2 = """
         SELECT 
             SUM(qty) AS qty_sum,
             product,
-            DATE_FORMAT(date, '%b-%y') AS month
+            DATE_FORMAT(date, '%%b-%%y') AS month
         FROM
-            delivery
+            delivery as d
         WHERE
             date IS NOT NULL
+            %s
         GROUP BY product , month
         ORDER BY date
-        """
+        """ % filter_query
         result = {}
         result['by_product'] = execute_query(query2)
         result['by_company'] = execute_query(query1)

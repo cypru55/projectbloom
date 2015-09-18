@@ -1,7 +1,7 @@
 /* 
 * @Author: archer
 * @Date:   2015-08-12 17:52:19
-* @Last Modified 2015-09-16
+* @Last Modified 2015-09-18
 */
 
 'use strict';
@@ -26,17 +26,17 @@ var dashboardApp = angular.module('dashboardApp', [
 dashboardApp.config(['$routeProvider',
   function ($routeProvider) {
     $routeProvider.
-      when('/', {
-        templateUrl: '/static/dashboard/partials/dashboard_home.html',
-        controller: 'DashboardOverviewCtrl'
+      when('/dashboard_monthly/:tab', {
+        templateUrl: '/static/dashboard/partials/dashboard_monthly.html',
+        controller: 'DashboardMonthlyCtrl'
       }).
-      when('/dashboard_fo', {
-        templateUrl: '/static/dashboard/partials/dashboard_fo.html',
-        controller: 'DashboardFOOverviewCtrl'
+      when('/dashboard_shareout', {
+        templateUrl: '/static/dashboard/partials/dashboard_shareout.html',
+        controller: 'DashboardShareoutCtrl'
       }).
-      when('/dashboard_sp', {
-        templateUrl: '/static/dashboard/partials/dashboard_sp.html',
-        controller: 'DashboardStockpointOverviewCtrl'
+      when('/dashboard_quaterly', {
+        templateUrl: '/static/dashboard/partials/dashboard_quaterly.html',
+        controller: 'DashboardQuaterlyCtrl'
       }).
       when('/data/:data_type', {
         templateUrl: '/static/dashboard/partials/data.html',
@@ -59,6 +59,6 @@ dashboardApp.config(['$routeProvider',
         controller: 'DashboardFormCtrl'
       }).
       otherwise({
-        redirectTo: '/'
+        redirectTo: '/dashboard_monthly/kpi'
       });
   }]);

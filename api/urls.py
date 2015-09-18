@@ -2,7 +2,7 @@
     File name: urls.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-17
+    Date last modified: 2015-09-18
     Python Version: 2.7.6
 '''
 
@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'entrepreneur/tenure',views.entrepreneur_tenure, name="entrepreneur-tenure"),
     url(r'^overview', views.bloom_overview, name="overview"),
     url(r'^update-status', views.update_status_table, name="update_-tatus"),
+    url(r'^last-full-data-month', views.get_last_month, name="last-full-data-month"),
     url(r'^target', views.target, name="target"),
     url(r'^uplifter-by-area', views.uplifter_by_area, name="uplifter-by-area"),
     url(r'^stockpoint-by-area', views.stockpoint_by_area, name="stockpoint-by-area"),
