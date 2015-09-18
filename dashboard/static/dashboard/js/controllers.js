@@ -9,11 +9,22 @@
 // Define angular controllers
 var dashboardControllers = angular.module('dashboardControllers', []);
 
+// color scheme
+var color = {
+	stable_ul: '#0099CC',
+	new_ul: '#00CC66',
+	stable_sp: '#FF9900',
+	new_sp: '#FFFF66',
+	drop: 'FF0000',
+	retention: '993300',
+	black: '000000'
+}
+
 dashboardControllers.controller('DashboardMonthlyCtrl', ['$scope', '$routeParams', '$http',
 	function($scope, $routeParams, $http) {
 		$http.get('../api/last-full-data-month').success(function(data) {
 			var last_fully_updated_month = data[0].value;
-
+			$scope.last_full_data_month = last_fully_updated_month
 			initializeTab($http, $scope, $routeParams.tab, last_fully_updated_month);
 
 			var params = {}
@@ -411,6 +422,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					visibleInLegend: false
 				}
 			},
+			colors: [color.stable_ul, color.new_ul, color.stable_sp, color.new_sp],
 			// width: 800,
 			height: 450
 
@@ -509,6 +521,12 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				label: "Retention UL",
 				type: "number",
 				p: {}
+			}, {
+				type: "string",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
 			}],
 			rows: []
 		}
@@ -524,6 +542,8 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 						v: -data_array[i][3]
 					}, {
 						v: ((data_array[i - 1][7] - data_array[i][9]) / data_array[i - 1][7]).toFixed(2)
+					}, {
+						v: ((data_array[i - 1][7] - data_array[i][9]) / data_array[i - 1][7]).toFixed(2)*100+"%"
 					}]
 				})
 			} else {
@@ -534,6 +554,8 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 						v: data_array[i][1]
 					}, {
 						v: -data_array[i][3]
+					}, {
+						v: null
 					}, {
 						v: null
 					}]
@@ -580,6 +602,13 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					minValue: 0
 				}
 			},
+			annotations: {
+				textStyle: {
+					// The color of the text.
+					color: color.black,
+				}
+			},
+			colors: [color.stable_ul, color.drop, color.retention],
 			// width: 800,
 			height: 400
 		}
@@ -617,6 +646,12 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				label: "Retention SP",
 				type: "number",
 				p: {}
+			}, {
+				type: "string",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
 			}],
 			rows: []
 		}
@@ -632,6 +667,8 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 						v: -data_array[i][6]
 					}, {
 						v: ((data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)).toFixed(2)
+					}, {
+						v: ((data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)).toFixed(2)*100+"%"
 					}]
 				})
 			} else {
@@ -642,6 +679,8 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 						v: data_array[i][4]
 					}, {
 						v: -data_array[i][6]
+					}, {
+						v: null
 					}, {
 						v: null
 					}]
@@ -688,6 +727,14 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					minValue: 0
 				}
 			},
+			annotations: {
+				textStyle: {
+					// The color of the text.
+					color: color.black,
+				}
+			},
+			colors: [color.stable_sp, color.drop, color.retention],
+
 			// width: 800,
 			height: 400
 		}
