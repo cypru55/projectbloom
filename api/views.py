@@ -415,11 +415,10 @@ def entrepreneur_tenure(request):
                 WHERE
                         %s
                         month = '%s'
-                        and (type = 'LP4Y_UL' OR type = 'TSPI_UL')
                         AND (status <> 'D')
                         AND ISINPROGRAM(entrepreneur_id,"%s") > 0) as t
             WHERE
-                uplifter_id = t.id
+                uplifter_id = t.id or stockpoint_id = t.id
             group by id
 
         """ % (filter_query, last_fully_updated_month, last_fully_updated_month)

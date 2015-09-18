@@ -512,10 +512,22 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				type: "number",
 				p: {}
 			}, {
+				type: "string",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
+			}, {
 				id: "dropped-ul-id",
 				label: "Dropped UL",
 				type: "number",
 				p: {}
+			}, {
+				type: "string",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
 			}, {
 				id: "retention-ul-id",
 				label: "Retention UL",
@@ -539,6 +551,10 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					}, {
 						v: data_array[i][1]
 					}, {
+						v: data_array[i][1]
+					}, {
+						v: -data_array[i][3]
+					}, {
 						v: -data_array[i][3]
 					}, {
 						v: ((data_array[i - 1][7] - data_array[i][9]) / data_array[i - 1][7]).toFixed(2)
@@ -552,6 +568,10 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 						v: data_array[i][0]
 					}, {
 						v: data_array[i][1]
+					}, {
+						v: data_array[i][1]
+					}, {
+						v: -data_array[i][3]
 					}, {
 						v: -data_array[i][3]
 					}, {
@@ -637,10 +657,22 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				type: "number",
 				p: {}
 			}, {
+				type: "number",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
+			}, {
 				id: "dropped-sp-id",
 				label: "Dropped SP",
 				type: "number",
 				p: {}
+			}, {
+				type: "number",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
 			}, {
 				id: "retention-sp-id",
 				label: "Retention SP",
@@ -664,6 +696,10 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					}, {
 						v: data_array[i][4]
 					}, {
+						v: data_array[i][4]
+					}, {
+						v: -data_array[i][6]
+					}, {
 						v: -data_array[i][6]
 					}, {
 						v: ((data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)).toFixed(2)
@@ -677,6 +713,10 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 						v: data_array[i][0]
 					}, {
 						v: data_array[i][4]
+					}, {
+						v: data_array[i][4]
+					}, {
+						v: -data_array[i][6]
 					}, {
 						v: -data_array[i][6]
 					}, {
@@ -859,6 +899,10 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					// 	"count": 10
 					// }
 				}
+			},
+			legend: {
+				position: 'top',
+				maxLines: 5
 			},
 			// width: 800,
 			height: 400
