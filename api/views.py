@@ -32,6 +32,7 @@ import calendar
 def index(request):
     return HttpResponse("Hello, world. You're at the api index.")
 
+################## Rest Framework View Set for Models #######
 
 # Rest Framework API for models, to be used to display original table
 class SaleViewSet(viewsets.ModelViewSet):
@@ -95,6 +96,9 @@ class StatusViewSet(generics.ListAPIView):
         queryset = EntrepreneurStatus.objects.using(
             'projectbloom_data').all().filter(type=self.kwargs['type'])
         return queryset
+
+
+################## Pivot Tables #################
 
 # stockpoint product sold pivot table
 
@@ -202,6 +206,7 @@ def sp_income(request):
 
 # get areas under each fo
 
+##################### Utility Queries #####################
 
 @login_required(login_url='/login/')
 def fo_area(request):
@@ -251,76 +256,21 @@ def get_last_month(request):
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
-################## both overview and area specific queries #####################
+def get_last_fully_updated_month():    
+    query="""
+    SELECT 
+        value
+    FROM
+        configuration
+    WHERE
+        name = 'last_full_data_month'
+    """
 
-# get project bloom overview data
+    result = execute_query(query)
 
-@login_required(login_url='/login/')
-def bloom_overview(request):
-    if request.method == 'GET':
-        params = {}
-        if 'area' in request.GET:
-            params['area'] = request.GET['area']
-        elif 'fo' in request.GET:
-            params['fo'] = request.GET['fo']
+    return result[0]['value']
 
-        # execute the queries
-        result = {}
-        result["ul_overview"] = execute_query(
-            generate_bloom_overview_query(params, 'ul_overview', None))
-        result["sp_overview"] = execute_query(
-            generate_bloom_overview_query(params, 'sp_overview', None))
-        result["ul_without_lp4y_overview"] = execute_query(
-            generate_bloom_overview_query(params, 'ul_without_lp4y_overview', None))
-
-        json_str = json.dumps(result, default=defaultencode)
-        return HttpResponse(json_str, content_type="application/json")
-
-# get entreprenur tenure
-
-
-@login_required(login_url='/login/')
-def entrepreneur_tenure(request):
-    if request.method == 'GET':
-        filter_query = ' '
-        if 'area' in request.GET:
-            filter_query = "exists (select * from entrepreneur where entrepreneur_id=id and area='" + \
-                request.GET['area'] + "') AND "
-        elif 'fo' in request.GET:
-            areas = execute_query("""
-                SELECT area From fo_area WHERE fo_name='""" + request.GET['fo'] + "'")
-            filter_query = " exists (select * from entrepreneur where entrepreneur_id=id and ("
-            for i in areas:
-                filter_query += "area='" + i['area'] + "' OR "
-            # change last logic operator to and
-            filter_query = filter_query[:-3]
-            filter_query += ")) and"
-
-        query = """
-            SELECT 
-            t.id as id, MAX(MONTHDIFF(date)) AS tenure
-            FROM
-                sale_db,
-                (SELECT 
-                    entrepreneur_id as id
-                FROM
-                    entrepreneur_status
-                WHERE
-                    """ + filter_query + """
-                        month = 'Aug-15'
-                        and (type = 'LP4Y_UL' OR type = 'TSPI_UL')
-                        AND (status <> 'D')
-                        AND ISINPROGRAM(entrepreneur_id,"Aug-15") > 0) as t
-            WHERE
-                uplifter_id = t.id
-            group by id
-
-        """
-        print query
-        result = execute_query(query)
-
-        json_str = json.dumps(result, default=defaultencode)
-        return HttpResponse(json_str, content_type="application/json")
+################## Operation ###############################
 
 
 # get target count for this month
@@ -405,138 +355,75 @@ def target(request):
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
-################## project bloom overview specific queries #####################
+################## Dashboard - monthly #####################
 
-# get uplifter count by month and area
+#### KPI ####
+#
+# get project bloom overview data
 
 @login_required(login_url='/login/')
-def uplifter_by_area(request):
+def bloom_overview(request):
     if request.method == 'GET':
-        filter_query = ' '
+        params = {}
         if 'area' in request.GET:
-            filter_query = " AND area='%s'" % request.GET['area']
+            params['area'] = request.GET['area']
         elif 'fo' in request.GET:
-            areas = execute_query("""
-                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
-            filter_query = " AND ("
-            for i in areas:
-                filter_query += "area='%s' OR " % i['area']
-            # change last logic operator to and
-            filter_query = filter_query[:-3]
-            filter_query += ")"
-        query = """
-        SELECT count(DISTINCT
-            uplifter_id) as count, area, DATE_FORMAT(date, '%%b-%%y') AS month
-        FROM
-            sale_db
-        where uplifter_id>0
-            %s
-        GROUP BY area , DATE_FORMAT(date, '%%b-%%y')
-        ORDER BY STR_TO_DATE(month, '%%b-%%y')
-        """ % filter_query
-        result = execute_query(query)
+            params['fo'] = request.GET['fo']
+
+        # execute the queries
+        result = {}
+        result["ul_overview"] = execute_query(
+            generate_bloom_overview_query(params, 'ul_overview', None))
+        result["sp_overview"] = execute_query(
+            generate_bloom_overview_query(params, 'sp_overview', None))
+        result["ul_without_lp4y_overview"] = execute_query(
+            generate_bloom_overview_query(params, 'ul_without_lp4y_overview', None))
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
+# get entreprenur tenure
+
 @login_required(login_url='/login/')
-def stockpoint_by_area(request):
+def entrepreneur_tenure(request):
     if request.method == 'GET':
         filter_query = ' '
         if 'area' in request.GET:
-            filter_query = " AND area='%s'" % request.GET['area']
+            filter_query = "exists (select * from entrepreneur where entrepreneur_id=id and area='" + \
+                request.GET['area'] + "') AND "
         elif 'fo' in request.GET:
             areas = execute_query("""
-                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
-            filter_query = " AND ("
+                SELECT area From fo_area WHERE fo_name='""" + request.GET['fo'] + "'")
+            filter_query = " exists (select * from entrepreneur where entrepreneur_id=id and ("
             for i in areas:
-                filter_query += "area='%s' OR " % i['area']
+                filter_query += "area='" + i['area'] + "' OR "
             # change last logic operator to and
             filter_query = filter_query[:-3]
-            filter_query += ")"
-        query = """
-        SELECT count(DISTINCT
-            stockpoint_id) as count, area, DATE_FORMAT(date, '%%b-%%y') AS month
-        FROM
-            sale_db
-        where stockpoint_id>0
-            %s
-        GROUP BY area , DATE_FORMAT(date, '%%b-%%y')
-        ORDER BY STR_TO_DATE(month, '%%b-%%y')
-        """ % filter_query
-        result = execute_query(query)
-
-        json_str = json.dumps(result, default=defaultencode)
-        return HttpResponse(json_str, content_type="application/json")
-
-
-@login_required(login_url='/login/')
-def case_sold_by_area(request):
-    if request.method == 'GET':
-        filter_query = ' '
-        if 'area' in request.GET:
-            filter_query = " WHERE area='%s'" % request.GET['area']
-        elif 'fo' in request.GET:
-            areas = execute_query("""
-                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
-            filter_query = " WHERE ("
-            for i in areas:
-                filter_query += "area='%s' OR " % i['area']
-            # change last logic operator to and
-            filter_query = filter_query[:-3]
-            filter_query += ")"
+            filter_query += ")) and"
+            
+        last_fully_updated_month = get_last_fully_updated_month()
 
         query = """
-        SELECT 
-            SUM(qty) AS count,
-            area,
-            DATE_FORMAT(date, '%%b-%%y') AS month
-        FROM
-            delivery
-        %s
-        GROUP BY area , DATE_FORMAT(date, '%%b-%%y')
-        order by date
-        """ % filter_query
-        result = execute_query(query)
-
-        json_str = json.dumps(result, default=defaultencode)
-        return HttpResponse(json_str, content_type="application/json")
-
-# get estimated man hour
-
-@login_required(login_url='/login/')
-def estimated_man_hour(request):
-    if request.method == 'GET':
-        filter_query = ' '
-        if 'area' in request.GET:
-            filter_query = " AND area='%s'" % request.GET['area']
-        elif 'fo' in request.GET:
-            areas = execute_query("""
-                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
-            filter_query = " AND ("
-            for i in areas:
-                filter_query += "area='%s' OR " % i['area']
-            # change last logic operator to and
-            filter_query = filter_query[:-3]
-            filter_query += ")"
-        query = """
-        SELECT 
-            SUM(hours_per_day) AS count,
-            area,
-            DATE_FORMAT(date, '%%b-%%y') AS month
-        FROM
-            (SELECT 
-                uplifter_id, hours_per_day, area, date
+            SELECT 
+            t.id as id, MAX(MONTHDIFF(date)) AS tenure
             FROM
-                sale_db      
+                sale_db,
+                (SELECT 
+                    entrepreneur_id as id
+                FROM
+                    entrepreneur_status
+                WHERE
+                        %s
+                        month = '%s'
+                        and (type = 'LP4Y_UL' OR type = 'TSPI_UL')
+                        AND (status <> 'D')
+                        AND ISINPROGRAM(entrepreneur_id,"%s") > 0) as t
             WHERE
-                uplifter_id > 0
-                %s
-            GROUP BY date , uplifter_id
-            ORDER BY date) AS t
-        GROUP BY area , month
-        ORDER BY STR_TO_DATE(month, '%%b-%%y');
-        """ % filter_query
+                uplifter_id = t.id
+            group by id
+
+        """ % (filter_query, last_fully_updated_month, last_fully_updated_month)
+
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -611,7 +498,9 @@ def estimated_income_per_hour(request):
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
-# get rsv sold TODO
+#### additional analysis ####
+
+# get rsv sold (business contribution)
 
 @login_required(login_url='/login/')
 def rsv_sold(request):
@@ -650,7 +539,8 @@ def rsv_sold(request):
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
-# get case sold 
+
+# get case sold
 
 @login_required(login_url='/login/')
 def case_sold(request):
@@ -704,7 +594,145 @@ def case_sold(request):
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
-################## area and month specific queries #####################
+@login_required(login_url='/login/')
+def case_sold_by_area(request):
+    if request.method == 'GET':
+        filter_query = ' '
+        if 'area' in request.GET:
+            filter_query = " WHERE area='%s'" % request.GET['area']
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
+            filter_query = " WHERE ("
+            for i in areas:
+                filter_query += "area='%s' OR " % i['area']
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")"
+
+        query = """
+        SELECT 
+            SUM(qty) AS count,
+            area,
+            DATE_FORMAT(date, '%%b-%%y') AS month
+        FROM
+            delivery
+        %s
+        GROUP BY area , DATE_FORMAT(date, '%%b-%%y')
+        order by date
+        """ % filter_query
+        result = execute_query(query)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# get uplifter count by area
+
+@login_required(login_url='/login/')
+def uplifter_by_area(request):
+    if request.method == 'GET':
+        filter_query = ' '
+        if 'area' in request.GET:
+            filter_query = " AND area='%s'" % request.GET['area']
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
+            filter_query = " AND ("
+            for i in areas:
+                filter_query += "area='%s' OR " % i['area']
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")"
+        query = """
+        SELECT count(DISTINCT
+            uplifter_id) as count, area, DATE_FORMAT(date, '%%b-%%y') AS month
+        FROM
+            sale_db
+        where uplifter_id>0
+            %s
+        GROUP BY area , DATE_FORMAT(date, '%%b-%%y')
+        ORDER BY STR_TO_DATE(month, '%%b-%%y')
+        """ % filter_query
+        result = execute_query(query)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# get stockpoint count by area
+
+@login_required(login_url='/login/')
+def stockpoint_by_area(request):
+    if request.method == 'GET':
+        filter_query = ' '
+        if 'area' in request.GET:
+            filter_query = " AND area='%s'" % request.GET['area']
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
+            filter_query = " AND ("
+            for i in areas:
+                filter_query += "area='%s' OR " % i['area']
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")"
+        query = """
+        SELECT count(DISTINCT
+            stockpoint_id) as count, area, DATE_FORMAT(date, '%%b-%%y') AS month
+        FROM
+            sale_db
+        where stockpoint_id>0
+            %s
+        GROUP BY area , DATE_FORMAT(date, '%%b-%%y')
+        ORDER BY STR_TO_DATE(month, '%%b-%%y')
+        """ % filter_query
+        result = execute_query(query)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# get estimated man hour
+
+@login_required(login_url='/login/')
+def estimated_man_hour(request):
+    if request.method == 'GET':
+        filter_query = ' '
+        if 'area' in request.GET:
+            filter_query = " AND area='%s'" % request.GET['area']
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
+            filter_query = " AND ("
+            for i in areas:
+                filter_query += "area='%s' OR " % i['area']
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")"
+        query = """
+        SELECT 
+            SUM(hours_per_day) AS count,
+            area,
+            DATE_FORMAT(date, '%%b-%%y') AS month
+        FROM
+            (SELECT 
+                uplifter_id, hours_per_day, area, date
+            FROM
+                sale_db      
+            WHERE
+                uplifter_id > 0
+                %s
+            GROUP BY date , uplifter_id
+            ORDER BY date) AS t
+        GROUP BY area , month
+        ORDER BY STR_TO_DATE(month, '%%b-%%y');
+        """ % filter_query
+        result = execute_query(query)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+
+
+################## Dashboard - Shareout #####################
 
 @login_required(login_url='/login/')
 def sp_three_month_income(request):
@@ -857,8 +885,6 @@ def most_improved_days_worked(request):
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
-################## stockpoint specific queries #####################
-
 # get the product delivery quantity for stockpoint per month
 
 @login_required(login_url='/login/')
@@ -881,6 +907,17 @@ def product_sold_detail(request):
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
+
+
+
+
+
+
+
+
+
+
+
 
 ####################### Helper Functions ############################
 

@@ -11,21 +11,25 @@ var dashboardControllers = angular.module('dashboardControllers', []);
 
 dashboardControllers.controller('DashboardMonthlyCtrl', ['$scope', '$routeParams', '$http',
 	function($scope, $routeParams, $http) {
+		$http.get('../api/last-full-data-month').success(function(data) {
+			var last_fully_updated_month = data[0].value;
 
-		initializeTab($http, $scope, $routeParams.tab);
+			initializeTab($http, $scope, $routeParams.tab, last_fully_updated_month);
 
-		var params = {}
-		$scope.fo_name = "Bloom"
-		$scope.area = "Overall"
-		if ($routeParams.tab == 'kpi') {
-			retriveAndDrawKPIChart(params, "Bloom", $scope, $http);
-			$('#tab2').hide();
-			$('#tab1').show();
-		} else if ($routeParams.tab == 'add') {
-			retriveAndDrawAdditionalCharts(params, "Bloom", $scope, $http);
-			$('#tab1').hide();
-			$('#tab2').show();
-		}
+			var params = {}
+			$scope.fo_name = "Bloom"
+			$scope.area = "Overall"
+			if ($routeParams.tab == 'kpi') {
+				retriveAndDrawKPIChart(params, "Bloom", last_fully_updated_month, $scope, $http);
+				$('#tab2').hide();
+				$('#tab1').show();
+			} else if ($routeParams.tab == 'add') {
+				retriveAndDrawAdditionalCharts(params, "Bloom", last_fully_updated_month, $scope, $http);
+				$('#tab1').hide();
+				$('#tab2').show();
+			}
+		})
+
 
 	}
 ]);
@@ -295,12 +299,12 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 /**
  * Helper function to retrieve data and draw charts
  */
-function retriveAndDrawKPIChart(params, title, $scope, $http) {
+function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope, $http) {
 	// http get for recruitment, ul, sp retention chart
 	$http.get(appendParamsToUrl('../api/overview', params)).success(function(data) {
 		//parse ajax data to data array
 		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
-		var now = moment();
+		var now = moment(last_fully_updated_month, 'MMM-YY');
 		now.add(1, 'months');
 		var data_array = [];
 		while (monthDiff(startDate, now) != 0) {
@@ -326,6 +330,9 @@ function retriveAndDrawKPIChart(params, title, $scope, $http) {
 			var month = moment(data['ul_overview'][i]['month'], "MMM-YY");
 			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
 			var index = monthDiff(startDate, month);
+			if (index >= data_array.length) {
+				continue;
+			}
 			if (data['ul_overview'][i]['status'] == 'S' || data['ul_overview'][i]['status'] == 'S1' || data['ul_overview'][i]['status'] == 'S2') {
 				data_array[index][1] += data['ul_overview'][i]['count']
 
@@ -340,6 +347,9 @@ function retriveAndDrawKPIChart(params, title, $scope, $http) {
 			var month = moment(data['sp_overview'][i]['month'], "MMM-YY");
 			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
 			var index = monthDiff(startDate, month);
+			if (index >= data_array.length) {
+				continue;
+			}
 			if (data['sp_overview'][i]['status'] == 'S') {
 				data_array[index][4] = data['sp_overview'][i]['count']
 			} else if (data['sp_overview'][i]['status'] == 'N') {
@@ -353,6 +363,9 @@ function retriveAndDrawKPIChart(params, title, $scope, $http) {
 			var month = moment(data['ul_without_lp4y_overview'][i]['month'], "MMM-YY");
 			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
 			var index = monthDiff(startDate, month);
+			if (index >= data_array.length) {
+				continue;
+			}
 			if (data['ul_without_lp4y_overview'][i]['status'] == 'S') {
 				data_array[index][7] = data['ul_without_lp4y_overview'][i]['count']
 			} else if (data['ul_without_lp4y_overview'][i]['status'] == 'N') {
@@ -823,7 +836,7 @@ function retriveAndDrawKPIChart(params, title, $scope, $http) {
 
 		// fill cols with null
 		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
-		var now = moment();
+		var now = moment(last_fully_updated_month, 'MMM-YY');
 		now.add(1, 'months');
 
 		while (monthDiff(startDate, now) != 0) {
@@ -850,6 +863,9 @@ function retriveAndDrawKPIChart(params, title, $scope, $http) {
 		for (var i in data['by_area']) {
 			var col_index = areas.indexOf(data['by_area'][i].area) + 2;
 			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['by_area'][i].month, "MMM-YY"));
+			if (row_index >= chart_data.rows.length) {
+				continue;
+			}
 			chart_data.rows[row_index].c[col_index].v = data['by_area'][i].profit_per_hour;
 
 		}
@@ -857,6 +873,9 @@ function retriveAndDrawKPIChart(params, title, $scope, $http) {
 		for (var i in data['average']) {
 			var col_index = 1;
 			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['average'][i].month, "MMM-YY"));
+			if (row_index >= chart_data.rows.length) {
+				continue;
+			}
 			chart_data.rows[row_index].c[col_index].v = data['average'][i].profit_per_hour;
 
 		}
@@ -870,7 +889,7 @@ function retriveAndDrawKPIChart(params, title, $scope, $http) {
 /**
  * Draw More charts which are project bloom specific and summaize data for the whole project
  */
-function retriveAndDrawAdditionalCharts(params, title, $scope, $http) {
+function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month, $scope, $http) {
 	// uplifter by area bar chart
 	$http.get(appendParamsToUrl('../api/uplifter-by-area', params)).success(function(data) {
 		// initialize options and data structure, bloom project overview
@@ -899,7 +918,7 @@ function retriveAndDrawAdditionalCharts(params, title, $scope, $http) {
 
 		}
 
-		timeseriersStackedColumnChart($scope, 'uplifterByAreaChartObject', options, data)
+		timeseriersStackedColumnChart($scope, 'uplifterByAreaChartObject', options, data, last_fully_updated_month)
 	});
 
 	// stockpoint by area chart
@@ -927,7 +946,7 @@ function retriveAndDrawAdditionalCharts(params, title, $scope, $http) {
 			height: 450
 
 		}
-		timeseriersStackedColumnChart($scope, 'stockpointByAreaChartObject', options, data)
+		timeseriersStackedColumnChart($scope, 'stockpointByAreaChartObject', options, data, last_fully_updated_month)
 	});
 
 	// estimated man hour
@@ -958,7 +977,7 @@ function retriveAndDrawAdditionalCharts(params, title, $scope, $http) {
 
 		}
 
-		timeseriersStackedColumnChart($scope, 'estimatedManHourByAreaChartObject', options, data)
+		timeseriersStackedColumnChart($scope, 'estimatedManHourByAreaChartObject', options, data, last_fully_updated_month)
 	});
 
 
@@ -1038,7 +1057,7 @@ function retriveAndDrawAdditionalCharts(params, title, $scope, $http) {
 
 		// fill cols with null
 		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
-		var now = moment();
+		var now = moment(last_fully_updated_month, 'MMM-YY');
 		now.add(1, 'months');
 
 		while (monthDiff(startDate, now) != 0) {
@@ -1063,6 +1082,9 @@ function retriveAndDrawAdditionalCharts(params, title, $scope, $http) {
 		for (var i in data['sku']) {
 			var col_index = (data['sku'][i].company == 'Wrigley' ? 1 : 2)
 			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['sku'][i].month, "MMM-YY"));
+			if (row_index >= chart_data.rows.length) {
+				continue;
+			}
 			chart_data.rows[row_index].c[col_index].v = data['sku'][i].inner_bags_sum;
 
 		}
@@ -1070,6 +1092,9 @@ function retriveAndDrawAdditionalCharts(params, title, $scope, $http) {
 		for (var i in data['rsv']) {
 			var col_index = (data['rsv'][i].company == 'Wrigley' ? 4 : 5)
 			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['rsv'][i].month, "MMM-YY"));
+			if (row_index >= chart_data.rows.length) {
+				continue;
+			}
 			chart_data.rows[row_index].c[col_index].v = data['rsv'][i].rsv;
 			// add to sum
 			chart_data.rows[row_index].c[3].v += data['rsv'][i].rsv;
@@ -1155,7 +1180,7 @@ function retriveAndDrawAdditionalCharts(params, title, $scope, $http) {
 
 		// fill cols with 0
 		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
-		var now = moment();
+		var now = moment(last_fully_updated_month, 'MMM-YY');
 		now.add(1, 'months');
 		var data_array = [];
 		while (monthDiff(startDate, now) != 0) {
@@ -1181,12 +1206,18 @@ function retriveAndDrawAdditionalCharts(params, title, $scope, $http) {
 		for (var i in data['by_product']) {
 			var col_index = products.indexOf(data['by_product'][i].product) + 1;
 			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['by_product'][i].month, "MMM-YY"));
+			if (row_index >= chart_data.rows.length) {
+				continue;
+			}
 			chart_data.rows[row_index].c[col_index].v = data['by_product'][i].qty_sum;
 		}
 
 		for (var i in data['by_company']) {
 			var col_index = companies.indexOf(data['by_company'][i].company) + products.length + 1;
 			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['by_company'][i].month, "MMM-YY"));
+			if (row_index >= chart_data.rows.length) {
+				continue;
+			}
 			chart_data.rows[row_index].c[col_index].v = data['by_company'][i].qty_sum;
 		}
 		// draw chart!
@@ -1219,7 +1250,7 @@ function retriveAndDrawAdditionalCharts(params, title, $scope, $http) {
 			// width: 800,
 			height: 450
 		}
-		timeseriersStackedColumnChart($scope, 'caseSoldByAreaChartObject', options, data)
+		timeseriersStackedColumnChart($scope, 'caseSoldByAreaChartObject', options, data, last_fully_updated_month)
 	});
 
 
@@ -1229,7 +1260,7 @@ function retriveAndDrawAdditionalCharts(params, title, $scope, $http) {
  * Draw More charts which are area specific charts
  */
 function retriveAndDrawShareoutCharts(params, title, $scope, $http) {
-	// http get for ul and sp potential
+	// http get for ul and sp potential (comcare)
 	var url3 = appendParamsToUrl('../api/target', params);
 	$http.get(url3).success(function(data) {
 		// initialize data for uplifter tenure
@@ -1460,6 +1491,11 @@ function retriveAndDrawShareoutCharts(params, title, $scope, $http) {
 		$scope.spOverviewChartObject.data = sp_chart_data
 	});
 
+	// given a sp name, draw charts that show the qty of each product deliveried to this sp per month
+	$http.get('../api/sp/product-sold-detail').success(function(data) {
+		//console.log(data)
+	});
+
 	// given an area, draw charts that show the 3 months income for sp under this area
 	$http.get('../api/area/sp-three-month-income').success(function(data) {
 		//console.log(data)
@@ -1485,10 +1521,7 @@ function retriveAndDrawShareoutCharts(params, title, $scope, $http) {
  * Draw more charts which are stockpoint specific 
  */
 function retriveAndDrawSPCharts($scope, $http) {
-	// given a sp name, draw charts that show the qty of each product deliveried to this sp per month
-	$http.get('../api/sp/product-sold-detail').success(function(data) {
-		//console.log(data)
-	});
+
 }
 
 /**
@@ -1548,7 +1581,7 @@ function monthDiff(d1, d2) {
 /**
  * initialize the dashboard tabs
  */
-function initializeTab($http, $scope, tab) {
+function initializeTab($http, $scope, tab, last_fully_updated_month) {
 	var url = '../api/fo-area';
 	$('#Overview-tab a').tab('show');
 	$http.get(url).success(function(data) {
@@ -1605,9 +1638,9 @@ function initializeTab($http, $scope, tab) {
 		}
 
 		if (tab == 'kpi') {
-			retriveAndDrawKPIChart(params, title, $scope, $http)
+			retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope, $http)
 		} else if (tab == 'add') {
-			retriveAndDrawAdditionalCharts(params, title, $scope, $http);
+			retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month, $scope, $http);
 		}
 
 	}
@@ -1637,7 +1670,7 @@ function appendParamsToUrl(url, params) {
  * Helper function for drawing time series stacked column chart (for uplifter man hour and uplifter by area)
  */
 
-function timeseriersStackedColumnChart($scope, chart_name, options, data) {
+function timeseriersStackedColumnChart($scope, chart_name, options, data, last_fully_updated_month) {
 	$scope[chart_name] = {
 		type: "ColumnChart",
 		displayed: true,
@@ -1688,7 +1721,7 @@ function timeseriersStackedColumnChart($scope, chart_name, options, data) {
 
 	// fill cols with 0
 	var startDate = moment('2014/6/1', 'YYYY-MM-DD');
-	var now = moment();
+	var now = moment(last_fully_updated_month, 'MMM-YY');
 	now.add(1, 'months');
 	var data_array = [];
 	while (monthDiff(startDate, now) != 0) {
@@ -1716,6 +1749,9 @@ function timeseriersStackedColumnChart($scope, chart_name, options, data) {
 	for (var i in data) {
 		var col_index = areas.indexOf(data[i].area) + 1;
 		var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data[i].month, "MMM-YY"));
+		if (row_index >= chart_data.rows.length) {
+			continue;
+		}
 		chart_data.rows[row_index].c[col_index].v = data[i].count;
 		chart_data.rows[row_index].c[chart_data.cols.length - 1].v += data[i].count;
 		chart_data.rows[row_index].c[chart_data.cols.length - 2].v += data[i].count;
