@@ -543,7 +543,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					}, {
 						v: ((data_array[i - 1][7] - data_array[i][9]) / data_array[i - 1][7]).toFixed(2)
 					}, {
-						v: ((data_array[i - 1][7] - data_array[i][9]) / data_array[i - 1][7]).toFixed(2)*100+"%"
+						v: ((data_array[i - 1][7] - data_array[i][9]) / data_array[i - 1][7]).toFixed(2) * 100 + "%"
 					}]
 				})
 			} else {
@@ -668,7 +668,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					}, {
 						v: ((data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)).toFixed(2)
 					}, {
-						v: ((data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)).toFixed(2)*100+"%"
+						v: ((data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)).toFixed(2) * 100 + "%"
 					}]
 				})
 			} else {
@@ -1190,6 +1190,10 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 					// 	"count": 10
 					// }
 				}
+			},
+			legend: {
+				position: 'top',
+				maxLines: 5
 			},
 			// width: 800,
 			height: 400
