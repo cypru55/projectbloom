@@ -20,8 +20,8 @@ var color = {
 	black: '#000000',
 	dm50: '#00CC00',
 	jf50: '#FFCC00',
-	sugus34: '#CC6600',
-	snickers20: '#FF6666',
+	snickers20: '#CC6600',
+	sugus34: '#FF6666',
 	mm14: '#0066CC',
 	wrigleyothers: '#C1C1AF',
 	mars: '#0066CC',
@@ -59,6 +59,11 @@ dashboardControllers.controller('DashboardMonthlyCtrl', ['$scope', '$routeParams
 
 dashboardControllers.controller('DashboardShareoutCtrl', ['$scope', '$http',
 	function($scope, $http) {
+		$http.get('../api/last-full-data-month').success(function(data) {
+			var last_fully_updated_month = data[0].value;
+			$scope.last_full_data_month = last_fully_updated_month
+			initializeAreaMonthSelection($http, $scope, last_fully_updated_month);
+		})
 
 	}
 ]);
@@ -1256,16 +1261,16 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			},
 			legend: {
 				position: 'top',
-				maxLines: 5
+				maxLines: 4
 			},
 			lineWidth: 4,
-			colors: [color.dm50, color.jf50, color.sugus34, color.snickers20, color.wrigleyothers, color.mm14, color.marsline, color.wrigleyline],
+			colors: [color.dm50, color.jf50, color.sugus34, color.wrigleyothers, color.snickers20, color.mm14, color.marsline, color.wrigleyline],
 			// width: 800,
 			height: 400
 		}
 
 		// fetch cols 
-		var products = ['DM 50+10', 'JF 50+10', 'Sugus 34', 'Snickers 20g', 'Wrigley Others', 'M&M 14.5g']
+		var products = ['DM 50+10', 'JF 50+10', 'Sugus 34', 'Wrigley Others', 'Snickers 20g', 'M&M 14.5g']
 		var companies = ['Mars', 'Wrigley']
 		for (var i in products) {
 			chart_data.cols.push({
@@ -1800,6 +1805,36 @@ function initializeTab($http, $scope, tab, last_fully_updated_month) {
 }
 
 /**
+ * initialize the area selection drop down
+ */
+function initializeAreaMonthSelection($http, $scope, last_fully_updated_month) {
+	// retrive full area list
+	$http.get('../api/all-areas').success(function(data) {
+		$scope.areas = data;
+	})
+
+	// add listener after ng-repeat finish render the area list
+	$scope.$on('shareoutAreaListFinished', function(ngRepeatFinishedEvent) {
+		$('.area-selection').each(
+			function() {
+				$(this).click(
+					areaSelectionListener
+				)
+			}
+		);
+	});
+
+	var areaSelectionListener = function() {
+		var area = this.id;
+		$scope.selected_area = area
+		console.log(area);
+	}
+
+	// initialize month selector
+
+}
+
+/**
  * Helper function to append dictionary of parameters to a url for HTTP GET
  * @param  {string} url    base url string
  * @param  {dictionary} params dictionary of parameters
@@ -1845,11 +1880,15 @@ function timeseriersStackedColumnChart($scope, chart_name, options, data, last_f
 	for (var i in data) {
 		if (areas.indexOf(data[i].area) == -1) {
 			areas.push(data[i].area);
-			chart_data.cols.push({
-				label: data[i].area,
-				type: "number"
-			});
+
 		}
+	}
+	areas.sort();
+	for (var i in areas) {
+		chart_data.cols.push({
+			label: areas[i],
+			type: "number"
+		});
 	}
 	// fill last col as annotation to show total count
 	chart_data.cols.push({
