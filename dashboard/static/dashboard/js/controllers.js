@@ -924,7 +924,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 
 		// last 2 columns are average
 		chart_data.cols.push({
-			label: 'Total Average',
+			label: 'Average Income/Hr',
 			type: 'number'
 		})
 		chart_data.cols.push({
@@ -970,7 +970,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 
 		// fill data
 		for (var i in data['by_area']) {
-			var col_index = areas.indexOf(data['by_area'][i].area) + 3;
+			var col_index = areas.indexOf(data['by_area'][i].area) + 1;
 			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['by_area'][i].month, "MMM-YY"));
 			if (row_index >= chart_data.rows.length) {
 				continue;
