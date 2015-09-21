@@ -895,7 +895,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			interpolateNulls: true,
 			vAxes: {
 				0: {
-					title: "Average Income/hr",
+					title: "Average Income/Hr",
 					format: '#',
 					// gridlines: {
 					// 	"count": 10
