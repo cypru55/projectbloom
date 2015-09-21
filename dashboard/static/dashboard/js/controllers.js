@@ -599,7 +599,6 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			fill: 20,
 			displayExactValues: true,
 			hAxis: {
-				title: "Date",
 				format: 'MMM-yy',
 				gridlines: {
 					"count": 15
@@ -744,7 +743,6 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			fill: 20,
 			displayExactValues: true,
 			hAxis: {
-				title: "Date",
 				format: 'MMM-yy',
 				gridlines: {
 					"count": 15
@@ -887,7 +885,6 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			fill: 20,
 			displayExactValues: true,
 			hAxis: {
-				title: "Date",
 				format: 'MMM-yy',
 				gridlines: {
 					"count": 15
@@ -1127,7 +1124,6 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			fill: 20,
 			displayExactValues: true,
 			hAxis: {
-				title: "Date",
 				format: 'MMM-yy',
 				gridlines: {
 					"count": 15
@@ -1239,7 +1235,6 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			fill: 20,
 			displayExactValues: true,
 			hAxis: {
-				title: "Date",
 				format: 'MMM-yy',
 				gridlines: {
 					"count": 15
