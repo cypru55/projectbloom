@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-18
+    Date last modified: 2015-09-21
     Python Version: 2.7.6
 '''
 
@@ -415,7 +415,6 @@ def entrepreneur_tenure(request):
                 WHERE
                         %s
                         month = '%s'
-                        AND (status <> 'D')
                         AND ISINPROGRAM(entrepreneur_id,"%s") > 0) as t
             WHERE
                 uplifter_id = t.id or stockpoint_id = t.id
@@ -584,7 +583,7 @@ def case_sold(request):
             date IS NOT NULL
             %s
         GROUP BY product , month
-        ORDER BY date
+        ORDER BY product
         """ % filter_query
         result = {}
         result['by_product'] = execute_query(query2)

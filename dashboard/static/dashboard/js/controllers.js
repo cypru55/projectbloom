@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-18
+ * @Last Modified 2015-09-21
  */
 
 'use strict';
@@ -15,9 +15,21 @@ var color = {
 	new_ul: '#00CC66',
 	stable_sp: '#FF9900',
 	new_sp: '#FFFF66',
-	drop: 'FF0000',
-	retention: '993300',
-	black: '000000'
+	drop: '#FF0000',
+	retention: '#993300',
+	black: '#000000',
+	dm50: '#00CC00',
+	jf50: '#FFFF00',
+	sugus34: '#CC6600',
+	snickers20: '#663300',
+	mm14: '#0066CC',
+	wrigleyothers: '#C1C1AF',
+	mars: '#0066FF',
+	wrigley: '#00FF00',
+	total: '#FF6600',
+	wrigleyrsv: '#009933',
+	marsrsv: '#0033CC'
+
 }
 
 dashboardControllers.controller('DashboardMonthlyCtrl', ['$scope', '$routeParams', '$http',
@@ -45,23 +57,15 @@ dashboardControllers.controller('DashboardMonthlyCtrl', ['$scope', '$routeParams
 	}
 ]);
 
-// dashboardControllers.controller('DashboardShareoutCtrl', ['$scope', '$http',
-// 	function($scope, $http) {
-// 		// retrieve data
-// 		initializeTab($http, $scope);
-// 		var params = {
-// 			fo: "Mark"
-// 		}
-// 		$scope.fo_name = "Mark"
-// 		$scope.area = "Overall"
-// 		retriveAndDrawChart(params, "Mark", $scope, $http);
-// 		// retriveAndDrawShareoutCharts(area, $scope, $http)
-// 	}
-// ]);
+dashboardControllers.controller('DashboardShareoutCtrl', ['$scope', '$http',
+	function($scope, $http) {}
+]);
 
-// dashboardControllers.controller('DashboardQuaterlyCtrl', ['$scope', '$http', function($scope, $http) {
-// 	// retriveAndDrawSPCharts($scope, $http)
-// }]);
+dashboardControllers.controller('DashboardQuaterlyCtrl', ['$scope', '$http',
+	function($scope, $http) {
+
+	}
+]);
 
 dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams', '$http',
 	function($scope, $routeParams, $http) {
@@ -308,7 +312,7 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 }
 
 /**
- * Helper function to retrieve data and draw charts
+ * Draw monthly kpi charts
  */
 function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope, $http) {
 	// http get for recruitment, ul, sp retention chart
@@ -422,6 +426,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					visibleInLegend: false
 				}
 			},
+			lineWidth: 4,
 			colors: [color.stable_ul, color.new_ul, color.stable_sp, color.new_sp],
 			// width: 800,
 			height: 450
@@ -628,6 +633,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					color: color.black,
 				}
 			},
+			lineWidth: 4,
 			colors: [color.stable_ul, color.drop, color.retention],
 			// width: 800,
 			height: 400
@@ -773,6 +779,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					color: color.black,
 				}
 			},
+			lineWidth: 4,
 			colors: [color.stable_sp, color.drop, color.retention],
 
 			// width: 800,
@@ -904,6 +911,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				position: 'top',
 				maxLines: 5
 			},
+			lineWidth: 4,
 			// width: 800,
 			height: 400
 		}
@@ -913,7 +921,13 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			label: 'Total Average',
 			type: 'number'
 		})
-
+		chart_data.cols.push({
+			type: "number",
+			role: "annotation",
+			p: {
+				role: "annotation"
+			}
+		});
 		var areas = [];
 		for (var i in data['by_area']) {
 			if (areas.indexOf(data['by_area'][i].area) == -1) {
@@ -945,6 +959,9 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			row.c.push({
 				v: null
 			});
+			row.c.push({
+				v: null
+			});
 
 			chart_data.rows.push(row);
 			startDate.add(1, 'months');
@@ -952,12 +969,12 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 
 		// fill data
 		for (var i in data['by_area']) {
-			var col_index = areas.indexOf(data['by_area'][i].area) + 2;
+			var col_index = areas.indexOf(data['by_area'][i].area) + 3;
 			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['by_area'][i].month, "MMM-YY"));
 			if (row_index >= chart_data.rows.length) {
 				continue;
 			}
-			chart_data.rows[row_index].c[col_index].v = data['by_area'][i].profit_per_hour;
+			chart_data.rows[row_index].c[col_index].v = Math.round(data['by_area'][i].profit_per_hour);
 
 		}
 
@@ -967,7 +984,8 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			if (row_index >= chart_data.rows.length) {
 				continue;
 			}
-			chart_data.rows[row_index].c[col_index].v = data['average'][i].profit_per_hour;
+			chart_data.rows[row_index].c[col_index].v = Math.round(data['average'][i].profit_per_hour);
+			chart_data.rows[row_index].c[col_index + 1].v = Math.round(data['average'][i].profit_per_hour);
 
 		}
 
@@ -978,7 +996,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 }
 
 /**
- * Draw More charts which are project bloom specific and summaize data for the whole project
+ * Draw monthly additional analysis charts
  */
 function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month, $scope, $http) {
 	// uplifter by area bar chart
@@ -1143,6 +1161,8 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 				}
 			},
 			// width: 800,
+			lineWidth: 4,
+			colors: [color.wrigley, color.mars, color.total, color.wrigleyrsv, color.marsrsv],
 			height: 400
 		}
 
@@ -1176,7 +1196,7 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			if (row_index >= chart_data.rows.length) {
 				continue;
 			}
-			chart_data.rows[row_index].c[col_index].v = data['sku'][i].inner_bags_sum;
+			chart_data.rows[row_index].c[col_index].v = Math.round(data['sku'][i].inner_bags_sum / 1000);
 
 		}
 
@@ -1186,9 +1206,9 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			if (row_index >= chart_data.rows.length) {
 				continue;
 			}
-			chart_data.rows[row_index].c[col_index].v = data['rsv'][i].rsv;
+			chart_data.rows[row_index].c[col_index].v = Math.round(data['rsv'][i].rsv / 1000);
 			// add to sum
-			chart_data.rows[row_index].c[3].v += data['rsv'][i].rsv;
+			chart_data.rows[row_index].c[3].v += Math.round(data['rsv'][i].rsv / 1000);
 
 		}
 
@@ -1239,21 +1259,21 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 				position: 'top',
 				maxLines: 5
 			},
+			lineWidth: 4,
+			colors: [color.dm50, color.jf50, color.sugus34, color.snickers20, color.mm14, color.wrigleyothers, color.mars, color.wrigley],
 			// width: 800,
 			height: 400
 		}
 
 		// fetch cols 
-		var products = []
+		var products = ['DM 50+10', 'JF 50+10', 'Sugus 34', 'Snickers 20g', 'M&M 14.5g', 'Wrigley Others']
 		var companies = ['Mars', 'Wrigley']
-		for (var i in data['by_product']) {
-			if (products.indexOf(data['by_product'][i].product) == -1) {
-				products.push(data['by_product'][i].product);
-				chart_data.cols.push({
-					label: data['by_product'][i].product,
-					type: "number"
-				});
-			}
+		for (var i in products) {
+			chart_data.cols.push({
+				label: products[i],
+				type: "number"
+			});
+
 		}
 		for (var i in companies) {
 			chart_data.cols.push({
@@ -1261,6 +1281,17 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 				type: "number"
 			});
 		}
+		// last two col for total
+		chart_data.cols.push({
+			type: "number"
+		});
+		chart_data.cols.push({
+			type: "number",
+			role: "annotation",
+			p: {
+				role: "annotation"
+			}
+		});
 
 		// set companies to line chart
 		options['series'] = {};
@@ -1294,17 +1325,45 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 					v: 0
 				});
 			}
+			// for total
+			row.c.push({
+				v: 0
+			});
+			row.c.push({
+				v: 0
+			});
 			chart_data.rows.push(row);
 			startDate.add(1, 'months');
 		}
+
+		options.series[chart_data.cols.length - 3] = {
+			type: 'line',
+			color: 'grey',
+			lineWidth: 0,
+			pointSize: 0,
+			visibleInLegend: false
+		}
+
 		// fill data
 		for (var i in data['by_product']) {
-			var col_index = products.indexOf(data['by_product'][i].product) + 1;
 			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['by_product'][i].month, "MMM-YY"));
 			if (row_index >= chart_data.rows.length) {
 				continue;
 			}
-			chart_data.rows[row_index].c[col_index].v = data['by_product'][i].qty_sum;
+			if (products.indexOf(data['by_product'][i].product) != -1) {
+				var col_index = products.indexOf(data['by_product'][i].product) + 1;
+
+				chart_data.rows[row_index].c[col_index].v = data['by_product'][i].qty_sum;
+			} else {
+				var col_index = products.indexOf('Wrigley Others') + 1
+
+
+				chart_data.rows[row_index].c[col_index].v += data['by_product'][i].qty_sum;
+			}
+
+			// add to total
+			chart_data.rows[row_index].c[chart_data.cols.length - 1].v += data['by_product'][i].qty_sum;
+			chart_data.rows[row_index].c[chart_data.cols.length - 2].v += data['by_product'][i].qty_sum;
 		}
 
 		for (var i in data['by_company']) {
@@ -1352,7 +1411,7 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 }
 
 /**
- * Draw More charts which are area specific charts
+ * Draw Shareout charts
  */
 function retriveAndDrawShareoutCharts(params, title, $scope, $http) {
 	// http get for ul and sp potential (comcare)
@@ -1613,9 +1672,9 @@ function retriveAndDrawShareoutCharts(params, title, $scope, $http) {
 }
 
 /**
- * Draw more charts which are stockpoint specific 
+ * Draw Quaterly charts
  */
-function retriveAndDrawSPCharts($scope, $http) {
+function retriveAndDrawQuaterlyCharts($scope, $http) {
 
 }
 
