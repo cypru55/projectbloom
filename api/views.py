@@ -1258,7 +1258,7 @@ def generate_bloom_overview_query(params, type, month):
                     entrepreneur
                 WHERE
                     {0}
-                    entrepreneur.id = t.entrepreneur_id)
+                    entrepreneur.id = t.entrepreneur_id and entrepreneur.role = 'Uplifter')
             ) AS t2
             WHERE
                 (t2.type = 'TSPI_UL'
@@ -1293,7 +1293,7 @@ def generate_bloom_overview_query(params, type, month):
                     entrepreneur
                 WHERE
                     {0}
-                    entrepreneur.id = t.entrepreneur_id)
+                    entrepreneur.id = t.entrepreneur_id and entrepreneur.role = 'Stockpoint')
             ) AS t2
             WHERE
                 (t2.type = 'TSPI_SP'
@@ -1328,7 +1328,7 @@ def generate_bloom_overview_query(params, type, month):
                     entrepreneur
                 WHERE
                     {0}
-                    entrepreneur.id = t.entrepreneur_id)
+                    entrepreneur.id = t.entrepreneur_id and entrepreneur.role = 'Uplifter')
                     ) AS t2
             WHERE
                     t2.type = 'TSPI_UL'
