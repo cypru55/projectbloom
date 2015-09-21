@@ -409,7 +409,6 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			fill: 20,
 			displayExactValues: true,
 			hAxis: {
-				"title": "Date",
 				"format": 'MMM-yy',
 				gridlines: {
 					"count": 15
@@ -939,6 +938,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			}
 		});
 		options['series'][chart_data.cols.length - 3] = {
+			color: 'lightgray',
 			type: 'bars',
 			targetAxisIndex: 1
 		}
@@ -1012,7 +1012,6 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			fill: 20,
 			displayExactValues: true,
 			hAxis: {
-				"title": "Date",
 				"format": 'MMM-yy',
 				gridlines: {
 					"count": 15
@@ -1041,7 +1040,6 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			fill: 20,
 			displayExactValues: true,
 			hAxis: {
-				"title": "Date",
 				"format": 'MMM-yy',
 				gridlines: {
 					"count": 15
@@ -1071,7 +1069,6 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			fill: 20,
 			displayExactValues: true,
 			hAxis: {
-				"title": "Date",
 				"format": 'MMM-yy',
 				gridlines: {
 					"count": 15
@@ -1079,7 +1076,7 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			},
 			seriesType: 'bars',
 			vAxis: {
-				title: "Estimated Man Hours",
+				title: "Estimated Uplifter Man Hours",
 				format: '#',
 				// gridlines: {
 				// 	"count": 10
@@ -1391,7 +1388,6 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			fill: 20,
 			displayExactValues: true,
 			hAxis: {
-				"title": "Date",
 				"format": 'MMM-yy',
 				gridlines: {
 					"count": 15
@@ -1815,6 +1811,7 @@ function initializeAreaMonthSelection($http, $scope, last_fully_updated_month) {
 
 	// add listener after ng-repeat finish render the area list
 	$scope.$on('shareoutAreaListFinished', function(ngRepeatFinishedEvent) {
+		console.log(hi)
 		$('.area-selection').each(
 			function() {
 				$(this).click(

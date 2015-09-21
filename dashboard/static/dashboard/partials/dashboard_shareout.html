@@ -8,11 +8,11 @@
 <div class="row">
     <div class="col-lg-2 dropdown">
       <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-        Dropdown
+        Areas
         <span class="caret"></span>
       </button>
-      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-        <li ng-repeat="area in areas" on-finish-render="shareoutAreaListFinished"><a class="area-selection" id="{{area.area}}">{{area.area}}</a></li>
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1" >
+        <li ng-repeat="area in areas" on-finish-render="shareoutAreaListFinished"><a class="area-selection" id="{{area.area}}" >{{area.area}}</a></li>
       </ul>
     </div>
 </div>
