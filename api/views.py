@@ -270,6 +270,20 @@ def get_last_fully_updated_month():
 
     return result[0]['value']
 
+# get list of areas
+def get_areas(request):
+    if request.method == 'GET':
+        query = """
+        SELECT DISTINCT
+            area
+        FROM
+            sale_db
+        """
+        result = execute_query(query)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")        
+
 ################## Operation ###############################
 
 

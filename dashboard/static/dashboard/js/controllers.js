@@ -19,16 +19,16 @@ var color = {
 	retention: '#993300',
 	black: '#000000',
 	dm50: '#00CC00',
-	jf50: '#FFFF00',
+	jf50: '#FFCC00',
 	sugus34: '#CC6600',
-	snickers20: '#663300',
+	snickers20: '#FF6666',
 	mm14: '#0066CC',
 	wrigleyothers: '#C1C1AF',
-	mars: '#0066FF',
-	wrigley: '#00FF00',
+	mars: '#0066CC',
+	wrigley: '#00CC00',
 	total: '#FF6600',
-	wrigleyrsv: '#009933',
-	marsrsv: '#0033CC'
+	wrigleyline: '#009933',
+	marsline: '#0033CC'
 
 }
 
@@ -58,7 +58,9 @@ dashboardControllers.controller('DashboardMonthlyCtrl', ['$scope', '$routeParams
 ]);
 
 dashboardControllers.controller('DashboardShareoutCtrl', ['$scope', '$http',
-	function($scope, $http) {}
+	function($scope, $http) {
+
+	}
 ]);
 
 dashboardControllers.controller('DashboardQuaterlyCtrl', ['$scope', '$http',
@@ -398,7 +400,6 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			formatter: {}
 		}
 		var options = {
-			title: title + " Recruitment",
 			isStacked: "true",
 			fill: 20,
 			displayExactValues: true,
@@ -590,7 +591,6 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 		}
 
 		var options2 = {
-			title: title + " Uplifter Retention",
 			isStacked: "true",
 			fill: 20,
 			displayExactValues: true,
@@ -736,7 +736,6 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 		}
 
 		var options3 = {
-			title: title + " Stockpoint Retention",
 			isStacked: "true",
 			fill: 20,
 			displayExactValues: true,
@@ -1162,7 +1161,7 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			},
 			// width: 800,
 			lineWidth: 4,
-			colors: [color.wrigley, color.mars, color.total, color.wrigleyrsv, color.marsrsv],
+			colors: [color.wrigley, color.mars, color.total, color.wrigleyline, color.marsline],
 			height: 400
 		}
 
@@ -1260,13 +1259,13 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 				maxLines: 5
 			},
 			lineWidth: 4,
-			colors: [color.dm50, color.jf50, color.sugus34, color.snickers20, color.mm14, color.wrigleyothers, color.mars, color.wrigley],
+			colors: [color.dm50, color.jf50, color.sugus34, color.snickers20, color.wrigleyothers, color.mm14, color.marsline, color.wrigleyline],
 			// width: 800,
 			height: 400
 		}
 
 		// fetch cols 
-		var products = ['DM 50+10', 'JF 50+10', 'Sugus 34', 'Snickers 20g', 'M&M 14.5g', 'Wrigley Others']
+		var products = ['DM 50+10', 'JF 50+10', 'Sugus 34', 'Snickers 20g', 'Wrigley Others', 'M&M 14.5g']
 		var companies = ['Mars', 'Wrigley']
 		for (var i in products) {
 			chart_data.cols.push({
@@ -1907,8 +1906,8 @@ function timeseriersStackedColumnChart($scope, chart_name, options, data, last_f
 			continue;
 		}
 		chart_data.rows[row_index].c[col_index].v = data[i].count;
-		chart_data.rows[row_index].c[chart_data.cols.length - 1].v += data[i].count;
-		chart_data.rows[row_index].c[chart_data.cols.length - 2].v += data[i].count;
+		chart_data.rows[row_index].c[chart_data.cols.length - 1].v += Math.round(data[i].count);
+		chart_data.rows[row_index].c[chart_data.cols.length - 2].v += Math.round(data[i].count);
 	}
 
 	// draw chart!
