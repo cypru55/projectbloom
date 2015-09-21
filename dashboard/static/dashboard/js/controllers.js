@@ -895,12 +895,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				}
 			},
 			seriesType: 'line',
-			series: {
-				0: {
-					type: 'bars',
-					targetAxisIndex: 1
-				}
-			},
+			series: {},
 			interpolateNulls: true,
 			vAxes: {
 				0: {
@@ -920,7 +915,18 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			height: 400
 		}
 
-		// second column is averate
+		var areas = [];
+		for (var i in data['by_area']) {
+			if (areas.indexOf(data['by_area'][i].area) == -1) {
+				areas.push(data['by_area'][i].area);
+				chart_data.cols.push({
+					label: data['by_area'][i].area,
+					type: "number"
+				});
+			}
+		}
+
+		// last 2 columns are average
 		chart_data.cols.push({
 			label: 'Total Average',
 			type: 'number'
@@ -932,15 +938,9 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				role: "annotation"
 			}
 		});
-		var areas = [];
-		for (var i in data['by_area']) {
-			if (areas.indexOf(data['by_area'][i].area) == -1) {
-				areas.push(data['by_area'][i].area);
-				chart_data.cols.push({
-					label: data['by_area'][i].area,
-					type: "number"
-				});
-			}
+		options['series'][chart_data.cols.length - 3] = {
+			type: 'bars',
+			targetAxisIndex: 1
 		}
 
 		// fill cols with null
@@ -983,7 +983,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 		}
 
 		for (var i in data['average']) {
-			var col_index = 1;
+			var col_index = chart_data.cols.length - 2;
 			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['average'][i].month, "MMM-YY"));
 			if (row_index >= chart_data.rows.length) {
 				continue;
