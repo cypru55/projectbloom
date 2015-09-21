@@ -1,6 +1,7 @@
 {% extends 'projectbloom/website-base.html' %}
 
 {% load staticfiles %}
+{% load app_filters %}
 
 {% block content %}
  <body ng-app="dashboardApp">
@@ -56,6 +57,7 @@
                             </div>
                             <!-- /input-group -->
                         </li>
+                        {% if request.user|has_group:"guest" %}
                         <li>
                             <a href='#'><i class="fa fa-dashboard fa-fw"></i> Dashboard - Monthly<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
@@ -68,6 +70,8 @@
                             </ul>
                             <!-- /.nav-second-level -->
                         </li>
+                        {% endif %}
+                        {% if request.user|has_group:"bloomteam" %}
                         <li>
                             <a href="#/dashboard_shareout"><i class="fa fa-dashboard fa-fw"></i> Dashboard - Shareout</a>
                         </li>
@@ -121,6 +125,7 @@
                         <li>
                             <a href="#/export"><i class="glyphicon glyphicon-export fa-fw"></i> Export</a>
                         </li>
+                        {% endif %}
                     </ul>
                 </div>
                 <!-- /.sidebar-collapse -->
