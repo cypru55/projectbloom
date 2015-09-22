@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-21
+    Date last modified: 2015-09-22
     Python Version: 2.7.6
 '''
 
@@ -282,7 +282,30 @@ def get_areas(request):
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
-        return HttpResponse(json_str, content_type="application/json")        
+        return HttpResponse(json_str, content_type="application/json")
+
+# get list of stockpoints under given area
+def get_sps(request):
+    if request.method == 'GET':
+        filter_query = ""
+        if 'area' in request.GET:
+            filter_query = """
+            AND area = '%s'
+            """ % request.GET['area']
+
+        query = """
+        SELECT 
+            name, area
+        FROM
+            entrepreneur
+        WHERE
+            role = 'Stockpoint'
+            %s
+        """ % filter_query
+        result = execute_query(query)
+
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
 
 ################## Operation ###############################
 
@@ -754,7 +777,8 @@ def sp_three_month_income(request):
         this_month = datetime.datetime.strptime(this_month, "%b-%y")
         (this_month_first_day, last_day) = get_month_day_range(this_month)
 
-        three_month_ago = datetime.date(this_month.year, this_month.month - 2, 1)
+        three_month_ago = get_pre_month(get_pre_month(this_month))
+        (three_month_ago_first_day, three_month_ago_last_day) = get_month_day_range(three_month_ago)
         query = """
         SELECT 
             SUM(stockpoint_profit) as profit,
@@ -765,7 +789,7 @@ def sp_three_month_income(request):
         WHERE
             area = '%s' and (date BETWEEN "%s" AND "%s")
         GROUP BY stockpoint_name , month
-        """ % (area, three_month_ago.strftime("%Y-%m-%d"), last_day.strftime("%Y-%m-%d"))
+        """ % (area, three_month_ago_first_day.strftime("%Y-%m-%d"), last_day.strftime("%Y-%m-%d"))
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -781,10 +805,11 @@ def sp_three_month_purchase_value(request):
         this_month = datetime.datetime.strptime(this_month, "%b-%y")
         (this_month_first_day, last_day) = get_month_day_range(this_month)
 
-        three_month_ago = datetime.date(this_month.year, this_month.month - 2, 1)
+        three_month_ago = get_pre_month(get_pre_month(this_month))
+        (three_month_ago_first_day, three_month_ago_last_day) = get_month_day_range(three_month_ago)
         query = """
         SELECT 
-            SUM(to_distributors) AS value_purchase,
+            SUM(peso) AS value_purchase,
             stockpoint_name,
             DATE_FORMAT(date, '%%b-%%y') AS month
         FROM
@@ -792,8 +817,8 @@ def sp_three_month_purchase_value(request):
         WHERE
             stockpoint_name <> 'LP4Y' and area="%s" and (date BETWEEN "%s" AND "%s")
         GROUP BY month, stockpoint_name
-        ORDER BY stockpoint_name
-        """ % (area, three_month_ago.strftime("%Y-%m-%d"), last_day.strftime("%Y-%m-%d"))
+        ORDER BY stockpoint_name, date 
+        """ % (area, three_month_ago_first_day.strftime("%Y-%m-%d"), last_day.strftime("%Y-%m-%d"))
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -869,11 +894,11 @@ def ul_income_and_man_hour(request):
 @login_required(login_url='/login/')
 def most_improved_days_worked(request):
     if request.method == 'GET':
-        this_month = request.GET['month']
+        this_month_str = request.GET['month']
         area = request.GET['area']
-        pre_month = datetime.datetime.strptime(this_month, "%b-%y")
-        pre_month = datetime.date(pre_month.year, pre_month.month - 1, 1)
-        pre_month = pre_month.strftime("%b-%y")
+        this_month_date = datetime.datetime.strptime(this_month_str, "%b-%y")
+        pre_month = get_pre_month(this_month_date)
+        pre_month_str = pre_month.strftime("%b-%y")
 
         query = """
         SELECT 
@@ -891,7 +916,7 @@ def most_improved_days_worked(request):
             GROUP BY uplifter_id , month) AS t
         WHERE
             t.month = '%s' OR t.month = '%s';
-        """ % (area, this_month, pre_month)
+        """ % (area, this_month_str, pre_month_str)
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -903,6 +928,12 @@ def most_improved_days_worked(request):
 def product_sold_detail(request):
     if request.method == 'GET':
         stockpoint_name = request.GET['stockpoint_name']
+        this_month = request.GET['month']
+        this_month = datetime.datetime.strptime(this_month, "%b-%y")
+        (this_month_first_day, this_month_last_day) = get_month_day_range(this_month)
+
+        three_month_ago = get_pre_month(get_pre_month(this_month))
+        (three_month_ago_first_day, three_month_ago_last_day) = get_month_day_range(three_month_ago)
         query = """
         SELECT 
             SUM(qty) AS sum,
@@ -913,8 +944,9 @@ def product_sold_detail(request):
             delivery
         WHERE
             stockpoint_name = '%s'
+            AND (date BETWEEN "%s" AND "%s")
         GROUP BY month , product , stockpoint_id
-        """ % stockpoint_name
+        """ % (stockpoint_name,three_month_ago_first_day.strftime("%Y-%m-%d"), this_month_last_day.strftime("%Y-%m-%d"))
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -1075,6 +1107,12 @@ def period_generator(start_date, end_date, date_format, option):
             current_month_range = get_month_day_range(
                 current_month_range[1] + one_day)
     return periods
+
+# helper function for getting previous month
+def get_pre_month(date):
+    first = date.replace(day=1)
+    lastMonth = first - datetime.timedelta(days=1)
+    return lastMonth
 
 # helper function for generating query for stockpoint product sold table
 

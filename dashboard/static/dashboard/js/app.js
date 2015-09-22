@@ -1,7 +1,7 @@
 /* 
 * @Author: archer
 * @Date:   2015-08-12 17:52:19
-* @Last Modified 2015-09-18
+* @Last Modified 2015-09-22
 */
 
 'use strict';
@@ -16,7 +16,7 @@ var dashboardApp = angular.module('dashboardApp', [
         link: function (scope, element, attr) {
             if (scope.$last === true) {
                 $timeout(function () {
-                    scope.$emit('ngRepeatFinished');
+                    scope.$emit('ngRepeatFinished', attr);
                 });
             }
         }

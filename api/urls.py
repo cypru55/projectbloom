@@ -2,7 +2,7 @@
     File name: urls.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-21
+    Date last modified: 2015-09-22
     Python Version: 2.7.6
 '''
 
@@ -27,8 +27,9 @@ urlpatterns = [
     url(r'^sale/ul-days-worked', views.ul_days_worked, name='ul-days-worked'),
     url(r'^sale/ul-income', views.ul_income, name='ul-income'),
     url(r'^sale/sp-income', views.sp_income, name='sp-income'),
-    url(r'fo-area', views.fo_area, name='fo-area'),
-    url(r'all-area', views.get_areas, name='all-area'),
+    url(r'^fo-area', views.fo_area, name='fo-area'),
+    url(r'^all-area', views.get_areas, name='all-area'),
+    url(r'^stockpoints', views.get_sps, name="stockpoints"),
     url(r'entrepreneur/tenure',views.entrepreneur_tenure, name="entrepreneur-tenure"),
     url(r'^overview', views.bloom_overview, name="overview"),
     url(r'^update-status', views.update_status_table, name="update_-tatus"),
@@ -41,9 +42,9 @@ urlpatterns = [
     url(r'^estimated-income-per-hour', views.estimated_income_per_hour, name="estimated-income-per-hour"),
     url(r'^rsv-sold', views.rsv_sold, name="rsv_sold"),
     url(r'^case-sold', views.case_sold, name="case_sold"),
-    url(r'^area/sp-three-month-income', views.sp_three_month_income, name="sp-three-month-income"),
-    url(r'^area/sp-three-month-purchase-value', views.sp_three_month_purchase_value, name="sp-three-month-purchase-value"),
-    url(r'^area/ul-income-and-man-hour', views.ul_income_and_man_hour, name="ul-income-and-man-hour"),
-    url(r'^area/most-improved-days-worked', views.most_improved_days_worked, name="most-improved-days-worked"),
-    url(r'^sp/product-sold-detail', views.product_sold_detail, name="product-sold-detail")
+    url(r'^shareout/sp-three-month-income', views.sp_three_month_income, name="sp-three-month-income"),
+    url(r'^shareout/sp-three-month-purchase-value', views.sp_three_month_purchase_value, name="sp-three-month-purchase-value"),
+    url(r'^shareout/ul-income-and-man-hour', views.ul_income_and_man_hour, name="ul-income-and-man-hour"),
+    url(r'^shareout/most-improved-days-worked', views.most_improved_days_worked, name="most-improved-days-worked"),
+    url(r'^shareout/product-sold-detail', views.product_sold_detail, name="product-sold-detail")
 ]

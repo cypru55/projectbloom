@@ -1,49 +1,99 @@
 <div class="row">
     <div class="col-lg-12">
-        <h1 class="page-header">Dashboard <small>{{selected_area}},{{seleted_month}}</small></h1>
+        <h1 class="page-header">
+            Dashboard
+            <small>{{selected_area}},{{selected_month}}</small>
+        </h1>
         <h5>Full Month Data until {{last_full_data_month}}</h5>
     </div>
     <!-- /.col-lg-12 -->
 </div>
-<div class="row">
+<div class="panel panel-default">
+<div class="panel-body">
     <div class="col-lg-2 dropdown">
-      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-        Areas
-        <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1" >
-        <li ng-repeat="area in areas" on-finish-render="shareoutAreaListFinished"><a class="area-selection" id="{{area.area}}" >{{area.area}}</a></li>
-      </ul>
+        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            Areas
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1" >
+            <li ng-repeat="area in areas" on-finish-render="areaListFinished">
+                <a class="area-selection" role="button">{{area.area}}</a>
+            </li>
+        </ul>
+    </div>
+    <div class="col-lg-2">
+        <input id="datepicker" type="text" class="form-control">
+    </div>
     </div>
 </div>
+
 
 <div class="row">
     <div class="col-lg-12">
         <div class="panel panel-default">
-            <div class="panel-heading">
-                Uplifter Overview Chart
-            </div>
+            <div class="panel-heading">{{selected_area}} Overview Chart</div>
             <!-- /.panel-heading -->
             <div class="panel-body">
-                <div google-chart chart="ulOverviewChartObject" style="{{cssStyle}}"></div>
+                <div google-chart chart="overviewChartObject" style="{{cssStyle}}"></div>
             </div>
-            <!-- /.panel-body -->
         </div>
-        <!-- /.panel -->
     </div>
     <div class="col-lg-12">
         <div class="panel panel-default">
-            <div class="panel-heading">
-                Stockpoint Overview Chart
-            </div>
+            <div class="panel-heading">{{selected_area}} 3 Month Purchase Value</div>
             <!-- /.panel-heading -->
             <div class="panel-body">
-                <div google-chart chart="spOverviewChartObject" style="{{cssStyle}}"></div>
+                <div google-chart chart="threeMonthPurchaseValueChartObject" style="{{cssStyle}}"></div>
             </div>
-            <!-- /.panel-body -->
         </div>
-        <!-- /.panel -->
+    </div>
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">{{selected_area}} 3 Month Stockpoint Income</div>
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <div google-chart chart="threeMonthSPIncomeChartObject" style="{{cssStyle}}"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">{{selected_area}} Uplifter {{selected_month}} Income and Estimated Man-hours</div>
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <div google-chart chart="ulIncomeAndEMHObject" style="{{cssStyle}}"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">{{selected_area}} {{selected_month}} vs {{previous_month}} Most Improved # of Days Worked</div>
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <div google-chart chart="improvedChartObject" style="{{cssStyle}}"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">{{selected_sp_name}}
+            <div class="pull-right" id="product-margin-type-selector">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+                            Stockpoint
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu pull-right" role="menu" id="pivot-table-option-list">
+                            <li ng-repeat="sp in sp_under_area" on-finish-render="spSelectionListFinished"><a class="sp-selection" role="button">{{sp.name}}</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                </div>
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <div google-chart chart="spProductDetailChartObject" style="{{cssStyle}}"></div>
+            </div>
+        </div>
     </div>
 </div>
-
-

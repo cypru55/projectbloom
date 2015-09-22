@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-21
+ * @Last Modified 2015-09-22
  */
 
 'use strict';
@@ -61,7 +61,16 @@ dashboardControllers.controller('DashboardShareoutCtrl', ['$scope', '$http',
 	function($scope, $http) {
 		$http.get('../api/last-full-data-month').success(function(data) {
 			var last_fully_updated_month = data[0].value;
-			$scope.last_full_data_month = last_fully_updated_month
+			// initialize $scope variables
+			$scope.last_full_data_month = last_fully_updated_month;
+			$scope.selected_area = '';
+			$scope.selected_month = '';
+			$scope.selected_sp_name = '';
+			$scope.sp_under_area = [];
+			$scope.stockpoints = {}
+			$scope.areas = []
+
+			// initialize area and month selection (actually also include the sp drop down menu)
 			initializeAreaMonthSelection($http, $scope, last_fully_updated_month);
 		})
 
@@ -1408,61 +1417,144 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 /**
  * Draw Shareout charts
  */
-function retriveAndDrawShareoutCharts(params, title, $scope, $http) {
-	// http get for ul and sp potential (comcare)
-	var url3 = appendParamsToUrl('../api/target', params);
-	$http.get(url3).success(function(data) {
-		// initialize data for uplifter tenure
-		$scope.ulOverviewChartObject = {
-			type: "ComboChart",
-			displayed: true,
-			formatter: {},
-			options: {
-				title: title + " Uplifter Overview",
-				isStacked: "true",
-				seriesType: 'bars',
-				height: 400,
-				legend: {
-					position: "top"
-				}
+function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
+	// get 3 month range according to selected month, 2 months back
+	var months = get_last_three_month($scope.selected_month);
+	// get previous month
+	$scope.previous_month = months[1];
+
+	// build params from scope variable
+	var params = {
+		area: $scope.selected_area,
+		month: $scope.selected_month
+	}
+
+	// area overview chart, only area is needed
+	$http.get(appendParamsToUrl('../api/overview', {
+		area: params.area
+	})).success(function(data) {
+		//parse ajax data to data array
+		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+		var now = moment(last_fully_updated_month, 'MMM-YY');
+		now.add(1, 'months');
+		var data_array = [];
+		while (monthDiff(startDate, now) != 0) {
+			data_array.push(
+				[new Date(startDate.format('YYYY-MM-DD')) //0 months
+					, 0 //1 total stable ul
+					, 0 //2 new ul
+					, 0 //3 dropped ul
+					, 0 //4 stable sp
+					, 0 //5 new sp
+					, 0 //6 dropped sp
+					, 0 //7 total stable ul without lp4y
+					, 0 //8 new ul without lp4y
+					, 0 //9 dropped ul without lp4y
+				]
+			);
+
+			startDate.add(1, 'months');
+		}
+
+		// parse data from ajax for first chart, all original
+		for (var i in data['ul_overview']) {
+			var month = moment(data['ul_overview'][i]['month'], "MMM-YY");
+			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+			var index = monthDiff(startDate, month);
+			if (index >= data_array.length) {
+				continue;
+			}
+			if (data['ul_overview'][i]['status'] == 'S' || data['ul_overview'][i]['status'] == 'S1' || data['ul_overview'][i]['status'] == 'S2') {
+				data_array[index][1] += data['ul_overview'][i]['count']
+
+			} else if (data['ul_overview'][i]['status'] == 'N') {
+				data_array[index][2] = data['ul_overview'][i]['count']
+			} else if (data['ul_overview'][i]['status'] == 'D') {
+				data_array[index][3] = data['ul_overview'][i]['count']
 			}
 		}
 
-		$scope.spOverviewChartObject = {
-			type: "ComboChart",
-			displayed: true,
-			formatter: {},
-			options: {
-				title: title + " Stockpoint Overview",
-				isStacked: "true",
-				seriesType: 'bars',
-				height: 400,
-				legend: {
-					position: "top"
-				}
+		for (var i in data['sp_overview']) {
+			var month = moment(data['sp_overview'][i]['month'], "MMM-YY");
+			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+			var index = monthDiff(startDate, month);
+			if (index >= data_array.length) {
+				continue;
+			}
+			if (data['sp_overview'][i]['status'] == 'S') {
+				data_array[index][4] = data['sp_overview'][i]['count']
+			} else if (data['sp_overview'][i]['status'] == 'N') {
+				data_array[index][5] = data['sp_overview'][i]['count']
+			} else if (data['sp_overview'][i]['status'] == 'D') {
+				data_array[index][6] = data['sp_overview'][i]['count']
 			}
 		}
 
-		// build chart data
-		var ul_chart_data = {
+		for (var i in data['ul_without_lp4y_overview']) {
+			var month = moment(data['ul_without_lp4y_overview'][i]['month'], "MMM-YY");
+			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+			var index = monthDiff(startDate, month);
+			if (index >= data_array.length) {
+				continue;
+			}
+			if (data['ul_without_lp4y_overview'][i]['status'] == 'S') {
+				data_array[index][7] = data['ul_without_lp4y_overview'][i]['count']
+			} else if (data['ul_without_lp4y_overview'][i]['status'] == 'N') {
+				data_array[index][8] = data['ul_without_lp4y_overview'][i]['count']
+			} else if (data['ul_without_lp4y_overview'][i]['status'] == 'D') {
+				data_array[index][9] = data['ul_without_lp4y_overview'][i]['count']
+			}
+		}
+
+
+		// initialize options and data structure, bloom project overview
+		$scope.overviewChartObject = {
+			type: "ColumnChart",
+			displayed: true,
+			formatter: {}
+		}
+		var options = {
+			isStacked: "true",
+			fill: 20,
+			displayExactValues: true,
+			hAxis: {
+				"format": 'MMM-yy',
+				gridlines: {
+					"count": 15
+				}
+			},
+			seriesType: 'bars',
+			vAxis: {
+				title: "Entrepreneur",
+				format: '#',
+				// gridlines: {
+				// 	"count": 10
+				// }
+			},
+			series: {
+				4: {
+					type: 'line',
+					color: 'grey',
+					lineWidth: 0,
+					pointSize: 0,
+					visibleInLegend: false
+				}
+			},
+			lineWidth: 4,
+			colors: [color.stable_ul, color.new_ul, color.stable_sp, color.new_sp],
+			// width: 800,
+			height: 450
+
+		}
+		var chart_data = {
 			cols: [{
 				id: "month",
 				label: "Month",
-				type: "string",
+				type: "date",
 				p: {}
 			}, {
-				id: "stable-active-ul-id",
-				label: "Stable UL - Active",
-				type: "number",
-				p: {}
-			}, {
-				id: "stable-inactive-ul-id",
-				label: "Stable UL - InActive",
-				type: "number",
-				p: {}
-			}, {
-				id: "dropped-ul-id",
-				label: "Dropped UL",
+				id: "total-stable-ul-id",
+				label: "Total Stable UL",
 				type: "number",
 				p: {}
 			}, {
@@ -1471,198 +1563,581 @@ function retriveAndDrawShareoutCharts(params, title, $scope, $http) {
 				type: "number",
 				p: {}
 			}, {
-				id: "prescreened-ul-id",
-				label: "UL candidate - Prescreened",
-				type: "number",
-				p: {}
-			}],
-			rows: [{
-				c: [{
-					v: "Last Month"
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: data.ul.last_month_potential[0].count
-				}]
-			}, {
-				c: [{
-					v: "Month To Date"
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: data.ul.this_month_potential[0].count
-				}]
-			}, {
-				c: [{
-					v: "Target this month"
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}]
-			}]
-		}
-
-		var sp_chart_data = {
-			cols: [{
-				id: "month",
-				label: "Month",
-				type: "string",
-				p: {}
-			}, {
 				id: "stable-sp-id",
 				label: "Stable SP",
 				type: "number",
 				p: {}
 			}, {
-				id: "dropped-sp-id",
-				label: "Dropped SP",
-				type: "number",
-				p: {}
-			}, {
 				id: "new-sp-id",
 				label: "New SP",
-				type: "number",
-				p: {}
+				type: "number"
 			}, {
-				id: "prescreened-sp-id",
-				label: "SP candidate - Prescreened",
+				type: "number"
+			}, {
 				type: "number",
-				p: {}
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
+
 			}],
-			rows: [{
+			rows: []
+		}
+
+
+		for (var i in data_array) {
+			chart_data.rows.push({
 				c: [{
-					v: "Last Month"
+					v: data_array[i][0]
 				}, {
-					v: 0
+					v: data_array[i][1]
 				}, {
-					v: 0
+					v: data_array[i][2]
 				}, {
-					v: 0
+					v: data_array[i][4]
 				}, {
-					v: data.sp.last_month_potential[0].count
+					v: data_array[i][5]
+				}, {
+					v: data_array[i][1] + data_array[i][2] + data_array[i][4] + data_array[i][5]
+				}, {
+					v: data_array[i][1] + data_array[i][2] + data_array[i][4] + data_array[i][5]
 				}]
-			}, {
-				c: [{
-					v: "Month To Date"
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: data.sp.this_month_potential[0].count
-				}]
-			}, {
-				c: [{
-					v: "Target this month"
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}, {
-					v: 0
-				}]
-			}]
+			})
 		}
 
-		// consolidate data for last month ul
-		for (var i in data.ul.last_month) {
-			var ob = data.ul.last_month[i];
-			if (ob.status == 'D') {
-				ul_chart_data.rows[0].c[3].v += ob.count
-			} else if (ob.status == 'S') {
-				ul_chart_data.rows[0].c[1].v += ob.count
-			} else if (ob.status == 'S1' || ob.status == 'S2') {
-				ul_chart_data.rows[0].c[2].v += ob.count
-			} else if (ob.status == 'N') {
-				ul_chart_data.rows[0].c[4].v += ob.count
-			}
-		}
-		for (var i in data.ul.this_month) {
-			var ob = data.ul.this_month[i];
-			if (ob.status == 'D') {
-				ul_chart_data.rows[1].c[3].v += ob.count
-			} else if (ob.status == 'S') {
-				ul_chart_data.rows[1].c[1].v += ob.count
-			} else if (ob.status == 'S1' || ob.status == 'S2') {
-				ul_chart_data.rows[1].c[2].v += ob.count
-			} else if (ob.status == 'N') {
-				ul_chart_data.rows[1].c[4].v += ob.count
-			}
-		}
 
-		// consolidate data for this month
-		for (var i in data.sp.last_month) {
-			var ob = data.sp.last_month[i]
-			if (ob.status == 'D') {
-				sp_chart_data.rows[0].c[2].v += ob.count
-			} else if (ob.status == 'S') {
-				sp_chart_data.rows[0].c[1].v += ob.count
-			} else if (ob.status == 'N') {
-				sp_chart_data.rows[0].c[3].v += ob.count
-			}
-		}
-		for (var i in data.sp.this_month) {
-			var ob = data.sp.this_month[i]
-			if (ob.status == 'D') {
-				sp_chart_data.rows[1].c[2].v += ob.count
-			} else if (ob.status == 'S') {
-				sp_chart_data.rows[1].c[1].v += ob.count
-			} else if (ob.status == 'N') {
-				sp_chart_data.rows[1].c[3].v += ob.count
-			}
-		}
-
-		// draw charts
-		$scope.ulOverviewChartObject.data = ul_chart_data;
-		$scope.spOverviewChartObject.data = sp_chart_data
-	});
-
-	// given a sp name, draw charts that show the qty of each product deliveried to this sp per month
-	$http.get('../api/sp/product-sold-detail').success(function(data) {
-		//console.log(data)
-	});
-
-	// given an area, draw charts that show the 3 months income for sp under this area
-	$http.get('../api/area/sp-three-month-income').success(function(data) {
-		//console.log(data)
+		// update scope variable for first chart
+		$scope.overviewChartObject.data = chart_data;
+		$scope.overviewChartObject.options = options;
 	});
 
 	// given an area, draw charts that show the 3 months purchase value for sp under this area
-	$http.get('../api/area/sp-three-month-purchase-value').success(function(data) {
-		//console.log(data)
+	$http.get(appendParamsToUrl('../api/shareout/sp-three-month-purchase-value', params)).success(function(data) {
+
+		var stockpoints = [];
+		// initialize chart object
+		$scope.threeMonthPurchaseValueChartObject = {
+			type: "ComboChart",
+			displayed: true,
+			formatter: {}
+		}
+
+		var chart_data = {
+			cols: [{
+				id: "sp_name",
+				label: "Stockpoints",
+				type: "string",
+			}],
+			rows: []
+		}
+		for (var i in months) {
+			chart_data.cols.push({
+				label: months[i],
+				type: "number"
+			})
+			chart_data.cols.push({
+				type: "number",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
+			})
+		}
+
+		var options = {
+			fill: 20,
+			displayExactValues: true,
+			seriesType: 'bars',
+			interpolateNulls: true,
+			vAxes: {
+				0: {
+					title: "Purchase Value (Php' 1000)",
+					format: '#',
+					// gridlines: {
+					// 	"count": 10
+					// }
+				}
+			},
+			legend: {
+				position: 'top',
+				maxLines: 4
+			},
+			lineWidth: 4,
+			// width: 800,
+			height: 400
+		}
+
+		// fill rows with data
+		for (var i in data) {
+			var row_index = stockpoints.indexOf(data[i].stockpoint_name)
+			if (row_index != -1) {
+				// row for this sp exist, add the purchase value to its row
+				var col_index = months.indexOf(data[i].month) * 2 + 1;
+				chart_data.rows[row_index].c[col_index].v = Math.round(data[i].value_purchase / 1000);
+				chart_data.rows[row_index].c[col_index + 1].v = Math.round(data[i].value_purchase / 1000);
+			} else {
+				// row for this stockpoint does not exist, add row first
+				stockpoints.push(data[i].stockpoint_name);
+				var row = {
+						c: [{
+							v: data[i].stockpoint_name
+						}]
+					}
+					//push 6 empty col data since we have 3 month, each month, 1 for column 1 for annotation
+				for (var j = 0; j < 6; j++) {
+					row.c.push({
+						v: null
+					});
+				}
+				chart_data.rows.push(row)
+
+				// fill the data for the newly added row
+				row_index = stockpoints.length - 1;
+				var col_index = months.indexOf(data[i].month) * 2 + 1;
+				chart_data.rows[row_index].c[col_index].v = Math.round(data[i].value_purchase / 1000);
+				chart_data.rows[row_index].c[col_index + 1].v = Math.round(data[i].value_purchase / 1000);
+			}
+		}
+
+		//draw charts
+		$scope.threeMonthPurchaseValueChartObject.data = chart_data;
+		$scope.threeMonthPurchaseValueChartObject.options = options;
+	});
+
+	// given an area, draw charts that show the 3 months income for sp under this area
+	$http.get(appendParamsToUrl('../api/shareout/sp-three-month-income', params)).success(function(data) {
+		var stockpoints = [];
+		// initialize chart object
+		$scope.threeMonthSPIncomeChartObject = {
+			type: "ComboChart",
+			displayed: true,
+			formatter: {}
+		}
+
+		var chart_data = {
+			cols: [{
+				id: "sp_name",
+				label: "Stockpoints",
+				type: "string",
+			}],
+			rows: []
+		}
+		for (var i in months) {
+			chart_data.cols.push({
+				label: months[i],
+				type: "number"
+			})
+			chart_data.cols.push({
+				type: "number",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
+			})
+		}
+
+		var options = {
+			fill: 20,
+			displayExactValues: true,
+			seriesType: 'bars',
+			interpolateNulls: true,
+			vAxes: {
+				0: {
+					title: "Income (Php' 1000)",
+					format: '#',
+					// gridlines: {
+					// 	"count": 10
+					// }
+				}
+			},
+			legend: {
+				position: 'top',
+				maxLines: 4
+			},
+			lineWidth: 4,
+			// width: 800,
+			height: 400
+		}
+
+		// fill rows with data
+		for (var i in data) {
+			var row_index = stockpoints.indexOf(data[i].stockpoint_name)
+			if (row_index != -1) {
+				// row for this sp exist, add the purchase value to its row
+				var col_index = months.indexOf(data[i].month) * 2 + 1;
+				chart_data.rows[row_index].c[col_index].v = Math.round(data[i].profit / 1000);
+				chart_data.rows[row_index].c[col_index + 1].v = Math.round(data[i].profit / 1000);
+			} else {
+				// row for this stockpoint does not exist, add row first
+				stockpoints.push(data[i].stockpoint_name);
+				var row = {
+						c: [{
+							v: data[i].stockpoint_name
+						}]
+					}
+					//push 6 empty col data since we have 3 month, each month, 1 for column 1 for annotation
+				for (var j = 0; j < 6; j++) {
+					row.c.push({
+						v: null
+					});
+				}
+				chart_data.rows.push(row)
+
+				// fill the data for the newly added row
+				row_index = stockpoints.length - 1;
+				var col_index = months.indexOf(data[i].month) * 2 + 1;
+				chart_data.rows[row_index].c[col_index].v = Math.round(data[i].profit / 1000);
+				chart_data.rows[row_index].c[col_index + 1].v = Math.round(data[i].profit / 1000);
+			}
+		}
+
+		//draw charts
+		$scope.threeMonthSPIncomeChartObject.data = chart_data;
+		$scope.threeMonthSPIncomeChartObject.options = options;
 	});
 
 	// given an area and month , draw charts that show income and man-hours for ul under this area and month
-	$http.get('../api/ul-income-and-man-hour').success(function(data) {
-		//console.log(data)
+	$http.get(appendParamsToUrl('../api/shareout/ul-income-and-man-hour', params)).success(function(data) {
+		var uplifters = [];
+		// initialize chart object
+		$scope.ulIncomeAndEMHObject = {
+			type: "ComboChart",
+			displayed: true,
+			formatter: {}
+		}
+
+		var chart_data = {
+			cols: [{
+				id: "ul_name",
+				label: "Uplifters",
+				type: "string",
+			}, {
+				id: "income",
+				label: "Income",
+				type: "number",
+			}, {
+				type: "number",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
+			}, {
+				id: "man_hour",
+				label: "Man-hour",
+				type: "number",
+			}, {
+				type: "number",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
+			}],
+			rows: []
+		}
+
+
+		var options = {
+			fill: 20,
+			displayExactValues: true,
+			seriesType: 'bars',
+			interpolateNulls: true,
+			series: {
+				1: {
+					type: 'line',
+					targetAxisIndex: 1
+				},
+			},
+			vAxes: {
+				0: {
+					title: "Income",
+					format: '#',
+					// gridlines: {
+					// 	"count": 10
+					// }
+				},
+				1: {
+					title: "Man-hour",
+					format: '#',
+					// gridlines: {
+					// 	"count": 10
+					// }
+				}
+			},
+			legend: {
+				position: 'top',
+				maxLines: 4
+			},
+			lineWidth: 4,
+			// width: 800,
+			height: 400
+		}
+
+		// fill rows with data
+		var fill_data = function(data, col_index, col_name, doDivide) {
+			for (var i in data) {
+				var row_index = uplifters.indexOf(data[i].uplifter_name)
+				var value = doDivide ? Math.round(data[i][col_name] / 1000) : Math.round(data[i][col_name])
+				if (row_index != -1) {
+					// row for this sp exist, add the purchase value to its row
+					chart_data.rows[row_index].c[col_index].v = value;
+					chart_data.rows[row_index].c[col_index + 1].v = value;
+				} else {
+					// row for this stockpoint does not exist, add row first
+					uplifters.push(data[i].uplifter_name);
+					var row = {
+							c: [{
+								v: data[i].uplifter_name
+							}]
+						}
+						//push 4 empty col data since we have income and man-hour, each have 1 for column 1 for annotation
+					for (var j = 0; j < 4; j++) {
+						row.c.push({
+							v: null
+						});
+					}
+					chart_data.rows.push(row)
+
+					// fill the data for the newly added row
+					row_index = uplifters.length - 1;
+					chart_data.rows[row_index].c[col_index].v = value;
+					chart_data.rows[row_index].c[col_index + 1].v = value;
+				}
+			}
+		}
+		fill_data(data.income, 1, 'profit', false);
+		fill_data(data.man_hour, 3, 'man_hour_sum', false);
+
+
+
+		//draw charts
+		$scope.ulIncomeAndEMHObject.data = chart_data;
+		$scope.ulIncomeAndEMHObject.options = options;
 	});
 
 	// given an area and month , draw charts that show the days worked for this month, and improvement compared to previous month
-	$http.get('../api/most-improved-days-worked').success(function(data) {
-		//console.log(data)
+	$http.get(appendParamsToUrl('../api/shareout/most-improved-days-worked', params)).success(function(data) {
+		var uplifters = [];
+		// initialize chart object
+		$scope.improvedChartObject = {
+			type: "ComboChart",
+			displayed: true,
+			formatter: {}
+		}
+
+		var chart_data = {
+			cols: [{
+				id: "ul_name",
+				label: "Uplifters",
+				type: "string",
+			}, {
+				id: "this_month",
+				label: months[2],
+				type: "number",
+			}, {
+				type: "number",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
+			}, {
+				id: "difference",
+				label: "Difference",
+				type: "number",
+			}, {
+				type: "number",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
+			}],
+			rows: []
+		}
+
+
+		var options = {
+			fill: 20,
+			displayExactValues: true,
+			seriesType: 'bars',
+			interpolateNulls: true,
+			vAxes: {
+				0: {
+					title: "Days Worked",
+					format: '#',
+					// gridlines: {
+					// 	"count": 10
+					// }
+				}
+			},
+			legend: {
+				position: 'top',
+				maxLines: 4
+			},
+			lineWidth: 4,
+			// width: 800,
+			height: 400
+		}
+
+		// fill rows with data
+		var fill_data = function(data, col_name) {
+			for (var i in data) {
+				var row_index = uplifters.indexOf(data[i].uplifter_name)
+				var col_index = 0;
+				// if the month of this data is this month
+				if (data[i].month == months[2]) {
+					col_index = 1;
+				} else {
+					col_index = 3;
+				}
+				// round the value
+				var value = Math.round(data[i][col_name])
+				if (row_index != -1) {
+					// row for this ul exist, add the days worked to its row
+					chart_data.rows[row_index].c[col_index].v = value;
+					chart_data.rows[row_index].c[col_index + 1].v = value;
+				} else {
+					// row for this ul does not exist, add row first
+					uplifters.push(data[i].uplifter_name);
+					var row = {
+							c: [{
+								v: data[i].uplifter_name
+							}]
+						}
+						//push 4 empty col data since we have income and man-hour, each have 1 for column 1 for annotation
+					for (var j = 0; j < 4; j++) {
+						row.c.push({
+							v: 0
+						});
+					}
+					chart_data.rows.push(row)
+
+					// fill the data for the newly added row
+					row_index = uplifters.length - 1;
+					chart_data.rows[row_index].c[col_index].v = value;
+					chart_data.rows[row_index].c[col_index + 1].v = value;
+				}
+			}
+			// convert the premonth value to difference by minus this month value
+			for (var i in chart_data.rows) {
+				chart_data.rows[i].c[3].v = chart_data.rows[i].c[1].v - chart_data.rows[i].c[3].v;
+				chart_data.rows[i].c[4].v = chart_data.rows[i].c[2].v - chart_data.rows[i].c[4].v;
+			}
+		}
+		fill_data(data, 'count');
+
+		//draw charts
+		$scope.improvedChartObject.data = chart_data;
+		$scope.improvedChartObject.options = options;
+	});
+
+
+
+}
+
+/**
+ * Draw stockpoint product sold detail chart
+ */
+function retriveAndDrawShareoutSPProductChart($scope, $http, last_fully_updated_month) {
+	// get 3 month range according to selected month, 2 months back
+	var months = get_last_three_month($scope.selected_month);
+
+	// given a sp name, draw charts that show the qty of each product deliveried to this sp per month
+	// use special param stockpoint
+	var sp = $scope.selected_sp_name;
+	var params = {
+		stockpoint_name: sp,
+		month: $scope.selected_month
+	}
+	$http.get(appendParamsToUrl('../api/shareout/product-sold-detail', params)).success(function(data) {
+		console.log(data)
+		var products = [];
+
+		// initialize chart object
+		$scope.spProductDetailChartObject = {
+			type: "ComboChart",
+			displayed: true,
+			formatter: {}
+		}
+
+		var chart_data = {
+			cols: [{
+				id: "product",
+				label: "Product",
+				type: "string",
+			}],
+			rows: []
+		}
+		for (var i in months) {
+			chart_data.cols.push({
+				label: months[i],
+				type: "number"
+			})
+			chart_data.cols.push({
+				type: "number",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
+			})
+		}
+
+		var options = {
+			fill: 20,
+			displayExactValues: true,
+			seriesType: 'bars',
+			interpolateNulls: true,
+			vAxes: {
+				0: {
+					title: "QTY",
+					format: '#',
+					// gridlines: {
+					// 	"count": 10
+					// }
+				}
+			},
+			legend: {
+				position: 'top',
+				maxLines: 4
+			},
+			lineWidth: 4,
+			// width: 800,
+			height: 400
+		}
+
+		// fill rows with data
+		for (var i in data) {
+			var row_index = products.indexOf(data[i].product)
+			if (row_index != -1) {
+				// row for this product exist, add the sum to its row
+				var col_index = months.indexOf(data[i].month) * 2 + 1;
+				chart_data.rows[row_index].c[col_index].v = Math.round(data[i].sum);
+				chart_data.rows[row_index].c[col_index + 1].v = Math.round(data[i].sum);
+			} else {
+				// row for this product does not exist, add row first
+				products.push(data[i].product);
+				var row = {
+						c: [{
+							v: data[i].product
+						}]
+					}
+					//push 6 empty col data since we have 3 month, each month, 1 for column 1 for annotation
+				for (var j = 0; j < 6; j++) {
+					row.c.push({
+						v: null
+					});
+				}
+				chart_data.rows.push(row)
+
+				// fill the data for the newly added row
+				row_index = products.length - 1;
+				var col_index = months.indexOf(data[i].month) * 2 + 1;
+				chart_data.rows[row_index].c[col_index].v = Math.round(data[i].sum);
+				chart_data.rows[row_index].c[col_index + 1].v = Math.round(data[i].sum);
+			}
+		}
+
+		// draw the chart!
+		$scope.spProductDetailChartObject.data = chart_data;
+		$scope.spProductDetailChartObject.options = options;
 	});
 }
 
@@ -1670,7 +2145,236 @@ function retriveAndDrawShareoutCharts(params, title, $scope, $http) {
  * Draw Quaterly charts
  */
 function retriveAndDrawQuaterlyCharts($scope, $http) {
+	// // http get for ul and sp potential (comcare)
+	// var url3 = appendParamsToUrl('../api/target', params);
+	// $http.get(url3).success(function(data) {
+	// 	// initialize data for uplifter tenure
+	// 	$scope.ulOverviewChartObject = {
+	// 		type: "ComboChart",
+	// 		displayed: true,
+	// 		formatter: {},
+	// 		options: {
+	// 			title: title + " Uplifter Overview",
+	// 			isStacked: "true",
+	// 			seriesType: 'bars',
+	// 			height: 400,
+	// 			legend: {
+	// 				position: "top"
+	// 			}
+	// 		}
+	// 	}
 
+	// 	$scope.spOverviewChartObject = {
+	// 		type: "ComboChart",
+	// 		displayed: true,
+	// 		formatter: {},
+	// 		options: {
+	// 			title: title + " Stockpoint Overview",
+	// 			isStacked: "true",
+	// 			seriesType: 'bars',
+	// 			height: 400,
+	// 			legend: {
+	// 				position: "top"
+	// 			}
+	// 		}
+	// 	}
+
+	// 	// build chart data
+	// 	var ul_chart_data = {
+	// 		cols: [{
+	// 			id: "month",
+	// 			label: "Month",
+	// 			type: "string",
+	// 			p: {}
+	// 		}, {
+	// 			id: "stable-active-ul-id",
+	// 			label: "Stable UL - Active",
+	// 			type: "number",
+	// 			p: {}
+	// 		}, {
+	// 			id: "stable-inactive-ul-id",
+	// 			label: "Stable UL - InActive",
+	// 			type: "number",
+	// 			p: {}
+	// 		}, {
+	// 			id: "dropped-ul-id",
+	// 			label: "Dropped UL",
+	// 			type: "number",
+	// 			p: {}
+	// 		}, {
+	// 			id: "new-ul-id",
+	// 			label: "New UL",
+	// 			type: "number",
+	// 			p: {}
+	// 		}, {
+	// 			id: "prescreened-ul-id",
+	// 			label: "UL candidate - Prescreened",
+	// 			type: "number",
+	// 			p: {}
+	// 		}],
+	// 		rows: [{
+	// 			c: [{
+	// 				v: "Last Month"
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: data.ul.last_month_potential[0].count
+	// 			}]
+	// 		}, {
+	// 			c: [{
+	// 				v: "Month To Date"
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: data.ul.this_month_potential[0].count
+	// 			}]
+	// 		}, {
+	// 			c: [{
+	// 				v: "Target this month"
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}]
+	// 		}]
+	// 	}
+
+	// 	var sp_chart_data = {
+	// 		cols: [{
+	// 			id: "month",
+	// 			label: "Month",
+	// 			type: "string",
+	// 			p: {}
+	// 		}, {
+	// 			id: "stable-sp-id",
+	// 			label: "Stable SP",
+	// 			type: "number",
+	// 			p: {}
+	// 		}, {
+	// 			id: "dropped-sp-id",
+	// 			label: "Dropped SP",
+	// 			type: "number",
+	// 			p: {}
+	// 		}, {
+	// 			id: "new-sp-id",
+	// 			label: "New SP",
+	// 			type: "number",
+	// 			p: {}
+	// 		}, {
+	// 			id: "prescreened-sp-id",
+	// 			label: "SP candidate - Prescreened",
+	// 			type: "number",
+	// 			p: {}
+	// 		}],
+	// 		rows: [{
+	// 			c: [{
+	// 				v: "Last Month"
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: data.sp.last_month_potential[0].count
+	// 			}]
+	// 		}, {
+	// 			c: [{
+	// 				v: "Month To Date"
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: data.sp.this_month_potential[0].count
+	// 			}]
+	// 		}, {
+	// 			c: [{
+	// 				v: "Target this month"
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}, {
+	// 				v: 0
+	// 			}]
+	// 		}]
+	// 	}
+
+	// 	// consolidate data for last month ul
+	// 	for (var i in data.ul.last_month) {
+	// 		var ob = data.ul.last_month[i];
+	// 		if (ob.status == 'D') {
+	// 			ul_chart_data.rows[0].c[3].v += ob.count
+	// 		} else if (ob.status == 'S') {
+	// 			ul_chart_data.rows[0].c[1].v += ob.count
+	// 		} else if (ob.status == 'S1' || ob.status == 'S2') {
+	// 			ul_chart_data.rows[0].c[2].v += ob.count
+	// 		} else if (ob.status == 'N') {
+	// 			ul_chart_data.rows[0].c[4].v += ob.count
+	// 		}
+	// 	}
+	// 	for (var i in data.ul.this_month) {
+	// 		var ob = data.ul.this_month[i];
+	// 		if (ob.status == 'D') {
+	// 			ul_chart_data.rows[1].c[3].v += ob.count
+	// 		} else if (ob.status == 'S') {
+	// 			ul_chart_data.rows[1].c[1].v += ob.count
+	// 		} else if (ob.status == 'S1' || ob.status == 'S2') {
+	// 			ul_chart_data.rows[1].c[2].v += ob.count
+	// 		} else if (ob.status == 'N') {
+	// 			ul_chart_data.rows[1].c[4].v += ob.count
+	// 		}
+	// 	}
+
+	// 	// consolidate data for this month
+	// 	for (var i in data.sp.last_month) {
+	// 		var ob = data.sp.last_month[i]
+	// 		if (ob.status == 'D') {
+	// 			sp_chart_data.rows[0].c[2].v += ob.count
+	// 		} else if (ob.status == 'S') {
+	// 			sp_chart_data.rows[0].c[1].v += ob.count
+	// 		} else if (ob.status == 'N') {
+	// 			sp_chart_data.rows[0].c[3].v += ob.count
+	// 		}
+	// 	}
+	// 	for (var i in data.sp.this_month) {
+	// 		var ob = data.sp.this_month[i]
+	// 		if (ob.status == 'D') {
+	// 			sp_chart_data.rows[1].c[2].v += ob.count
+	// 		} else if (ob.status == 'S') {
+	// 			sp_chart_data.rows[1].c[1].v += ob.count
+	// 		} else if (ob.status == 'N') {
+	// 			sp_chart_data.rows[1].c[3].v += ob.count
+	// 		}
+	// 	}
+
+	// 	// draw charts
+	// 	$scope.ulOverviewChartObject.data = ul_chart_data;
+	// 	$scope.spOverviewChartObject.data = sp_chart_data
+	// });
 }
 
 /**
@@ -1802,28 +2506,146 @@ function initializeAreaMonthSelection($http, $scope, last_fully_updated_month) {
 	// retrive full area list
 	$http.get('../api/all-areas').success(function(data) {
 		$scope.areas = data;
-	})
-
+	});
+	// retrive full stockpoint list
+	$http.get('../api/stockpoints').success(function(data) {
+		$scope.stockpoints = data;
+	});
 	// add listener after ng-repeat finish render the area list
-	$scope.$on('shareoutAreaListFinished', function(ngRepeatFinishedEvent) {
-		console.log(hi)
-		$('.area-selection').each(
-			function() {
-				$(this).click(
-					areaSelectionListener
-				)
+	$scope.$on('ngRepeatFinished', function(ngRepeatFinishedEvent, attr) {
+		if (attr.onFinishRender == "areaListFinished") {
+			$('.area-selection').each(
+				function() {
+					$(this).click(
+						areaSelectionListener
+					)
+				}
+			);
+
+			// use the default value to draw the shareout charts
+			$scope.selected_month = last_fully_updated_month;
+			$scope.selected_area = $('.area-selection')[0].innerHTML;
+		} else if (attr.onFinishRender == "spSelectionListFinished") {
+			$('.sp-selection').each(
+				function() {
+					$(this).click(
+						spSelectionListener
+					)
+				}
+			);
+
+			// use the first area as default if there is sp under this area
+			if ($scope.sp_under_area.length > 0) {
+				$scope.selected_sp_name = $scope.sp_under_area[0].name;
 			}
-		);
+		}
+
+
+
 	});
 
+	// add watch to $scope.selected_area
+	$scope.$watch(
+		function(scope) {
+			return scope.selected_area
+		},
+		function(newValue, oldValue) {
+			if (newValue === oldValue) {
+				return;
+			}
+			if ($scope.selected_month.length && $scope.selected_area.length) {
+				// since area selected changed, retrieve chart
+				retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month);
+			}
+
+
+			// update stockpoint list
+			var sp_under_area = []
+			if ($scope.stockpoints == undefined)
+				return;
+
+			for (var i in $scope.stockpoints) {
+				if ($scope.stockpoints[i].area == newValue) {
+					sp_under_area.push($scope.stockpoints[i])
+				}
+			}
+			// unbind the listeners first, create new sp list and bind again
+			$('.sp-selection').unbind()
+			$scope.sp_under_area = sp_under_area;
+
+		}
+	);
+
+	// add watch to $scope.selected_month
+	$scope.$watch(
+		function(scope) {
+			return scope.selected_month
+		},
+		function(newValue, oldValue) {
+			if (newValue === oldValue) {
+				return;
+			}
+			if (!$scope.selected_month.length || !$scope.selected_area.length) {
+				return;
+			}
+			// since month selected changed, retrieve chart 
+			retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month);
+			if (!$scope.selected_sp_name.length) {
+				return;
+			}
+			retriveAndDrawShareoutSPProductChart($scope, $http, last_fully_updated_month);
+
+		}
+	);
+	// add watch to $scope.selected_sp_name
+	$scope.$watch(
+		function(scope) {
+			return scope.selected_sp_name
+		},
+		function(newValue, oldValue) {
+			if (newValue === oldValue) {
+				return;
+			}
+			if (!$scope.selected_sp_name.length || !$scope.selected_month.length) {
+				return;
+			}
+			// since stockpoint selected changed, retrieve chart
+			// get product sold by sp chart
+			retriveAndDrawShareoutSPProductChart($scope, $http, last_fully_updated_month)
+
+		}
+	);
+
+	// listener for clicking to change area
 	var areaSelectionListener = function() {
-		var area = this.id;
-		$scope.selected_area = area
-		console.log(area);
+		var area = this.innerHTML;
+
+		$scope.selected_area = area;
+		$scope.$digest()
+
+	}
+
+	// listener for clicking to change stockpoint
+	var spSelectionListener = function() {
+		var sp_name = this.innerHTML;
+		$scope.selected_sp_name = sp_name;
+		$scope.$digest()
+
 	}
 
 	// initialize month selector
+	$('#datepicker').datepicker({
+		format: "M-yy",
+		viewMode: "months",
+		minViewMode: "months",
+		endDate: last_fully_updated_month
+	}).on('changeDate', function(e) {
+		var month = e.format("M-yy");
 
+		$scope.selected_month = month;
+		$scope.$digest();
+	});
+	$('#datepicker').datepicker('update', last_fully_updated_month)
 }
 
 /**
@@ -1945,4 +2767,15 @@ function timeseriersStackedColumnChart($scope, chart_name, options, data, last_f
 	$scope[chart_name].data = chart_data;
 	$scope[chart_name].options = options;
 
+}
+
+function get_last_three_month(selected_month) {
+	var months = []
+	var this_month = moment(selected_month, 'MMM-YY');
+	for (var i = 0; i < 3; i++) {
+		months.unshift(this_month.format('MMM-YY'));
+		this_month.add(-1, 'months');
+	}
+
+	return months;
 }
