@@ -12,6 +12,9 @@ var dashboardControllers = angular.module('dashboardControllers', []);
 // color scheme
 var color = {
 	stable_ul: '#0099CC',
+	stable_active_ul: '#66CCFF',
+	stable_inactive_ul: '#0066FF',
+	prescreened: '#E6E6E6',
 	new_ul: '#00CC66',
 	stable_sp: '#FF9900',
 	new_sp: '#FFFF66',
@@ -122,7 +125,6 @@ dashboardControllers.controller('DashboardQuaterlyCtrl', ['$scope', '$http',
 
 dashboardControllers.controller('DashboardRecruitmentMTDCtrl', ['$scope', '$http',
 	function($scope, $http) {
-		console.log('recruitment mtd')
 		// since it is mtd, we use now as last_fully_updated_month
 		var until_month = moment().format('MMM-YY');
 		var tabSelectListener = function() {
@@ -159,6 +161,12 @@ dashboardControllers.controller('DashboardRecruitmentMTDCtrl', ['$scope', '$http
 
 		}
 		initializeTab($http, $scope, null, until_month, tabSelectListener);
+
+		// initialize the view with default
+		var params = {}
+		$scope.fo_name = "Bloom"
+		$scope.area = "Overall"
+		retriveAndDrawRecruitmentMTDCharts(params, "Bloom", $scope, $http);
 	}
 ]);
 
@@ -2426,7 +2434,7 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 		$scope.overviewChartObject.data = chart_data;
 		$scope.overviewChartObject.options = options;
 	});
-	
+
 	// http get for ul and sp potential (comcare)
 	$http.get(appendParamsToUrl('../api/target', params)).success(function(data) {
 		// initialize data for uplifter tenure
@@ -2438,8 +2446,10 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 				isStacked: "true",
 				seriesType: 'bars',
 				height: 400,
+				colors: [color.stable_active_ul, color.stable_inactive_ul, color.drop, color.new_ul, color.prescreened],
 				legend: {
-					position: "top"
+					position: "top",
+					maxLines: 4
 				}
 			}
 		}
@@ -2452,8 +2462,10 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 				isStacked: "true",
 				seriesType: 'bars',
 				height: 400,
+				colors:[color.stable_sp, color.drop, color.new_sp, color.prescreened],
 				legend: {
-					position: "top"
+					position: "top",
+					maxLines: 4
 				}
 			}
 		}
