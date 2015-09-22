@@ -38,6 +38,14 @@ dashboardApp.config(['$routeProvider',
         templateUrl: '/static/dashboard/partials/dashboard_quaterly.html',
         controller: 'DashboardQuaterlyCtrl'
       }).
+      when('/mtd_recruitment_chart', {
+        templateUrl: '/static/dashboard/partials/mtd_recruitment.html',
+        controller: 'DashboardRecruitmentMTDCtrl'
+      }).
+      when('/op_report', {
+        templateUrl: '/static/dashboard/partials/operation_report.html',
+        controller: 'DashboardOpReportCtrl'
+      }).
       when('/data/:data_type', {
         templateUrl: '/static/dashboard/partials/data.html',
         controller: 'DashboardTableCtrl'

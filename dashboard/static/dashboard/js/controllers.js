@@ -83,6 +83,18 @@ dashboardControllers.controller('DashboardQuaterlyCtrl', ['$scope', '$http',
 	}
 ]);
 
+dashboardControllers.controller('DashboardRecruitmentMTDCtrl', ['$scope', '$http',
+	function($scope, $http) {
+		console.log('recruitment mtd')
+	}
+]);
+
+dashboardControllers.controller('DashboardOpReportCtrl', ['$scope', '$http',
+	function($scope, $http) {
+		console.log('operation report')
+	}
+]);
+
 dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams', '$http',
 	function($scope, $routeParams, $http) {
 		// Set title
