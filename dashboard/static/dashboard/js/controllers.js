@@ -37,46 +37,47 @@ var color = {
 
 dashboardControllers.controller('DashboardMonthlyCtrl', ['$scope', '$routeParams', '$http',
 	function($scope, $routeParams, $http) {
-		var tabSelectListener = function() {
-			var el = this;
-			// find the tab to activate
-			var tabid = '#' + el.id.split('-')[0] + '-tab a';
-			$(this).tab('show');
-			var id = el.id;
 
-			var params = {};
-			var title = '';
-
-			if (id == 'bloom-overview') {
-				var params = {};
-				title = 'Bloom'
-				$scope.fo_name = 'Bloom';
-				$scope.area = 'Overall';
-			} else if (id.indexOf('fo-') === 0) {
-				var fo_name = id.split('-')[1];
-				params['fo'] = fo_name;
-				title = fo_name;
-				$scope.fo_name = fo_name;
-				$scope.area = 'Overall';
-
-			} else {
-				params['area'] = id.split('-')[1];
-				title = id.split('-')[1];
-				$scope.fo_name = id.split('-')[0];
-				$scope.area = id.split('-')[1];
-			}
-
-			if (tab == 'kpi') {
-				retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope, $http)
-			} else if (tab == 'add') {
-				retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month, $scope, $http);
-			}
-
-		}
 
 		$http.get('../api/last-full-data-month').success(function(data) {
 			var last_fully_updated_month = data[0].value;
 			$scope.last_full_data_month = last_fully_updated_month
+			var tabSelectListener = function() {
+				var el = this;
+				// find the tab to activate
+				var tabid = '#' + el.id.split('-')[0] + '-tab a';
+				$(this).tab('show');
+				var id = el.id;
+
+				var params = {};
+				var title = '';
+
+				if (id == 'bloom-overview') {
+					var params = {};
+					title = 'Bloom'
+					$scope.fo_name = 'Bloom';
+					$scope.area = 'Overall';
+				} else if (id.indexOf('fo-') === 0) {
+					var fo_name = id.split('-')[1];
+					params['fo'] = fo_name;
+					title = fo_name;
+					$scope.fo_name = fo_name;
+					$scope.area = 'Overall';
+
+				} else {
+					params['area'] = id.split('-')[1];
+					title = id.split('-')[1];
+					$scope.fo_name = id.split('-')[0];
+					$scope.area = id.split('-')[1];
+				}
+
+				if ($routeParams.tab == 'kpi') {
+					retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope, $http)
+				} else if (tab == 'add') {
+					retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month, $scope, $http);
+				}
+
+			}
 			initializeTab($http, $scope, $routeParams.tab, last_fully_updated_month, tabSelectListener);
 
 			var params = {}
@@ -2463,7 +2464,7 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 				isStacked: "true",
 				seriesType: 'bars',
 				height: 400,
-				colors:[color.stable_sp, color.drop, color.new_sp, color.prescreened],
+				colors: [color.stable_sp, color.drop, color.new_sp, color.prescreened],
 				legend: {
 					position: "top",
 					maxLines: 4
