@@ -494,14 +494,18 @@ def estimated_income_per_hour(request):
                     area,
                     DATE_FORMAT(date, '%%b-%%y') AS month
             FROM
-                sale_db
+                sale_db AS s, entrepreneur_status AS es
             WHERE
                 uplifter_id > 0
+                AND (s.uplifter_id = es.entrepreneur_id
+                AND DATE_FORMAT(s.date, '%%b-%%y') = es.month
+                AND (es.type = 'LP4Y_UL' or es.type = 'TSPI_UL')
+                AND (es.status = 'S' OR es.status = 'S1'
+                OR es.status = 'S2'))
                 %s
-            GROUP BY date , uplifter_id) AS t
+            GROUP BY s.date , s.uplifter_id) AS t
         WHERE
             t.uplifter_id > 0
-                AND ISSTABLEUL(t.uplifter_id, t.month) > 0
         GROUP BY area , month
         """ % filter_query
         query2 = """
@@ -516,17 +520,23 @@ def estimated_income_per_hour(request):
                     area,
                     DATE_FORMAT(date, '%%b-%%y') AS month
             FROM
-                sale_db
+                sale_db AS s, entrepreneur_status AS es
             WHERE
                 uplifter_id > 0
+                AND (s.uplifter_id = es.entrepreneur_id
+                AND DATE_FORMAT(s.date, '%%b-%%y') = es.month
+                AND (es.type = 'LP4Y_UL' or es.type = 'TSPI_UL')
+                AND (es.status = 'S' OR es.status = 'S1'
+                OR es.status = 'S2'))
                 %s
-            GROUP BY date , uplifter_id) AS t
+            GROUP BY s.date , s.uplifter_id) AS t
         WHERE
             t.uplifter_id > 0
-                AND ISSTABLEUL(t.uplifter_id, t.month) > 0
         GROUP BY  month
         """ % filter_query
         result = {}
+        print query1
+        print query2
         result['by_area'] = execute_query(query1)
         result['average'] = execute_query(query2)
 
