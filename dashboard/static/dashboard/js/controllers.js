@@ -34,10 +34,47 @@ var color = {
 
 dashboardControllers.controller('DashboardMonthlyCtrl', ['$scope', '$routeParams', '$http',
 	function($scope, $routeParams, $http) {
+		var tabSelectListener = function() {
+			var el = this;
+			// find the tab to activate
+			var tabid = '#' + el.id.split('-')[0] + '-tab a';
+			$(this).tab('show');
+			var id = el.id;
+
+			var params = {};
+			var title = '';
+
+			if (id == 'bloom-overview') {
+				var params = {};
+				title = 'Bloom'
+				$scope.fo_name = 'Bloom';
+				$scope.area = 'Overall';
+			} else if (id.indexOf('fo-') === 0) {
+				var fo_name = id.split('-')[1];
+				params['fo'] = fo_name;
+				title = fo_name;
+				$scope.fo_name = fo_name;
+				$scope.area = 'Overall';
+
+			} else {
+				params['area'] = id.split('-')[1];
+				title = id.split('-')[1];
+				$scope.fo_name = id.split('-')[0];
+				$scope.area = id.split('-')[1];
+			}
+
+			if (tab == 'kpi') {
+				retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope, $http)
+			} else if (tab == 'add') {
+				retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month, $scope, $http);
+			}
+
+		}
+
 		$http.get('../api/last-full-data-month').success(function(data) {
 			var last_fully_updated_month = data[0].value;
 			$scope.last_full_data_month = last_fully_updated_month
-			initializeTab($http, $scope, $routeParams.tab, last_fully_updated_month);
+			initializeTab($http, $scope, $routeParams.tab, last_fully_updated_month, tabSelectListener);
 
 			var params = {}
 			$scope.fo_name = "Bloom"
@@ -86,6 +123,42 @@ dashboardControllers.controller('DashboardQuaterlyCtrl', ['$scope', '$http',
 dashboardControllers.controller('DashboardRecruitmentMTDCtrl', ['$scope', '$http',
 	function($scope, $http) {
 		console.log('recruitment mtd')
+		// since it is mtd, we use now as last_fully_updated_month
+		var last_fully_updated_month = moment().format('MMM-YY');
+		var tabSelectListener = function() {
+			var el = this;
+			// find the tab to activate
+			var tabid = '#' + el.id.split('-')[0] + '-tab a';
+			$(this).tab('show');
+			var id = el.id;
+
+			var params = {};
+			var title = '';
+
+			if (id == 'bloom-overview') {
+				var params = {};
+				title = 'Bloom'
+				$scope.fo_name = 'Bloom';
+				$scope.area = 'Overall';
+			} else if (id.indexOf('fo-') === 0) {
+				var fo_name = id.split('-')[1];
+				params['fo'] = fo_name;
+				title = fo_name;
+				$scope.fo_name = fo_name;
+				$scope.area = 'Overall';
+
+			} else {
+				params['area'] = id.split('-')[1];
+				title = id.split('-')[1];
+				$scope.fo_name = id.split('-')[0];
+				$scope.area = id.split('-')[1];
+			}
+			//use digest to update scope variable in view
+			$scope.$digest();
+			retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http);
+
+		}
+		initializeTab($http, $scope, null, last_fully_updated_month, tabSelectListener);
 	}
 ]);
 
@@ -1537,7 +1610,7 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 			},
 			seriesType: 'bars',
 			vAxis: {
-				title: "Entrepreneur",
+				title: "Entrepreneurs",
 				format: '#',
 				// gridlines: {
 				// 	"count": 10
@@ -1875,6 +1948,11 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 					// }
 				}
 			},
+			hAxis: {
+				textStyle: {
+					fontSize: 8
+				}
+			},
 			legend: {
 				position: 'top',
 				maxLines: 4
@@ -1978,6 +2056,11 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 					// gridlines: {
 					// 	"count": 10
 					// }
+				}
+			},
+			hAxis: {
+				textStyle: {
+					fontSize: 7
 				}
 			},
 			legend: {
@@ -2157,236 +2240,14 @@ function retriveAndDrawShareoutSPProductChart($scope, $http, last_fully_updated_
  * Draw Quaterly charts
  */
 function retriveAndDrawQuaterlyCharts($scope, $http) {
-	// // http get for ul and sp potential (comcare)
-	// var url3 = appendParamsToUrl('../api/target', params);
-	// $http.get(url3).success(function(data) {
-	// 	// initialize data for uplifter tenure
-	// 	$scope.ulOverviewChartObject = {
-	// 		type: "ComboChart",
-	// 		displayed: true,
-	// 		formatter: {},
-	// 		options: {
-	// 			title: title + " Uplifter Overview",
-	// 			isStacked: "true",
-	// 			seriesType: 'bars',
-	// 			height: 400,
-	// 			legend: {
-	// 				position: "top"
-	// 			}
-	// 		}
-	// 	}
 
-	// 	$scope.spOverviewChartObject = {
-	// 		type: "ComboChart",
-	// 		displayed: true,
-	// 		formatter: {},
-	// 		options: {
-	// 			title: title + " Stockpoint Overview",
-	// 			isStacked: "true",
-	// 			seriesType: 'bars',
-	// 			height: 400,
-	// 			legend: {
-	// 				position: "top"
-	// 			}
-	// 		}
-	// 	}
+}
 
-	// 	// build chart data
-	// 	var ul_chart_data = {
-	// 		cols: [{
-	// 			id: "month",
-	// 			label: "Month",
-	// 			type: "string",
-	// 			p: {}
-	// 		}, {
-	// 			id: "stable-active-ul-id",
-	// 			label: "Stable UL - Active",
-	// 			type: "number",
-	// 			p: {}
-	// 		}, {
-	// 			id: "stable-inactive-ul-id",
-	// 			label: "Stable UL - InActive",
-	// 			type: "number",
-	// 			p: {}
-	// 		}, {
-	// 			id: "dropped-ul-id",
-	// 			label: "Dropped UL",
-	// 			type: "number",
-	// 			p: {}
-	// 		}, {
-	// 			id: "new-ul-id",
-	// 			label: "New UL",
-	// 			type: "number",
-	// 			p: {}
-	// 		}, {
-	// 			id: "prescreened-ul-id",
-	// 			label: "UL candidate - Prescreened",
-	// 			type: "number",
-	// 			p: {}
-	// 		}],
-	// 		rows: [{
-	// 			c: [{
-	// 				v: "Last Month"
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: data.ul.last_month_potential[0].count
-	// 			}]
-	// 		}, {
-	// 			c: [{
-	// 				v: "Month To Date"
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: data.ul.this_month_potential[0].count
-	// 			}]
-	// 		}, {
-	// 			c: [{
-	// 				v: "Target this month"
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}]
-	// 		}]
-	// 	}
+/**
+ * Draw Recruitment MTD Charts
+ */
+function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 
-	// 	var sp_chart_data = {
-	// 		cols: [{
-	// 			id: "month",
-	// 			label: "Month",
-	// 			type: "string",
-	// 			p: {}
-	// 		}, {
-	// 			id: "stable-sp-id",
-	// 			label: "Stable SP",
-	// 			type: "number",
-	// 			p: {}
-	// 		}, {
-	// 			id: "dropped-sp-id",
-	// 			label: "Dropped SP",
-	// 			type: "number",
-	// 			p: {}
-	// 		}, {
-	// 			id: "new-sp-id",
-	// 			label: "New SP",
-	// 			type: "number",
-	// 			p: {}
-	// 		}, {
-	// 			id: "prescreened-sp-id",
-	// 			label: "SP candidate - Prescreened",
-	// 			type: "number",
-	// 			p: {}
-	// 		}],
-	// 		rows: [{
-	// 			c: [{
-	// 				v: "Last Month"
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: data.sp.last_month_potential[0].count
-	// 			}]
-	// 		}, {
-	// 			c: [{
-	// 				v: "Month To Date"
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: data.sp.this_month_potential[0].count
-	// 			}]
-	// 		}, {
-	// 			c: [{
-	// 				v: "Target this month"
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}, {
-	// 				v: 0
-	// 			}]
-	// 		}]
-	// 	}
-
-	// 	// consolidate data for last month ul
-	// 	for (var i in data.ul.last_month) {
-	// 		var ob = data.ul.last_month[i];
-	// 		if (ob.status == 'D') {
-	// 			ul_chart_data.rows[0].c[3].v += ob.count
-	// 		} else if (ob.status == 'S') {
-	// 			ul_chart_data.rows[0].c[1].v += ob.count
-	// 		} else if (ob.status == 'S1' || ob.status == 'S2') {
-	// 			ul_chart_data.rows[0].c[2].v += ob.count
-	// 		} else if (ob.status == 'N') {
-	// 			ul_chart_data.rows[0].c[4].v += ob.count
-	// 		}
-	// 	}
-	// 	for (var i in data.ul.this_month) {
-	// 		var ob = data.ul.this_month[i];
-	// 		if (ob.status == 'D') {
-	// 			ul_chart_data.rows[1].c[3].v += ob.count
-	// 		} else if (ob.status == 'S') {
-	// 			ul_chart_data.rows[1].c[1].v += ob.count
-	// 		} else if (ob.status == 'S1' || ob.status == 'S2') {
-	// 			ul_chart_data.rows[1].c[2].v += ob.count
-	// 		} else if (ob.status == 'N') {
-	// 			ul_chart_data.rows[1].c[4].v += ob.count
-	// 		}
-	// 	}
-
-	// 	// consolidate data for this month
-	// 	for (var i in data.sp.last_month) {
-	// 		var ob = data.sp.last_month[i]
-	// 		if (ob.status == 'D') {
-	// 			sp_chart_data.rows[0].c[2].v += ob.count
-	// 		} else if (ob.status == 'S') {
-	// 			sp_chart_data.rows[0].c[1].v += ob.count
-	// 		} else if (ob.status == 'N') {
-	// 			sp_chart_data.rows[0].c[3].v += ob.count
-	// 		}
-	// 	}
-	// 	for (var i in data.sp.this_month) {
-	// 		var ob = data.sp.this_month[i]
-	// 		if (ob.status == 'D') {
-	// 			sp_chart_data.rows[1].c[2].v += ob.count
-	// 		} else if (ob.status == 'S') {
-	// 			sp_chart_data.rows[1].c[1].v += ob.count
-	// 		} else if (ob.status == 'N') {
-	// 			sp_chart_data.rows[1].c[3].v += ob.count
-	// 		}
-	// 	}
-
-	// 	// draw charts
-	// 	$scope.ulOverviewChartObject.data = ul_chart_data;
-	// 	$scope.spOverviewChartObject.data = sp_chart_data
-	// });
 }
 
 /**
@@ -2446,9 +2307,9 @@ function monthDiff(d1, d2) {
 /**
  * initialize the dashboard tabs
  */
-function initializeTab($http, $scope, tab, last_fully_updated_month) {
+function initializeTab($http, $scope, tab, last_fully_updated_month, tabSelectListener) {
 	var url = '../api/fo-area';
-	$('#Overview-tab a').tab('show');
+	$('#bloom-overview').tab('show');
 	$http.get(url).success(function(data) {
 		var fo = {}
 		for (var i in data) {
@@ -2473,42 +2334,7 @@ function initializeTab($http, $scope, tab, last_fully_updated_month) {
 		);
 	});
 
-	var tabSelectListener = function() {
-		var el = this;
-		// find the tab to activate
-		var tabid = '#' + el.id.split('-')[0] + '-tab a';
-		$(this).tab('show');
-		var id = el.id;
 
-		var params = {};
-		var title = '';
-
-		if (id == 'bloom-overview') {
-			var params = {};
-			title = 'Bloom'
-			$scope.fo_name = 'Bloom';
-			$scope.area = 'Overall';
-		} else if (id.indexOf('fo-') === 0) {
-			var fo_name = id.split('-')[1];
-			params['fo'] = fo_name;
-			title = fo_name;
-			$scope.fo_name = fo_name;
-			$scope.area = 'Overall';
-
-		} else {
-			params['area'] = id.split('-')[1];
-			title = id.split('-')[1];
-			$scope.fo_name = id.split('-')[0];
-			$scope.area = id.split('-')[1];
-		}
-
-		if (tab == 'kpi') {
-			retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope, $http)
-		} else if (tab == 'add') {
-			retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month, $scope, $http);
-		}
-
-	}
 }
 
 /**

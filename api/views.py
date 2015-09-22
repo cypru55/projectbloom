@@ -863,7 +863,7 @@ def ul_income_and_man_hour(request):
             GROUP BY date , uplifter_id
             ORDER BY date) AS t
             GROUP BY uplifter_id , month
-            ORDER BY STR_TO_DATE(month, '%%b-%%y')) AS t2
+            ORDER BY uplifter_name, STR_TO_DATE(month, '%%b-%%y')) AS t2
         WHERE
             t2.month = '%s'
         """ % (area, month)
@@ -886,10 +886,9 @@ def ul_income_and_man_hour(request):
             GROUP BY date , uplifter_id) AS t
         WHERE
             t.uplifter_id > 0
-                AND ISSTABLEUL(t.uplifter_id, t.month) > 0
                 AND area = '%s'and t.month="%s"
         GROUP BY uplifter_id , month
-        ORDER BY STR_TO_DATE(month, '%%b-%%y')
+        ORDER BY uplifter_name, STR_TO_DATE(month, '%%b-%%y')
         """ % (area, month)
 
         result = {}
@@ -925,7 +924,8 @@ def most_improved_days_worked(request):
                 area = '%s' AND uplifter_name <> ''
             GROUP BY uplifter_id , month) AS t
         WHERE
-            t.month = '%s' OR t.month = '%s';
+            t.month = '%s' OR t.month = '%s'
+        ORDER BY t.uplifter_name;
         """ % (area, this_month_str, pre_month_str)
         result = execute_query(query)
 
