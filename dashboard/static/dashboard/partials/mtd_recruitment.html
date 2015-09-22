@@ -12,7 +12,7 @@
       {{fo_name}} <span class="caret"></span>
     </a>
     <ul class="dropdown-menu">
-        <li ><a class="fo-area-selection" id="fo-{{fo_name}}">Overall</a></li>
+        <li ><a class="fo-area-selection" id="fo-{{fo_name}}" role="button">Overall</a></li>
         <li role="separator" class="divider"></li>
       <li ng-repeat="area in areas"><a role="button" id="{{fo_name}}-{{area}}" class="fo-area-selection" >{{area}}</a></li>
     </ul>
@@ -22,7 +22,7 @@
   	<div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                Recruitment (MTD)
+                {{area}} Recruitment (MTD) 
             </div>
             <div class="panel-body">
                 <div google-chart chart="overviewChartObject" style="{{cssStyle}}"></div>
@@ -31,7 +31,7 @@
     </div>
      <div class="col-lg-12">
         <div class="panel panel-default">
-            <div class="panel-heading">Uplifter Overview Chart</div>
+            <div class="panel-heading">{{area}} Uplifter Overview Chart</div>
             <!-- /.panel-heading -->
             <div class="panel-body">
                 <div google-chart chart="ulOverviewChartObject" style="{{cssStyle}}"></div>
@@ -40,7 +40,7 @@
      </div>
     <div class="col-lg-12">
         <div class="panel panel-default">
-            <div class="panel-heading">Stockpoint Overview Chart</div>
+            <div class="panel-heading">{{area}} Stockpoint Overview Chart</div>
             <!-- /.panel-heading -->
             <div class="panel-body">
                 <div google-chart chart="spOverviewChartObject" style="{{cssStyle}}"></div>

@@ -124,7 +124,7 @@ dashboardControllers.controller('DashboardRecruitmentMTDCtrl', ['$scope', '$http
 	function($scope, $http) {
 		console.log('recruitment mtd')
 		// since it is mtd, we use now as last_fully_updated_month
-		var last_fully_updated_month = moment().format('MMM-YY');
+		var until_month = moment().format('MMM-YY');
 		var tabSelectListener = function() {
 			var el = this;
 			// find the tab to activate
@@ -158,7 +158,7 @@ dashboardControllers.controller('DashboardRecruitmentMTDCtrl', ['$scope', '$http
 			retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http);
 
 		}
-		initializeTab($http, $scope, null, last_fully_updated_month, tabSelectListener);
+		initializeTab($http, $scope, null, until_month, tabSelectListener);
 	}
 ]);
 
@@ -2247,7 +2247,413 @@ function retriveAndDrawQuaterlyCharts($scope, $http) {
  * Draw Recruitment MTD Charts
  */
 function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
+	// mtd recruitment chart
+	$http.get(appendParamsToUrl('../api/overview', params)).success(function(data) {
+		//parse ajax data to data array
+		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+		var now = moment();
+		now.add(1, 'months');
+		var data_array = [];
+		while (monthDiff(startDate, now) != 0) {
+			data_array.push(
+				[new Date(startDate.format('YYYY-MM-DD')) //0 months
+					, 0 //1 total stable ul
+					, 0 //2 new ul
+					, 0 //3 dropped ul
+					, 0 //4 stable sp
+					, 0 //5 new sp
+					, 0 //6 dropped sp
+					, 0 //7 total stable ul without lp4y
+					, 0 //8 new ul without lp4y
+					, 0 //9 dropped ul without lp4y
+				]
+			);
 
+			startDate.add(1, 'months');
+		}
+
+		// parse data from ajax for first chart, all original
+		for (var i in data['ul_overview']) {
+			var month = moment(data['ul_overview'][i]['month'], "MMM-YY");
+			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+			var index = monthDiff(startDate, month);
+			if (index >= data_array.length) {
+				continue;
+			}
+			if (data['ul_overview'][i]['status'] == 'S' || data['ul_overview'][i]['status'] == 'S1' || data['ul_overview'][i]['status'] == 'S2') {
+				data_array[index][1] += data['ul_overview'][i]['count']
+
+			} else if (data['ul_overview'][i]['status'] == 'N') {
+				data_array[index][2] = data['ul_overview'][i]['count']
+			} else if (data['ul_overview'][i]['status'] == 'D') {
+				data_array[index][3] = data['ul_overview'][i]['count']
+			}
+		}
+
+		for (var i in data['sp_overview']) {
+			var month = moment(data['sp_overview'][i]['month'], "MMM-YY");
+			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+			var index = monthDiff(startDate, month);
+			if (index >= data_array.length) {
+				continue;
+			}
+			if (data['sp_overview'][i]['status'] == 'S') {
+				data_array[index][4] = data['sp_overview'][i]['count']
+			} else if (data['sp_overview'][i]['status'] == 'N') {
+				data_array[index][5] = data['sp_overview'][i]['count']
+			} else if (data['sp_overview'][i]['status'] == 'D') {
+				data_array[index][6] = data['sp_overview'][i]['count']
+			}
+		}
+
+		for (var i in data['ul_without_lp4y_overview']) {
+			var month = moment(data['ul_without_lp4y_overview'][i]['month'], "MMM-YY");
+			var startDate = moment('2014/6/1', 'YYYY-MM-DD');
+			var index = monthDiff(startDate, month);
+			if (index >= data_array.length) {
+				continue;
+			}
+			if (data['ul_without_lp4y_overview'][i]['status'] == 'S') {
+				data_array[index][7] = data['ul_without_lp4y_overview'][i]['count']
+			} else if (data['ul_without_lp4y_overview'][i]['status'] == 'N') {
+				data_array[index][8] = data['ul_without_lp4y_overview'][i]['count']
+			} else if (data['ul_without_lp4y_overview'][i]['status'] == 'D') {
+				data_array[index][9] = data['ul_without_lp4y_overview'][i]['count']
+			}
+		}
+
+
+		// initialize options and data structure, bloom project overview
+		$scope.overviewChartObject = {
+			type: "ColumnChart",
+			displayed: true,
+			formatter: {}
+		}
+		var options = {
+			isStacked: "true",
+			fill: 20,
+			displayExactValues: true,
+			hAxis: {
+				"format": 'MMM-yy',
+				gridlines: {
+					"count": 15
+				}
+			},
+			seriesType: 'bars',
+			vAxis: {
+				title: "Entrepreneurs",
+				format: '#',
+				// gridlines: {
+				// 	"count": 10
+				// }
+			},
+			series: {
+				4: {
+					type: 'line',
+					color: 'grey',
+					lineWidth: 0,
+					pointSize: 0,
+					visibleInLegend: false
+				}
+			},
+			lineWidth: 4,
+			colors: [color.stable_ul, color.new_ul, color.stable_sp, color.new_sp],
+			// width: 800,
+			height: 450
+
+		}
+		var chart_data = {
+			cols: [{
+				id: "month",
+				label: "Month",
+				type: "date",
+				p: {}
+			}, {
+				id: "total-stable-ul-id",
+				label: "Total Stable UL",
+				type: "number",
+				p: {}
+			}, {
+				id: "new-ul-id",
+				label: "New UL",
+				type: "number",
+				p: {}
+			}, {
+				id: "stable-sp-id",
+				label: "Stable SP",
+				type: "number",
+				p: {}
+			}, {
+				id: "new-sp-id",
+				label: "New SP",
+				type: "number"
+			}, {
+				type: "number"
+			}, {
+				type: "number",
+				role: "annotation",
+				p: {
+					role: "annotation"
+				}
+
+			}],
+			rows: []
+		}
+
+
+		for (var i in data_array) {
+			chart_data.rows.push({
+				c: [{
+					v: data_array[i][0]
+				}, {
+					v: data_array[i][1]
+				}, {
+					v: data_array[i][2]
+				}, {
+					v: data_array[i][4]
+				}, {
+					v: data_array[i][5]
+				}, {
+					v: data_array[i][1] + data_array[i][2] + data_array[i][4] + data_array[i][5]
+				}, {
+					v: data_array[i][1] + data_array[i][2] + data_array[i][4] + data_array[i][5]
+				}]
+			})
+		}
+
+
+		// update scope variable for first chart
+		$scope.overviewChartObject.data = chart_data;
+		$scope.overviewChartObject.options = options;
+	});
+	
+	// http get for ul and sp potential (comcare)
+	$http.get(appendParamsToUrl('../api/target', params)).success(function(data) {
+		// initialize data for uplifter tenure
+		$scope.ulOverviewChartObject = {
+			type: "ComboChart",
+			displayed: true,
+			formatter: {},
+			options: {
+				isStacked: "true",
+				seriesType: 'bars',
+				height: 400,
+				legend: {
+					position: "top"
+				}
+			}
+		}
+
+		$scope.spOverviewChartObject = {
+			type: "ComboChart",
+			displayed: true,
+			formatter: {},
+			options: {
+				isStacked: "true",
+				seriesType: 'bars',
+				height: 400,
+				legend: {
+					position: "top"
+				}
+			}
+		}
+
+		// build chart data
+		var ul_chart_data = {
+			cols: [{
+				id: "month",
+				label: "Month",
+				type: "string",
+				p: {}
+			}, {
+				id: "stable-active-ul-id",
+				label: "Stable UL - Active",
+				type: "number",
+				p: {}
+			}, {
+				id: "stable-inactive-ul-id",
+				label: "Stable UL - InActive",
+				type: "number",
+				p: {}
+			}, {
+				id: "dropped-ul-id",
+				label: "Dropped UL",
+				type: "number",
+				p: {}
+			}, {
+				id: "new-ul-id",
+				label: "New UL",
+				type: "number",
+				p: {}
+			}, {
+				id: "prescreened-ul-id",
+				label: "UL candidate - Prescreened",
+				type: "number",
+				p: {}
+			}],
+			rows: [{
+				c: [{
+					v: "Last Month"
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: data.ul.last_month_potential[0].count
+				}]
+			}, {
+				c: [{
+					v: "Month To Date"
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: data.ul.this_month_potential[0].count
+				}]
+			}, {
+				c: [{
+					v: "Target this month"
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}]
+			}]
+		}
+
+		var sp_chart_data = {
+			cols: [{
+				id: "month",
+				label: "Month",
+				type: "string",
+				p: {}
+			}, {
+				id: "stable-sp-id",
+				label: "Stable SP",
+				type: "number",
+				p: {}
+			}, {
+				id: "dropped-sp-id",
+				label: "Dropped SP",
+				type: "number",
+				p: {}
+			}, {
+				id: "new-sp-id",
+				label: "New SP",
+				type: "number",
+				p: {}
+			}, {
+				id: "prescreened-sp-id",
+				label: "SP candidate - Prescreened",
+				type: "number",
+				p: {}
+			}],
+			rows: [{
+				c: [{
+					v: "Last Month"
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: data.sp.last_month_potential[0].count
+				}]
+			}, {
+				c: [{
+					v: "Month To Date"
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: data.sp.this_month_potential[0].count
+				}]
+			}, {
+				c: [{
+					v: "Target this month"
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}, {
+					v: 0
+				}]
+			}]
+		}
+
+		// consolidate data for last month ul
+		for (var i in data.ul.last_month) {
+			var ob = data.ul.last_month[i];
+			if (ob.status == 'D') {
+				ul_chart_data.rows[0].c[3].v += ob.count
+			} else if (ob.status == 'S') {
+				ul_chart_data.rows[0].c[1].v += ob.count
+			} else if (ob.status == 'S1' || ob.status == 'S2') {
+				ul_chart_data.rows[0].c[2].v += ob.count
+			} else if (ob.status == 'N') {
+				ul_chart_data.rows[0].c[4].v += ob.count
+			}
+		}
+		for (var i in data.ul.this_month) {
+			var ob = data.ul.this_month[i];
+			if (ob.status == 'D') {
+				ul_chart_data.rows[1].c[3].v += ob.count
+			} else if (ob.status == 'S') {
+				ul_chart_data.rows[1].c[1].v += ob.count
+			} else if (ob.status == 'S1' || ob.status == 'S2') {
+				ul_chart_data.rows[1].c[2].v += ob.count
+			} else if (ob.status == 'N') {
+				ul_chart_data.rows[1].c[4].v += ob.count
+			}
+		}
+
+		// consolidate data for this month
+		for (var i in data.sp.last_month) {
+			var ob = data.sp.last_month[i]
+			if (ob.status == 'D') {
+				sp_chart_data.rows[0].c[2].v += ob.count
+			} else if (ob.status == 'S') {
+				sp_chart_data.rows[0].c[1].v += ob.count
+			} else if (ob.status == 'N') {
+				sp_chart_data.rows[0].c[3].v += ob.count
+			}
+		}
+		for (var i in data.sp.this_month) {
+			var ob = data.sp.this_month[i]
+			if (ob.status == 'D') {
+				sp_chart_data.rows[1].c[2].v += ob.count
+			} else if (ob.status == 'S') {
+				sp_chart_data.rows[1].c[1].v += ob.count
+			} else if (ob.status == 'N') {
+				sp_chart_data.rows[1].c[3].v += ob.count
+			}
+		}
+
+		// draw charts
+		$scope.ulOverviewChartObject.data = ul_chart_data;
+		$scope.spOverviewChartObject.data = sp_chart_data
+	});
 }
 
 /**
