@@ -73,7 +73,7 @@ dashboardControllers.controller('DashboardMonthlyCtrl', ['$scope', '$routeParams
 
 				if ($routeParams.tab == 'kpi') {
 					retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope, $http)
-				} else if (tab == 'add') {
+				} else if ($routeParams.tab == 'add') {
 					retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month, $scope, $http);
 				}
 
