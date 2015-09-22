@@ -25,18 +25,18 @@
 
                 <!-- /.dropdown -->
                 <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" role="button">
                         <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-user">
-                        <li><a><i class="fa fa-user fa-fw"></i> User Profile</a>
-                        </li>
+                        <!-- <li><a role="button"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                        </li> -->
                         {% if request.user|has_group:"admin" %}
-                        <li><a href="/admin"><i class="fa fa-gear fa-fw"></i> Admin</a>
+                        <li><a href="/admin" role="button"><i class="fa fa-gear fa-fw"></i> Admin</a>
                         </li>
-                        {% endif %}
                         <li class="divider"></li>
-                        <li><a href="/logout"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                        {% endif %}
+                        <li><a href="/logout" role="button"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
                         </li>
                     </ul>
                     <!-- /.dropdown-user -->
@@ -126,12 +126,12 @@
 
 
 
-                        <li>
+                       <!--  <li>
                             <a href="#/survey"><i class="fa fa-bar-chart-o fa-fw"></i> Survey</a>
                         </li>
                         <li>
                             <a href="#/form"><i class="fa fa-edit fa-fw"></i> Forms</a>
-                        </li>
+                        </li> -->
                         <li>
                             <a href="#/export"><i class="glyphicon glyphicon-export fa-fw"></i> Export</a>
                         </li>

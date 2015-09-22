@@ -240,9 +240,9 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 		// initializing local variables
 		var url;
 		var params = {
-			option: 'weekly'
+			option: 'monthly'
 		};
-		$scope.type = 'weekly'
+		$scope.type = 'monthly'
 		var headers = []
 
 		// initialize date picker
@@ -255,6 +255,7 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 		$('.input-daterange').datepicker({
 			orientation: 'auto',
 			format: 'yyyy/mm/dd',
+			startDate: '2014/06/01',
 
 		}).on('changeDate', function(e) {
 			switch (e.target.id) {
@@ -2885,7 +2886,7 @@ function initializeAreaMonthSelection($http, $scope, last_fully_updated_month) {
 	var spSelectionListener = function() {
 		var sp_name = this.innerHTML;
 		$scope.selected_sp_name = sp_name;
-		$scope.$digest()
+		$scope.$digest();
 
 	}
 
@@ -2894,6 +2895,7 @@ function initializeAreaMonthSelection($http, $scope, last_fully_updated_month) {
 		format: "M-yy",
 		viewMode: "months",
 		minViewMode: "months",
+		startDate: 'Jun-14',
 		endDate: last_fully_updated_month
 	}).on('changeDate', function(e) {
 		var month = e.format("M-yy");
