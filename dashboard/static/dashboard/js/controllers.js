@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-22
+ * @Last Modified 2015-09-23
  */
 
 'use strict';
@@ -656,45 +656,31 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			}],
 			rows: []
 		}
-
 		for (var i in data_array) {
+			var ul_retention = null;
+			var retention_label = null;
 			if (i != 0 && data_array[i - 1][7] != 0) {
-				chart_data2.rows.push({
-					c: [{
-						v: data_array[i][0]
-					}, {
-						v: data_array[i][1]
-					}, {
-						v: data_array[i][1]
-					}, {
-						v: -data_array[i][3]
-					}, {
-						v: -data_array[i][3]
-					}, {
-						v: ((data_array[i - 1][7] - data_array[i][9]) / data_array[i - 1][7]).toFixed(2)
-					}, {
-						v: ((data_array[i - 1][7] - data_array[i][9]) / data_array[i - 1][7]).toFixed(2) * 100 + "%"
-					}]
-				})
-			} else {
-				chart_data2.rows.push({
-					c: [{
-						v: data_array[i][0]
-					}, {
-						v: data_array[i][1]
-					}, {
-						v: data_array[i][1]
-					}, {
-						v: -data_array[i][3]
-					}, {
-						v: -data_array[i][3]
-					}, {
-						v: null
-					}, {
-						v: null
-					}]
-				})
+				ul_retention = ((data_array[i - 1][7] - data_array[i][9]) / data_array[i - 1][7]).toFixed(2);
+				retention_label = ul_retention * 100 + "%";
 			}
+
+			chart_data2.rows.push({
+				c: [{
+					v: data_array[i][0]
+				}, {
+					v: data_array[i][1]
+				}, {
+					v: data_array[i][1]
+				}, {
+					v: -data_array[i][3]
+				}, {
+					v: -data_array[i][3]
+				}, {
+					v: ul_retention
+				}, {
+					v: retention_label
+				}]
+			})
 
 		}
 
@@ -802,43 +788,37 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 		}
 
 		for (var i in data_array) {
-			if (i != 0 && data_array[i - 1][4] > 1) {
-				chart_data3.rows.push({
-					c: [{
-						v: data_array[i][0]
-					}, {
-						v: data_array[i][4]
-					}, {
-						v: data_array[i][4]
-					}, {
-						v: -data_array[i][6]
-					}, {
-						v: -data_array[i][6]
-					}, {
-						v: ((data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)).toFixed(2)
-					}, {
-						v: ((data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)).toFixed(2) * 100 + "%"
-					}]
-				})
+			var sp_retention = null;
+			var retention_label = null;
+			// we have a lp4y which is not considered when calculating stable sp, minus 1 from these 3 cases
+			if (title == 'Bloom' || title == 'Mark' || title == 'Tondo') {
+				if (i != 0 && data_array[i - 1][4] > 1) {
+					var sp_retention = ((data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)).toFixed(2);
+					var retention_label = sp_retention * 100 + "%"
+				}
 			} else {
-				chart_data3.rows.push({
-					c: [{
-						v: data_array[i][0]
-					}, {
-						v: data_array[i][4]
-					}, {
-						v: data_array[i][4]
-					}, {
-						v: -data_array[i][6]
-					}, {
-						v: -data_array[i][6]
-					}, {
-						v: null
-					}, {
-						v: null
-					}]
-				})
+				if (i != 0 && data_array[i - 1][7] != 0) {
+					var sp_retention = ((data_array[i - 1][4] - data_array[i][6]) / (data_array[i - 1][4])).toFixed(2);
+					var retention_label = sp_retention * 100 + "%"
+				}
 			}
+			chart_data3.rows.push({
+				c: [{
+					v: data_array[i][0]
+				}, {
+					v: data_array[i][4]
+				}, {
+					v: data_array[i][4]
+				}, {
+					v: -data_array[i][6]
+				}, {
+					v: -data_array[i][6]
+				}, {
+					v: sp_retention
+				}, {
+					v: retention_label
+				}]
+			})
 
 		}
 
