@@ -2,7 +2,7 @@
     File name: urls.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-22
+    Date last modified: 2015-09-23
     Python Version: 2.7.6
 '''
 
@@ -30,6 +30,10 @@ urlpatterns = [
     url(r'^fo-area', views.fo_area, name='fo-area'),
     url(r'^all-area', views.get_areas, name='all-area'),
     url(r'^stockpoints', views.get_sps, name="stockpoints"),
+    url(r'^ops-report/weekly-fo-submission', views.weekly_fo_submission, name="weekly-fo-submission"),
+    url(r'^ops-report/challenge-action', views.challenge_action, name="challenge-action"),
+    url(r'^ops-report/action-plan', views.action_plan, name="action-plan"),
+    url(r'^ops-report/delivery-report', views.delivery_report, name="delivery-report"),
     url(r'entrepreneur/tenure',views.entrepreneur_tenure, name="entrepreneur-tenure"),
     url(r'^overview', views.bloom_overview, name="overview"),
     url(r'^update-status', views.update_status_table, name="update_-tatus"),

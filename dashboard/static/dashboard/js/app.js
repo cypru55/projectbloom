@@ -1,7 +1,7 @@
 /* 
 * @Author: archer
 * @Date:   2015-08-12 17:52:19
-* @Last Modified 2015-09-22
+* @Last Modified 2015-09-23
 */
 
 'use strict';
@@ -42,7 +42,7 @@ dashboardApp.config(['$routeProvider',
         templateUrl: '/static/dashboard/partials/mtd_recruitment.html',
         controller: 'DashboardRecruitmentMTDCtrl'
       }).
-      when('/op_report', {
+      when('/op_report/:report_type', {
         templateUrl: '/static/dashboard/partials/operation_report.html',
         controller: 'DashboardOpReportCtrl'
       }).

@@ -171,9 +171,20 @@ dashboardControllers.controller('DashboardRecruitmentMTDCtrl', ['$scope', '$http
 	}
 ]);
 
-dashboardControllers.controller('DashboardOpReportCtrl', ['$scope', '$http',
-	function($scope, $http) {
-		console.log('operation report')
+dashboardControllers.controller('DashboardOpReportCtrl', ['$scope', '$routeParams', '$http',
+	function($scope, $routeParams, $http) {
+		switch ($routeParams.report_type) {
+			case 'weekly_fo_sub':
+				setupWeeklyFOSubmission($scope, $http);
+				break;
+			case 'challenge_action':
+				setupChallengeAction($scope, $http);
+				break;
+			case 'mtd_delivery':
+				$scope.title = 'MTD Delivery';
+				break;
+		}
+		toggle_tab('tab_content', $routeParams.report_type);
 	}
 ]);
 
@@ -2443,7 +2454,7 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 				isStacked: "true",
 				seriesType: 'bars',
 				height: 400,
-				colors: [color.stable_sp, color.drop, color.new_sp, color.prescreened,color.stable_sp],
+				colors: [color.stable_sp, color.drop, color.new_sp, color.prescreened, color.stable_sp],
 				legend: {
 					position: "top",
 					maxLines: 4
@@ -2909,6 +2920,259 @@ function initializeAreaMonthSelection($http, $scope, last_fully_updated_month) {
 }
 
 /**
+ * Set up weekly fo submission table
+ */
+function setupWeeklyFOSubmission($scope, $http) {
+	$scope.start_date = ''
+	$scope.end_date = ''
+	$scope.title = 'Weekly FO Submission';
+	$('#datepicker-weekly-fo-submission').datepicker({
+		weekStart: 1
+	}).on('changeDate', function(e) {
+		if (e.target.id == 'date-picker-weekly-start') {
+			$scope.start_date = e.format('yyyy-mm-dd')
+			$scope.$digest();
+		} else if (e.target.id == 'date-picker-weekly-end') {
+			$scope.end_date = e.format('yyyy-mm-dd');
+			$scope.$digest();
+		}
+	});
+
+	var date_change_listener = function() {
+
+		var params = {
+			start_date: $scope.start_date,
+			end_date: $scope.end_date
+		}
+
+		$http.get(appendParamsToUrl('../api/ops-report/weekly-fo-submission', params)).success(function(data) {
+			var by_date_header = ['username']
+			var by_date_rows = [];
+			var by_date_content = {
+				total: {
+					username: 'all users',
+					total: 0
+				}
+			};
+
+			var by_form_header = ['username']
+			var by_form_rows = [];
+			var by_form_content = {
+				total: {
+					username: 'all users',
+					total: 0
+				}
+			};
+			if (data == {}) {
+				return;
+			}
+
+			// prepare by date header, row and data
+			for (var i in data.by_date) {
+				var date = data.by_date[i].date;
+				var username = data.by_date[i].username;
+
+				if (by_date_header.indexOf(date) == -1) {
+					by_date_header.push(data.by_date[i].date)
+				}
+				if (by_date_rows.indexOf(username) == -1) {
+					by_date_rows.push(data.by_date[i].username)
+				}
+				if (by_date_content[username] == undefined) {
+					by_date_content[username] = {
+						username: data.by_date[i].username,
+						total: 0
+					}
+				}
+				var count = data.by_date[i].count;
+				by_date_content[username][date] = count;
+				by_date_content[username]['total'] += count;
+				by_date_content['total']['total'] += count;
+				if (by_date_content['total'][date] == undefined) {
+					by_date_content['total'][date] = 0
+				}
+				by_date_content['total'][date] += count;
+			}
+			by_date_header.push('total');
+			by_date_rows.push('total')
+
+			// prepare by form header, row and data
+			for (var i in data.by_form) {
+				var form = data.by_form[i].form;
+				var username = data.by_form[i].username;
+
+				if (by_form_header.indexOf(form) == -1) {
+					by_form_header.push(data.by_form[i].form)
+				}
+				if (by_form_rows.indexOf(username) == -1) {
+					by_form_rows.push(data.by_form[i].username)
+				}
+				if (by_form_content[username] == undefined) {
+					by_form_content[username] = {
+						username: data.by_form[i].username,
+						total: 0
+					}
+				}
+				var count = data.by_form[i].count;
+				by_form_content[username][form] = count;
+				by_form_content[username]['total'] += count;
+				by_form_content['total']['total'] += count;
+				if (by_form_content['total'][form] == undefined) {
+					by_form_content['total'][form] = 0
+				}
+				by_form_content['total'][form] += count;
+
+			}
+			by_form_header.push('total');
+			by_form_rows.push('total');
+
+			// update scope variable
+			$scope.by_date_header = by_date_header;
+			$scope.by_date_rows = by_date_rows;
+			$scope.by_date_content = by_date_content;
+
+			$scope.by_form_header = by_form_header;
+			$scope.by_form_rows = by_form_rows;
+			$scope.by_form_content = by_form_content;
+
+		});
+	}
+
+	// add watch to start_date
+	$scope.$watch(
+		function(scope) {
+			return scope.start_date
+		},
+		function(newValue, oldValue) {
+			if (newValue === oldValue) {
+				return;
+			}
+
+			// if start_date changed, query new table
+			if ($scope.end_date.length > 0 && $scope.start_date.length > 0 && $scope.start_date != $scope.end_date) {
+				date_change_listener()
+			}
+		}
+	);
+	// add watch to end_date
+	$scope.$watch(
+		function(scope) {
+			return scope.end_date
+		},
+		function(newValue, oldValue) {
+			if (newValue === oldValue) {
+				return;
+			}
+
+			// if start_date changed, query new table
+			if ($scope.end_date.length > 0 && $scope.start_date.length > 0 && $scope.start_date != $scope.end_date) {
+				date_change_listener()
+			}
+		}
+	);
+
+}
+
+function setupChallengeAction($scope, $http) {
+	$scope.title = 'Challenges & Actions';
+	$scope.start_date = '';
+	$scope.end_date = '';
+	$scope.area = '';
+
+	$('#datepicker-challenge').datepicker({
+		weekStart: 1
+	}).on('changeDate', function(e) {
+		if (e.target.id == 'date-picker-challenge-start') {
+			$scope.start_date = e.format('yyyy-mm-dd')
+			$scope.$digest();
+		} else if (e.target.id == 'date-picker-challenge-end') {
+			$scope.end_date = e.format('yyyy-mm-dd');
+			$scope.$digest();
+		}
+	});
+	var until_month = moment().format('MMM-YY');
+
+
+	var area_date_change_listener = function() {
+		if ($scope.area.length > 0 && $scope.end_date.length > 0 && $scope.start_date.length > 0 && $scope.start_date != $scope.end_date) {
+			var params = {
+				area: $scope.area,
+				start_date: $scope.start_date,
+				end_date: $scope.end_date
+			}
+			$http.get(appendParamsToUrl('../api/ops-report/challenge-action', params)).success(function(data) {
+				var header = ['Date', 'Stockpoint ID', 'Name', 'Challenges', 'Action Plan' ]
+				$scope.sp_visit_header = header;
+				$scope.sp_visit_content = data
+			});
+			$http.get(appendParamsToUrl('../api/ops-report/action-plan', params)).success(function(data) {
+				console.log(data)
+				var header = ['Date', 'Event Type', 'Venue', 'Feedback', 'Action Plan' ]
+				$scope.event_header = header;
+				$scope.event_content = data
+			});
+
+		} else {
+			return;
+		}
+
+
+	}
+
+
+	initializeTab($http, $scope, null, until_month, function() {
+		$scope.area = this.id;
+		$scope.$digest();
+	});
+	// add watch to area
+	$scope.$watch(
+		function(scope) {
+			return scope.area
+		},
+		function(newValue, oldValue) {
+			if (newValue === oldValue) {
+				return;
+			}
+
+			// if start_date changed, query new table
+			area_date_change_listener()
+
+		}
+	);
+	// add watch to start_date
+	$scope.$watch(
+		function(scope) {
+			return scope.start_date
+		},
+		function(newValue, oldValue) {
+			if (newValue === oldValue) {
+				return;
+			}
+
+			// if start_date changed, query new table
+			area_date_change_listener()
+
+		}
+	);
+
+	// add watch to end_date
+	$scope.$watch(
+		function(scope) {
+			return scope.end_date
+		},
+		function(newValue, oldValue) {
+			if (newValue === oldValue) {
+				return;
+			}
+
+			// if start_date changed, query new table
+			area_date_change_listener()
+
+		}
+	);
+
+}
+/**
  * Helper function to append dictionary of parameters to a url for HTTP GET
  * @param  {string} url    base url string
  * @param  {dictionary} params dictionary of parameters
@@ -3038,4 +3302,13 @@ function get_last_three_month(selected_month) {
 	}
 
 	return months;
+}
+
+function toggle_tab(class_name, id_to_show) {
+	$("." + class_name).each(function() {
+		$(this).hide();
+	})
+	if (id_to_show != null) {
+		$("#" + id_to_show).show();
+	}
 }

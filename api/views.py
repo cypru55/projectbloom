@@ -424,6 +424,256 @@ def target(request):
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
 
+# get weekly fo submission count
+@login_required(login_url='/login/')
+def weekly_fo_submission(request):
+    if request.method == 'GET':
+        if 'end_date' in request.GET and 'start_date' in request.GET:
+            start_date = request.GET['start_date']
+            end_date = request.GET['end_date']
+        else:
+            json_str = json.dumps({}, default=defaultencode)
+            return HttpResponse(json_str, content_type="application/json")
+
+        query1 = """
+        (SELECT 
+            username, 
+            Date_format(DATE(date_of_visit),'%%Y-%%m-%%d') AS date, 
+            'SP Vist Checklist' as form
+        FROM
+            stockpoint_visit
+        WHERE
+            DATE(date_of_visit) BETWEEN '%s' AND '%s')
+
+        """ % (start_date, end_date)
+        query2 = """
+        (SELECT 
+            username, 
+            Date_format(DATE(date_of_interview),'%%Y-%%m-%%d') AS date, 
+            'Prescreening UL' as form
+        FROM
+            ul_prescreening
+        WHERE
+            DATE(date_of_interview) BETWEEN '%s' AND '%s')
+        """ % (start_date, end_date)
+        query3 = """
+        (SELECT 
+            username,
+            Date_format(DATE(date_of_interview),'%%Y-%%m-%%d') AS date,
+            'Prescreening SP' AS form
+        FROM
+            sp_prescreening
+        WHERE
+            DATE(date_of_interview) BETWEEN '%s' AND '%s')
+        """ % (start_date, end_date)
+        query4 = """
+        (SELECT 
+            username,
+            Date_format(DATE(date_and_time),'%%Y-%%m-%%d') AS date,
+            'Quaterly Survey' AS form
+        FROM
+            bloom_quarterly_survey
+        WHERE
+            DATE(date_and_time) BETWEEN '%s' AND '%s')
+        """ % (start_date, end_date)
+        query5 = """
+        (SELECT 
+            username,
+            Date_format(DATE(date_and_time),'%%Y-%%m-%%d') AS date,
+            'Meeting Form' AS form
+        FROM
+            meeting_form
+        WHERE
+            DATE(date_and_time) BETWEEN '%s' AND '%s')
+        """ % (start_date, end_date)
+        query6 = """
+        (SELECT 
+            username,
+            Date_format(DATE(date_and_time),'%%Y-%%m-%%d') AS date,
+            'Exit Interview' AS form
+        FROM
+            exit_interview
+        WHERE
+            DATE(date_and_time) BETWEEN '%s' AND '%s')
+        """ % (start_date, end_date)
+
+        aggregate_query1 = """
+        SELECT username, form, count(*) as count
+        FROM
+        (%s
+        UNION ALL
+        %s   
+        UNION ALL
+        %s 
+        UNION ALL
+        %s 
+        UNION ALL
+        %s 
+        UNION ALL
+        %s 
+        ) AS t
+        GROUP BY username , form
+        ORDER BY form
+        """ % (query1, query2, query3, query4, query5, query6)
+        
+        aggregate_query2 = """
+        SELECT username, date, count(*) as count
+        FROM
+        (%s
+        UNION ALL
+        %s   
+        UNION ALL
+        %s 
+        UNION ALL
+        %s 
+        UNION ALL
+        %s 
+        UNION ALL
+        %s 
+        ) AS t
+        GROUP BY username , date
+        ORDER BY STR_TO_DATE(date, '%%Y-%%m-%%d')
+        """ % (query1, query2, query3, query4, query5, query6)
+        result = {}
+        result['by_form'] = execute_query(aggregate_query1)
+        result['by_date'] = execute_query(aggregate_query2)
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# get challenges with area and start_date, end_date 
+@login_required(login_url='/login/')
+def challenge_action(request):
+    if request.method == 'GET':
+        if 'end_date' in request.GET and 'start_date' in request.GET and 'area' in request.GET:
+            start_date = request.GET['start_date']
+            end_date = request.GET['end_date']
+            area = request.GET['area']
+        else:
+            json_str = json.dumps({}, default=defaultencode)
+            return HttpResponse(json_str, content_type="application/json")
+
+        query = """
+        SELECT 
+            e.name as Name,
+            e.id as `Stockpoint ID`,
+            DATE_FORMAT(DATE(s.date_of_visit),'%%Y-%%m-%%d') AS Date,
+            s.challenges as Challenges,
+            s.action_plan as `Action Plan`
+        FROM
+            entrepreneur AS e,
+            stockpoint_visit AS s
+        WHERE
+            e.area = '%s'
+                AND e.id = s.entrepreneur_code
+                AND DATE(s.date_of_visit) BETWEEN '%s' AND '%s'
+        ORDER BY s.date_of_visit
+        """ % (area, start_date, end_date)
+
+        result = execute_query(query)
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+# get action plan
+
+@login_required(login_url='/login/')
+def action_plan(request):
+    if request.method == 'GET':
+        if 'end_date' in request.GET and 'start_date' in request.GET and 'area' in request.GET:
+            start_date = request.GET['start_date']
+            end_date = request.GET['end_date']
+            area = request.GET['area']
+        else:
+            json_str = json.dumps({}, default=defaultencode)
+            return HttpResponse(json_str, content_type="application/json")
+
+        query = """
+        SELECT 
+            DATE_FORMAT(DATE(date_and_time), '%%Y-%%m-%%d') AS Date,
+            REPLACE(bloom_area, '_', ' ') AS Area,
+            venue as Venue,
+            event_type as `Event Type`,
+            feedback_from_participants as `Feedback`,
+            action_items as `Action Plan`
+        FROM
+            meeting_form
+        WHERE
+            bloom_area = '%s'
+                AND DATE(date_and_time) BETWEEN '%s' AND '%s'
+        ORDER BY date_and_time
+        """ % (area, start_date, end_date)
+
+        result = execute_query(query)
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+
+# get delivery report
+@login_required(login_url='/login/')
+def delivery_report(request):
+    if request.method == 'GET':
+        now = datetime.datetime.now()
+        pre_month = get_pre_month(now)
+        now = now.strftime("%b-%y")
+        pre_month = pre_month.strftime("%b-%y")
+        result = {}
+        result['this_month'] = []
+
+        query1 = """
+        SELECT 
+            area,
+            stockpoint_id,
+            stockpoint_name,
+            Date_FORMAT(date, '%%b-%%y') as month,
+            product,
+            SUM(qty) as sum
+        FROM
+            delivery
+        WHERE
+            DATE_FORMAT(date, '%%b-%%y') = '%s'
+        GROUP BY stockpoint_name
+        ORDER By stockpoint_id
+        """ % pre_month
+
+        result['pre_month'] = execute_query(query1)
+
+        products = execute_query("""
+            SELECT 
+                product
+            FROM
+                projectbloom.product
+            WHERE
+                type = 'latest'
+            """)
+
+        for product in products:
+            query = """
+            SELECT 
+                e.area AS area,
+                s.entrepreneur_code AS stockpoint_id,
+                e.name AS name,
+                DATE_FORMAT(s.date_of_visit, '%%b-%%y') AS month,
+                '%s' AS product,
+                SUM(s.`%s`) AS sum
+            FROM
+                stockpoint_visit AS s,
+                entrepreneur AS e
+            WHERE
+                s.entrepreneur_code = e.id
+                and DATE_FORMAT(s.date_of_visit, '%%b-%%y')='%s'
+            GROUP BY entrepreneur_code , month
+            ORDER BY e.id
+            """ % (product['product'], product['product'].replace (" ", "_"), now)
+            print query
+            try:
+                result['this_month'].extend(execute_query(query))
+            except:
+                # do nothing
+                pass
+                
+        json_str = json.dumps(result, default=defaultencode)
+        return HttpResponse(json_str, content_type="application/json")
+
+
 ################## Dashboard - monthly #####################
 
 #### KPI ####
