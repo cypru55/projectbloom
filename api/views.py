@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-22
+    Date last modified: 2015-09-23
     Python Version: 2.7.6
 '''
 
@@ -319,6 +319,7 @@ def target(request):
         params = {}
         now = datetime.datetime.now()
         filter_query = ""
+        filter_query2 = ""
         (first_day, last_day) = get_month_day_range(now)
         lastmonth = first_day - datetime.timedelta(days=1)
         now = now.strftime('%b-%y')
@@ -330,12 +331,22 @@ def target(request):
             area = request.GET['area'].replace(" ", "_")
             params['area'] = request.GET['area']
             filter_query = "residence_area='%s' AND " % area
+            filter_query2 = "AND area = '%s'" % area
         elif 'fo' in request.GET and request.GET['fo'] != 'All':
             fo = request.GET['fo'].lower()
             params['fo'] = request.GET['fo']
             filter_query = "username='%s' AND " % fo
+
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='""" + request.GET['fo'] + "'")
+            filter_query2 = "AND ("
+            for i in areas:
+                filter_query2 += "area='" + i['area'] + "' OR "
+            filter_query2 = filter_query2[:-3]
+            filter_query2 += ")"
+
         query1 = """
-            SELECT 
+            SELECT
                 COUNT(*) as count
             FROM
                 ul_prescreening
@@ -345,7 +356,7 @@ def target(request):
         """ % (filter_query, first_day.strftime('%Y-%m-%d'), last_day.strftime('%Y-%m-%d'))
 
         query2 = """
-            SELECT 
+            SELECT
                 COUNT(*) as count
             FROM
                 sp_prescreening
@@ -365,7 +376,7 @@ def target(request):
         """ % (filter_query, first_day_lastmonth.strftime('%Y-%m-%d'), last_day_lastmonth.strftime('%Y-%m-%d'))
 
         query4 = """
-            SELECT 
+            SELECT
                 COUNT(*) as count
             FROM
                 sp_prescreening
@@ -373,6 +384,25 @@ def target(request):
                 %s
                     date_of_interview BETWEEN DATE('%s') AND DATE('%s');
         """ %  (filter_query, first_day_lastmonth.strftime('%Y-%m-%d'), last_day_lastmonth.strftime('%Y-%m-%d'))
+
+        query5 = """
+        SELECT
+            SUM(target) as target
+        FROM
+            target
+        WHERE
+            type = 'Uplifter'
+            %s
+        """ % filter_query2
+        query6 = """
+        SELECT
+            SUM(target) as target
+        FROM
+            target
+        WHERE
+            type = 'Stockpoint'
+            %s
+        """ % filter_query2
 
         result = {"ul": {}, "sp": {}}
 
@@ -388,6 +418,8 @@ def target(request):
         result['sp']['this_month_potential'] = execute_query(query2)
         result['ul']['last_month_potential'] = execute_query(query3)
         result['sp']['last_month_potential'] = execute_query(query4)
+        result['ul']['target'] = execute_query(query5)
+        result['sp']['target'] = execute_query(query6)
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")

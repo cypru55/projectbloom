@@ -2133,7 +2133,6 @@ function retriveAndDrawShareoutSPProductChart($scope, $http, last_fully_updated_
 		month: $scope.selected_month
 	}
 	$http.get(appendParamsToUrl('../api/shareout/product-sold-detail', params)).success(function(data) {
-		console.log(data)
 		var products = [];
 
 		// initialize chart object
@@ -2428,7 +2427,7 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 				isStacked: "true",
 				seriesType: 'bars',
 				height: 400,
-				colors: [color.stable_active_ul, color.stable_inactive_ul, color.drop, color.new_ul, color.prescreened],
+				colors: [color.stable_active_ul, color.stable_inactive_ul, color.drop, color.new_ul, color.prescreened, color.stable_active_ul],
 				legend: {
 					position: "top",
 					maxLines: 4
@@ -2444,7 +2443,7 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 				isStacked: "true",
 				seriesType: 'bars',
 				height: 400,
-				colors: [color.stable_sp, color.drop, color.new_sp, color.prescreened],
+				colors: [color.stable_sp, color.drop, color.new_sp, color.prescreened,color.stable_sp],
 				legend: {
 					position: "top",
 					maxLines: 4
@@ -2484,6 +2483,11 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 				label: "UL candidate - Prescreened",
 				type: "number",
 				p: {}
+			}, {
+				id: "target-ul-id",
+				label: "Target",
+				type: "number",
+				p: {}
 			}],
 			rows: [{
 				c: [{
@@ -2498,6 +2502,8 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 					v: 0
 				}, {
 					v: data.ul.last_month_potential[0].count
+				}, {
+					v: 0
 				}]
 			}, {
 				c: [{
@@ -2512,6 +2518,8 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 					v: 0
 				}, {
 					v: data.ul.this_month_potential[0].count
+				}, {
+					v: 0
 				}]
 			}, {
 				c: [{
@@ -2526,6 +2534,8 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 					v: 0
 				}, {
 					v: 0
+				}, {
+					v: data.ul.target[0].target
 				}]
 			}]
 		}
@@ -2556,6 +2566,11 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 				label: "SP candidate - Prescreened",
 				type: "number",
 				p: {}
+			}, {
+				id: "target-sp-id",
+				label: "Target",
+				type: "number",
+				p: {}
 			}],
 			rows: [{
 				c: [{
@@ -2568,6 +2583,8 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 					v: 0
 				}, {
 					v: data.sp.last_month_potential[0].count
+				}, {
+					v: 0
 				}]
 			}, {
 				c: [{
@@ -2580,6 +2597,8 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 					v: 0
 				}, {
 					v: data.sp.this_month_potential[0].count
+				}, {
+					v: 0
 				}]
 			}, {
 				c: [{
@@ -2592,6 +2611,8 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 					v: 0
 				}, {
 					v: 0
+				}, {
+					v: data.sp.target[0].target
 				}]
 			}]
 		}
