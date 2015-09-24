@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-23
+ * @Last Modified 2015-09-24
  */
 
 'use strict';
@@ -181,7 +181,7 @@ dashboardControllers.controller('DashboardOpReportCtrl', ['$scope', '$routeParam
 				setupChallengeAction($scope, $http);
 				break;
 			case 'mtd_delivery':
-				$scope.title = 'MTD Delivery';
+				setupDeliveryReport($scope, $http);
 				break;
 		}
 		toggle_tab('tab_content', $routeParams.report_type);
@@ -394,18 +394,10 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 		$('#no-data-sign').show();
 		return;
 	}
-	var isFirst = true
-	for (var key in params) {
-		if (isFirst) {
-			url_with_param += '?' + key + '=' + params[key];
-			isFirst = false;
-		} else {
-			url_with_param += '&' + key + '=' + params[key];
-		}
-	}
+
 
 	// send http get request
-	$http.get(url_with_param).success(function(data) {
+	$http.get(appendParamsToUrl(url, params)).success(function(data) {
 		if (data.data.length > 0) {
 			$('#dataTable').show();
 			$('#paginator-div').show();
@@ -2124,9 +2116,6 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 		$scope.improvedChartObject.data = chart_data;
 		$scope.improvedChartObject.options = options;
 	});
-
-
-
 }
 
 /**
@@ -2198,20 +2187,20 @@ function retriveAndDrawShareoutSPProductChart($scope, $http, last_fully_updated_
 			height: 400
 		}
 
-		// fill rows with data
-		for (var i in data) {
-			var row_index = products.indexOf(data[i].product)
+		// fill rows with data's product detail
+		for (var i in data.product) {
+			var row_index = products.indexOf(data.product[i].product)
 			if (row_index != -1) {
 				// row for this product exist, add the sum to its row
-				var col_index = months.indexOf(data[i].month) * 2 + 1;
-				chart_data.rows[row_index].c[col_index].v = Math.round(data[i].sum);
-				chart_data.rows[row_index].c[col_index + 1].v = Math.round(data[i].sum);
+				var col_index = months.indexOf(data.product[i].month) * 2 + 1;
+				chart_data.rows[row_index].c[col_index].v = Math.round(data.product[i].sum);
+				chart_data.rows[row_index].c[col_index + 1].v = Math.round(data.product[i].sum);
 			} else {
 				// row for this product does not exist, add row first
-				products.push(data[i].product);
+				products.push(data.product[i].product);
 				var row = {
 						c: [{
-							v: data[i].product
+							v: data.product[i].product
 						}]
 					}
 					//push 6 empty col data since we have 3 month, each month, 1 for column 1 for annotation
@@ -2224,11 +2213,30 @@ function retriveAndDrawShareoutSPProductChart($scope, $http, last_fully_updated_
 
 				// fill the data for the newly added row
 				row_index = products.length - 1;
-				var col_index = months.indexOf(data[i].month) * 2 + 1;
-				chart_data.rows[row_index].c[col_index].v = Math.round(data[i].sum);
-				chart_data.rows[row_index].c[col_index + 1].v = Math.round(data[i].sum);
+				var col_index = months.indexOf(data.product[i].month) * 2 + 1;
+				chart_data.rows[row_index].c[col_index].v = Math.round(data.product[i].sum);
+				chart_data.rows[row_index].c[col_index + 1].v = Math.round(data.product[i].sum);
 			}
 		}
+		// then fill rows with ul count
+		var row = {
+				c: [{
+					v: "Total UL"
+				}]
+			}
+			//push 6 empty col data since we have 3 month, each month, 1 for column 1 for annotation
+		for (var j = 0; j < 6; j++) {
+			row.c.push({
+				v: null
+			});
+		}
+		for (var i in data.ul_count) {
+			var col_index = months.indexOf(data.ul_count[i].month) * 2 + 1;
+			row.c[col_index].v = row.c[col_index + 1].v = data.ul_count[i].sum;
+
+		}
+		// push the last row to the chart object
+		chart_data.rows.push(row)
 
 		// draw the chart!
 		$scope.spProductDetailChartObject.data = chart_data;
@@ -2239,9 +2247,7 @@ function retriveAndDrawShareoutSPProductChart($scope, $http, last_fully_updated_
 /**
  * Draw Quaterly charts
  */
-function retriveAndDrawQuaterlyCharts($scope, $http) {
-
-}
+function retriveAndDrawQuaterlyCharts($scope, $http) {}
 
 /**
  * Draw Recruitment MTD Charts
@@ -2739,7 +2745,7 @@ function monthDiff(d1, d2) {
 /**
  * initialize the dashboard tabs
  */
-function initializeTab($http, $scope, tab, last_fully_updated_month, tabSelectListener) {
+function initializeTab($http, $scope, tab, last_fully_updated_month, tabSelectListener, postRender) {
 	var url = '../api/fo-area';
 	$('#bloom-overview').tab('show');
 	$http.get(url).success(function(data) {
@@ -2764,6 +2770,10 @@ function initializeTab($http, $scope, tab, last_fully_updated_month, tabSelectLi
 				)
 			}
 		);
+		// optional post render call back function
+		if (typeof postRender !== "undefined" ) {
+			postRender();
+		}
 	});
 
 
@@ -2938,6 +2948,7 @@ function setupWeeklyFOSubmission($scope, $http) {
 		}
 	});
 
+
 	var date_change_listener = function() {
 
 		var params = {
@@ -2946,6 +2957,15 @@ function setupWeeklyFOSubmission($scope, $http) {
 		}
 
 		$http.get(appendParamsToUrl('../api/ops-report/weekly-fo-submission', params)).success(function(data) {
+			console.log(data)
+			if (data.by_date.length == 0) {
+				$('#weekly-fo-date-table-div').hide();
+				$('#fo-submission-no-data').show();
+				return;
+			} else {
+				$('#weekly-fo-date-table-div').show();
+				$('#fo-submission-no-data').hide();
+			}
 			var by_date_header = ['username']
 			var by_date_rows = [];
 			var by_date_content = {
@@ -3071,8 +3091,21 @@ function setupWeeklyFOSubmission($scope, $http) {
 		}
 	);
 
+	// update the picker time, default last week
+	var now = moment();
+	now.add(-7, 'days');
+
+	$('#date-picker-weekly-start').datepicker('update', now.isoWeekday(1).toDate());
+	$('#date-picker-weekly-end').datepicker('update', now.isoWeekday(7).toDate());
+	$scope.start_date = now.isoWeekday(1).format('YYYY-MM-DD');
+	$scope.end_date = now.isoWeekday(7).format('YYYY-MM-DD');
+	date_change_listener()
+
 }
 
+/**
+ * Set up weekly challenge action
+ */
 function setupChallengeAction($scope, $http) {
 	$scope.title = 'Challenges & Actions';
 	$scope.start_date = '';
@@ -3101,13 +3134,28 @@ function setupChallengeAction($scope, $http) {
 				end_date: $scope.end_date
 			}
 			$http.get(appendParamsToUrl('../api/ops-report/challenge-action', params)).success(function(data) {
-				var header = ['Date', 'Stockpoint ID', 'Name', 'Challenges', 'Action Plan' ]
+				if (data.length == 0) {
+					$('#challenge-action-data-table').hide();
+					$('#challenge-action-no-data').show();
+					return;
+				} else {
+					$('#challenge-action-data-table').show();
+					$('#challenge-action-no-data').hide();
+				}
+				var header = ['Date', 'Stockpoint ID', 'Name', 'Challenges', 'Action Plan']
 				$scope.sp_visit_header = header;
 				$scope.sp_visit_content = data
 			});
 			$http.get(appendParamsToUrl('../api/ops-report/action-plan', params)).success(function(data) {
-				console.log(data)
-				var header = ['Date', 'Event Type', 'Venue', 'Feedback', 'Action Plan' ]
+				if (data.length == 0) {
+					$('#challenge-action-data-table').hide();
+					$('#challenge-action-no-data').show();
+					return;
+				} else {
+					$('#challenge-action-data-table').show();
+					$('#challenge-action-no-data').hide();
+				}
+				var header = ['Date', 'Event Type', 'Venue', 'Feedback', 'Action Plan']
 				$scope.event_header = header;
 				$scope.event_content = data
 			});
@@ -3121,8 +3169,13 @@ function setupChallengeAction($scope, $http) {
 
 
 	initializeTab($http, $scope, null, until_month, function() {
+		$(this).tab('show');
 		$scope.area = this.id;
 		$scope.$digest();
+	}, function() {
+		//post render, select the first area
+		$($('.fo-area-selection')[0]).tab('show');
+		$scope.area = $('.fo-area-selection')[0].id;
 	});
 	// add watch to area
 	$scope.$watch(
@@ -3171,12 +3224,67 @@ function setupChallengeAction($scope, $http) {
 		}
 	);
 
+	// update the picker time, default last week, update the area, default the first tab
+	var now = moment();
+	now.add(-7, 'days');
+
+	$('#date-picker-challenge-start').datepicker('update', now.isoWeekday(1).toDate());
+	$('#date-picker-challenge-end').datepicker('update', now.isoWeekday(7).toDate());
+	$scope.start_date = now.isoWeekday(1).format('YYYY-MM-DD');
+	$scope.end_date = now.isoWeekday(7).format('YYYY-MM-DD');
+	area_date_change_listener()
+
 }
+
+/**
+ * Setup delivery report
+ */
+function setupDeliveryReport($scope, $http) {
+	$scope.title = 'MTD Delivery Report';
+	$http.get('../api/ops-report/delivery-report').success(function(data) {
+		console.log(data);
+		var delivery_report_header = ['Area', 'Stockpoint ID', 'Stockpoint Name', 'Product', data.month.pre_month, data.month.this_month]
+		var delivery_report_content = {};
+
+		var pre_month = data.month.pre_month;
+		var this_month = data.month.this_month;
+
+		for (var i in data.pre_month) {
+			var id = data.pre_month[i]['Stockpoint ID'] + data.pre_month[i]['Product']
+			delivery_report_content[id] = {
+				'Area': data.pre_month[i]['Area'],
+				'Stockpoint ID': data.pre_month[i]['Stockpoint ID'],
+				'Stockpoint Name': data.pre_month[i]['Stockpoint Name'],
+				'Product': data.pre_month[i]['Product']
+			}
+			delivery_report_content[id][pre_month] = data.pre_month[i]['Sum'];
+			delivery_report_content[id][this_month] = 0;
+		}
+
+		for (var i in data.this_month) {
+			var id = data.this_month[i]['Stockpoint ID'] + data.this_month[i]['Product']
+			if (id in delivery_report_content) {
+				delivery_report_content[id][this_month] = data.this_month[i]['Sum'];
+			} else {
+				delivery_report_content[id] = {
+					'Area': data.this_month[i]['Area'],
+					'Stockpoint ID': data.this_month[i]['Stockpoint ID'],
+					'Stockpoint Name': data.this_month[i]['Stockpoint Name'],
+					'Product': data.this_month[i]['Product']
+				}
+				delivery_report_content[id][pre_month] = 0;
+				delivery_report_content[id][this_month] = data.this_month[i]['Sum'];
+			}
+		}
+		delivery_report_content = sortObjectByKey(delivery_report_content);
+		$scope.delivery_report_content = delivery_report_content
+		$scope.delivery_report_header = delivery_report_header
+
+	});
+}
+
 /**
  * Helper function to append dictionary of parameters to a url for HTTP GET
- * @param  {string} url    base url string
- * @param  {dictionary} params dictionary of parameters
- * @return {string}        url with parameters
  */
 function appendParamsToUrl(url, params) {
 	var url_with_param = url
@@ -3312,3 +3420,27 @@ function toggle_tab(class_name, id_to_show) {
 		$("#" + id_to_show).show();
 	}
 }
+
+/**
+ * Return an Object sorted by it's Key
+ */
+var sortObjectByKey = function(obj) {
+	var keys = [];
+	var sorted_obj = {};
+
+	for (var key in obj) {
+		if (obj.hasOwnProperty(key)) {
+			keys.push(key);
+		}
+	}
+
+	// sort keys
+	keys.sort();
+
+	// create new array based on Sorted Keys
+	jQuery.each(keys, function(i, key) {
+		sorted_obj[key] = obj[key];
+	});
+
+	return sorted_obj;
+};

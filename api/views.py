@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-23
+    Date last modified: 2015-09-24
     Python Version: 2.7.6
 '''
 
@@ -617,21 +617,24 @@ def delivery_report(request):
         pre_month = pre_month.strftime("%b-%y")
         result = {}
         result['this_month'] = []
+        result['month'] = {}
+        result['month']['pre_month'] = pre_month
+        result['month']['this_month'] = now
 
         query1 = """
         SELECT 
-            area,
-            stockpoint_id,
-            stockpoint_name,
-            Date_FORMAT(date, '%%b-%%y') as month,
-            product,
-            SUM(qty) as sum
+            area as Area,
+            stockpoint_id as `Stockpoint ID`,
+            stockpoint_name as `Stockpoint Name`,
+            Date_FORMAT(date, '%%b-%%y') as Month,
+            product as Product,
+            SUM(qty) as Sum
         FROM
             delivery
         WHERE
             DATE_FORMAT(date, '%%b-%%y') = '%s'
         GROUP BY stockpoint_name
-        ORDER By stockpoint_id
+        ORDER By area, stockpoint_name, product
         """ % pre_month
 
         result['pre_month'] = execute_query(query1)
@@ -648,12 +651,12 @@ def delivery_report(request):
         for product in products:
             query = """
             SELECT 
-                e.area AS area,
-                s.entrepreneur_code AS stockpoint_id,
-                e.name AS name,
-                DATE_FORMAT(s.date_of_visit, '%%b-%%y') AS month,
-                '%s' AS product,
-                SUM(s.`%s`) AS sum
+                e.area AS Area,
+                s.entrepreneur_code AS `Stockpoint ID`,
+                e.name AS `Stockpoint Name`,
+                DATE_FORMAT(s.date_of_visit, '%%b-%%y') AS Month,
+                '%s' AS Product,
+                SUM(s.`%s`) AS Sum
             FROM
                 stockpoint_visit AS s,
                 entrepreneur AS e
@@ -661,9 +664,9 @@ def delivery_report(request):
                 s.entrepreneur_code = e.id
                 and DATE_FORMAT(s.date_of_visit, '%%b-%%y')='%s'
             GROUP BY entrepreneur_code , month
-            ORDER BY e.id
+            ORDER BY e.area, e.name
             """ % (product['product'], product['product'].replace (" ", "_"), now)
-            print query
+
             try:
                 result['this_month'].extend(execute_query(query))
             except:
@@ -817,8 +820,6 @@ def estimated_income_per_hour(request):
         GROUP BY  month
         """ % filter_query
         result = {}
-        print query1
-        print query2
         result['by_area'] = execute_query(query1)
         result['average'] = execute_query(query2)
 
@@ -1226,7 +1227,7 @@ def product_sold_detail(request):
 
         three_month_ago = get_pre_month(get_pre_month(this_month))
         (three_month_ago_first_day, three_month_ago_last_day) = get_month_day_range(three_month_ago)
-        query = """
+        query1 = """
         SELECT 
             SUM(qty) AS sum,
             DATE_FORMAT(date, '%%b-%%y') AS month,
@@ -1239,7 +1240,22 @@ def product_sold_detail(request):
             AND (date BETWEEN "%s" AND "%s")
         GROUP BY month , product , stockpoint_id
         """ % (stockpoint_name,three_month_ago_first_day.strftime("%Y-%m-%d"), this_month_last_day.strftime("%Y-%m-%d"))
-        result = execute_query(query)
+        
+        query2 = """
+        SELECT 
+            COUNT(DISTINCT uplifter_id) AS sum,
+            DATE_FORMAT(date, '%%b-%%y') AS month
+        FROM
+            sale_db
+        WHERE
+            stockpoint_name = '%s'
+                AND date BETWEEN '%s' AND '%s'
+        GROUP BY month
+        """ % (stockpoint_name, three_month_ago_first_day.strftime("%Y-%m-%d"), this_month_last_day.strftime("%Y-%m-%d"))
+
+        result = {}
+        result['product'] = execute_query(query1)
+        result['ul_count'] = execute_query(query2)
 
         json_str = json.dumps(result, default=defaultencode)
         return HttpResponse(json_str, content_type="application/json")
