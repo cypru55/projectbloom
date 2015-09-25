@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-24
+    Date last modified: 2015-09-25
     Python Version: 2.7.6
 '''
 
@@ -163,16 +163,23 @@ def ul_income(request):
 
         # generate query using periods
         (query, column_name) = generate_ul_income_query(periods)
+        
 
         # execute the query
         row = execute_query(query)
-
+        
         # clean up rows with all null
         row = clean_null_colunm(column_name, row)
+        
 
         result = {}
         result['data'] = row
         result['headers'] = column_name
+
+        if request.GET['option'] == 'monthly':
+            query2= generate_ul_status_query(periods)
+            status = execute_query(query2)
+            result['status'] = status
 
         json_str = json.dumps(result, default=defaultencode)
 
@@ -189,16 +196,22 @@ def sp_income(request):
 
         # generate query using periods
         (query, column_name) = generate_sp_income_query(periods)
+        
 
         # execute the query
         row = execute_query(query)
-
+        
         # clean up rows with all null
         row = clean_null_colunm(column_name, row)
 
         result = {}
         result['data'] = row
         result['headers'] = column_name
+        
+        if request.GET['option'] == 'monthly':
+            query2 = generate_sp_status_query(periods)
+            status = execute_query(query2)
+            result['status'] = status
 
         json_str = json.dumps(result, default=defaultencode)
 
@@ -1528,6 +1541,31 @@ def generate_ul_income_query(periods):
 
     return (query, col_name)
 
+def generate_ul_status_query(periods):
+    query = """
+    SELECT 
+        name, month, status
+    FROM
+        entrepreneur_status
+    WHERE
+        (type = 'TSPI_UL'
+            OR type = 'LP4Y_UL')
+            AND (
+    """
+    col_name = []
+    for period in periods:
+        col_name.append(period['start_date'])
+        month = datetime.datetime.strptime(period['start_date'], "%Y-%m-%d")
+        month = month.strftime("%b-%y")
+        query += """
+        month ='%s' OR """ % (month)
+
+    query = query[:-3]
+    query += """
+    );
+    """
+    return query
+
 
 # helper function for generating stockpoint monthly income query
 def generate_sp_income_query(periods):
@@ -1561,6 +1599,32 @@ def generate_sp_income_query(periods):
     order by area, stockpoint_name\n"""
 
     return (query, col_name)
+
+def generate_sp_status_query(periods):
+    query = """
+    SELECT 
+        name, month, status
+    FROM
+        entrepreneur_status
+    WHERE
+        (type = 'TSPI_SP'
+            OR type = 'LP4Y_SP')
+            AND (
+    """
+    col_name = []
+    for period in periods:
+        col_name.append(period['start_date'])
+        month = datetime.datetime.strptime(period['start_date'], "%Y-%m-%d")
+        month = month.strftime("%b-%y")
+        query += """
+        month ='%s' OR """ % (month)
+
+    query = query[:-3]
+    query += """
+    );
+    """
+    print query
+    return query
 
 # helper function for generating bloom overview query
 

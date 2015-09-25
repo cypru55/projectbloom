@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-24
+ * @Last Modified 2015-09-25
  */
 
 'use strict';
@@ -261,7 +261,8 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 		var today = moment();
 		var four_weeks_ago = moment();
 		four_weeks_ago.subtract(27, 'days');
-		params['sd'] = four_weeks_ago.format('YYYY-MM-DD');
+		var four_months_ago = moment().subtract(3, 'months');
+		params['sd'] = four_months_ago.format('YYYY-MM-DD');
 		params['ed'] = today.format('YYYY-MM-DD');
 
 		$('.input-daterange').datepicker({
@@ -282,8 +283,8 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 			// retrive pivot table
 			retriveAndDrawPivotTable(url, params, headers, $http, $scope);
 		});
-		// set default to 4 weeks agon to today
-		$('.input-daterange #date-picker-start').datepicker('update', four_weeks_ago.toDate());
+		// set default to 4 months agon to today
+		$('.input-daterange #date-picker-start').datepicker('update', four_months_ago.toDate());
 		$('.input-daterange #date-picker-end').datepicker('update', today.toDate());
 
 		// configure the url according to pivot table type
@@ -292,25 +293,26 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 				$scope.title = "Stockpoint Products Sold";
 				url = '../api/sale/sp-products-sold'
 				headers = ['area', 'stockpoint_name', 'product']
-
+				retriveAndDrawPivotTable(url, params, headers, $http, $scope);
 				break;
 			case 'ul_days_worked':
 				$scope.title = "Uplifter Days Worked";
 				url = '../api/sale/ul-days-worked'
 				headers = ['area', 'stockpoint_name', 'uplifter_name']
+				retriveAndDrawPivotTable(url, params, headers, $http, $scope);
 				break;
 			case 'ul_income':
 				$scope.title = "Uplifter Income";
 				url = '../api/sale/ul-income'
 				headers.push('uplifter_name')
 				headers = ['area', 'stockpoint_name', 'uplifter_name']
-
+				retriveAndDrawPivotTable(url, params, headers, $http, $scope);
 				break;
 			case 'sp_income':
 				$scope.title = "Stockpoint Income";
 				url = '../api/sale/sp-income'
 				headers = ['area', 'stockpoint_name']
-
+				retriveAndDrawPivotTable(url, params, headers, $http, $scope);
 				break;
 		}
 
@@ -318,11 +320,24 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 		$('#pivot-table-option-list').click(function(event) {
 			params['option'] = event.target.getAttribute("value");
 			$scope.type = event.target.getAttribute("value");
+			switch ($scope.type) {
+				case 'monthly':
+					$('.input-daterange #date-picker-start').datepicker('update', four_months_ago.toDate());
+					$('.input-daterange #date-picker-end').datepicker('update', today.toDate());
+					params['sd'] = four_months_ago.format('YYYY-MM-DD');
+					params['ed'] = today.format('YYYY-MM-DD');
+					break;
+				case 'weekly':
+					// set default to 4 weeks agon to today
+					$('.input-daterange #date-picker-start').datepicker('update', four_weeks_ago.toDate());
+					$('.input-daterange #date-picker-end').datepicker('update', today.toDate());
+					params['sd'] = four_weeks_ago.format('YYYY-MM-DD');
+					params['ed'] = today.format('YYYY-MM-DD');
+
+					break;
+			}
 			retriveAndDrawPivotTable(url, params, headers, $http, $scope);
 		});
-
-		// retrieve default pivot table
-		retriveAndDrawPivotTable(url, params, headers, $http, $scope);
 
 	}
 ]);
@@ -399,6 +414,7 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 	// send http get request
 	$http.get(appendParamsToUrl(url, params)).success(function(data) {
 		if (data.data.length > 0) {
+			console.log(data)
 			$('#dataTable').show();
 			$('#paginator-div').show();
 			$('#no-data-sign').hide();
@@ -414,7 +430,67 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 			$scope.header_structure = header_structure;
 			$scope.parsed_headers = parsed_headers;
 			$scope.data = data.data;
-			console.log(data);
+
+			// if type is monthly and is income, show status color code
+			// TODO
+			if (params.option == 'monthly' && url == '../api/sale/sp-income') {
+				var color_code = {}
+				for (var i in data.status) {
+					var name = data.status[i].name;
+					if (!(name in color_code)) {
+						color_code[name] = {}
+					}
+					var firstDayOfMonth = moment(data.status[i].month, 'MMM-YY')
+					firstDayOfMonth = firstDayOfMonth.format('YYYY-MM-DD')
+					switch (data.status[i].status) {
+						case 'N1':
+						case 'N2':
+							color_code[name][firstDayOfMonth] = color.new_sp;
+							break;
+						case 'S':
+							color_code[name][firstDayOfMonth] = color.stable_sp;
+							break;
+						case 'D1':
+						case 'D2':
+							color_code[name][firstDayOfMonth] = color.drop;
+							break;
+					}
+				}
+
+				$scope.pk_col = headers[headers.length - 1];
+				$scope.color_code = color_code;
+			} else if (params.option == 'monthly' && url == '../api/sale/ul-income') {
+				var color_code = {}
+				for (var i in data.status) {
+					var name = data.status[i].name;
+					if (!(name in color_code)) {
+						color_code[name] = {}
+					}
+					var firstDayOfMonth = moment(data.status[i].month, 'MMM-YY')
+					firstDayOfMonth = firstDayOfMonth.format('YYYY-MM-DD')
+					switch (data.status[i].status) {
+						case 'N1':
+						case 'N2':
+							color_code[name][firstDayOfMonth] = color.new_ul;
+							break;
+						case 'S':
+							color_code[name][firstDayOfMonth] = color.stable_active_ul;
+							break;
+						case 'S1':
+						case 'S2':
+							color_code[name][firstDayOfMonth] = color.stable_inactive_ul;
+							break;
+						case 'D1':
+						case 'D2':
+							color_code[name][firstDayOfMonth] = color.drop;
+							break;
+					}
+				}
+
+				$scope.pk_col = headers[headers.length - 1];
+				$scope.color_code = color_code;
+
+			}
 		} else {
 			$('#dataTable').hide();
 			$('#paginator-div').hide();
@@ -2771,7 +2847,7 @@ function initializeTab($http, $scope, tab, last_fully_updated_month, tabSelectLi
 			}
 		);
 		// optional post render call back function
-		if (typeof postRender !== "undefined" ) {
+		if (typeof postRender !== "undefined") {
 			postRender();
 		}
 	});
