@@ -846,22 +846,35 @@ def estimated_income_per_hour(request):
 @login_required(login_url='/login/')
 def rsv_sold(request):
     if request.method == 'GET':
+        filter_query = ' '
+        if 'area' in request.GET:
+            filter_query = " AND area='%s'" % request.GET['area']
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
+            filter_query = " AND ("
+            for i in areas:
+                filter_query += "area='%s' OR " % i['area']
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")"
         query1 = """
         SELECT 
             SUM(inner_bags) AS inner_bags_sum,
-            DATE_FORMAT(date, '%b-%y') AS month,
+            DATE_FORMAT(date, '%%b-%%y') AS month,
             p.company as company
         FROM
             delivery as d
         left join product as p on p.product=d.product and p.type="latest"
-        where d.date is not null 
+        where d.date is not null
+            %s 
         GROUP BY month, company
         ORDER BY date;
-        """
+        """ % filter_query
         query2 = """
         SELECT 
             SUM(rsv) AS rsv,
-            DATE_FORMAT(date, '%b-%y') AS month,
+            DATE_FORMAT(date, '%%b-%%y') AS month,
             p.company AS company
         FROM
             delivery AS d
@@ -870,9 +883,10 @@ def rsv_sold(request):
                 AND p.type = 'latest'
         WHERE
             d.date IS NOT NULL
+            %s
         GROUP BY month , company
         ORDER BY date;
-        """
+        """ % filter_query
         result = {}
         result['sku']= execute_query(query1)
         result['rsv']= execute_query(query2)

@@ -33,7 +33,56 @@
                     <span class="input-group-addon">to</span>
                     <input id="date-picker-end" type="text" class="input-sm form-control" name="end" />
                 </div>
+                <div sytle="overflow:auto;">
+                    <table class="table color-legend" id="sp-color-legend" hidden>
+                        <thead>
+                            <tr>
+                                <th>New SP</th>
+                            
+                                <th>Stable SP</th>
+                            
+                                <th>Dropped SP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="col-md-2" style="background-color:{{new_sp_color}}"></td>
+                           
+                                <td class="col-md-2" style="background-color:{{stable_sp_color}}"></td>
+                           
+                                <td class="col-md-2" style="background-color:{{dropped_sp_color}}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="table color-legend" id="ul-color-legend" hidden>
+                        <thead>
+                            <tr>
+                                <th>New UL</th>
+                           
+                                <th>Stable UL(Active)</th>
+                            
+                                <th>Stable UL(Inactive)</th>
+                          
+                                <th>Dropped UL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="col-md-2" style="background-color:{{new_ul_color}}"></td>
+                            
+                                <td class="col-md-2" style="background-color:{{stable_ul_a_color}}"></td>
+                            
+                                <td class="col-md-2" style="background-color:{{stable_ul_ia_color}}"></td>
+                           
+                                <td class="col-md-2" style="background-color:{{dropped_ul_color}}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
                 <div class="dataTable_wrapper" style="overflow: auto;">
+
+
                     <table class="table table-striped table-bordered table-hover" id="dataTable">
                         <thead>
                             <tr>

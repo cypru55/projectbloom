@@ -31,7 +31,7 @@
 <div class="row">
     <div class="col-lg-12">
         <div class="panel panel-default">
-            <div class="panel-heading">{{selected_area}} Overview Chart</div>
+            <div class="panel-heading">{{selected_area}} Recruitment</div>
             <!-- /.panel-heading -->
             <div class="panel-body">
                 <div google-chart chart="overviewChartObject" style="{{cssStyle}}"></div>
@@ -47,6 +47,7 @@
             </div>
         </div>
     </div>
+    
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading">{{selected_area}} 3 Month Stockpoint Income</div>
@@ -56,27 +57,10 @@
             </div>
         </div>
     </div>
+
     <div class="col-lg-12">
         <div class="panel panel-default">
-            <div class="panel-heading">{{selected_area}} Uplifter {{selected_month}} Income and Estimated Man-hours</div>
-            <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="ulIncomeAndEMHObject" style="{{cssStyle}}"></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">{{selected_area}} {{selected_month}} vs {{previous_month}} Most Improved # of Days Worked</div>
-            <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="improvedChartObject" style="{{cssStyle}}"></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">{{selected_sp_name}}
+            <div class="panel-heading">{{selected_sp_name}} 3 Month Cases Bought
             <div class="pull-right" id="product-margin-type-selector">
                     <div class="btn-group">
                         <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
@@ -96,4 +80,24 @@
             </div>
         </div>
     </div>
+
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">{{selected_area}} Uplifter {{selected_month}} Income and Estimated Man-hours</div>
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <div google-chart chart="ulIncomeAndEMHObject" style="{{cssStyle}}"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">{{selected_area}} {{selected_month}} vs {{previous_month}} Most Improved # of Days Worked</div>
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <div google-chart chart="improvedChartObject" style="{{cssStyle}}"></div>
+            </div>
+        </div>
+    </div>
+
 </div>

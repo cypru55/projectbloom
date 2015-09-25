@@ -432,7 +432,6 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 			$scope.data = data.data;
 
 			// if type is monthly and is income, show status color code
-			// TODO
 			if (params.option == 'monthly' && url == '../api/sale/sp-income') {
 				var color_code = {}
 				for (var i in data.status) {
@@ -456,7 +455,11 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 							break;
 					}
 				}
-
+				// show the color legend
+				$('#sp-color-legend').show();
+				$scope.new_sp_color = color.new_sp;
+				$scope.stable_sp_color = color.stable_sp;
+				$scope.dropped_sp_color = color.drop;
 				$scope.pk_col = headers[headers.length - 1];
 				$scope.color_code = color_code;
 			} else if (params.option == 'monthly' && url == '../api/sale/ul-income') {
@@ -487,6 +490,12 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 					}
 				}
 
+				// show the color legend
+				$('#ul-color-legend').show();
+				$scope.new_ul_color = color.new_ul;
+				$scope.stable_ul_a_color = color.stable_active_ul;
+				$scope.stable_ul_ia_color = color.stable_inactive_ul;
+				$scope.dropped_ul_color = color.drop;
 				$scope.pk_col = headers[headers.length - 1];
 				$scope.color_code = color_code;
 
@@ -2714,7 +2723,7 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 		for (var i in data.ul.last_month) {
 			var ob = data.ul.last_month[i];
 			if (ob.status == 'D') {
-				ul_chart_data.rows[0].c[3].v += ob.count
+				ul_chart_data.rows[0].c[3].v -= ob.count
 			} else if (ob.status == 'S') {
 				ul_chart_data.rows[0].c[1].v += ob.count
 			} else if (ob.status == 'S1' || ob.status == 'S2') {
@@ -2726,7 +2735,7 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 		for (var i in data.ul.this_month) {
 			var ob = data.ul.this_month[i];
 			if (ob.status == 'D') {
-				ul_chart_data.rows[1].c[3].v += ob.count
+				ul_chart_data.rows[1].c[3].v -= ob.count
 			} else if (ob.status == 'S') {
 				ul_chart_data.rows[1].c[1].v += ob.count
 			} else if (ob.status == 'S1' || ob.status == 'S2') {
@@ -2740,7 +2749,7 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 		for (var i in data.sp.last_month) {
 			var ob = data.sp.last_month[i]
 			if (ob.status == 'D') {
-				sp_chart_data.rows[0].c[2].v += ob.count
+				sp_chart_data.rows[0].c[2].v -= ob.count
 			} else if (ob.status == 'S') {
 				sp_chart_data.rows[0].c[1].v += ob.count
 			} else if (ob.status == 'N') {
@@ -2750,7 +2759,7 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 		for (var i in data.sp.this_month) {
 			var ob = data.sp.this_month[i]
 			if (ob.status == 'D') {
-				sp_chart_data.rows[1].c[2].v += ob.count
+				sp_chart_data.rows[1].c[2].v -= ob.count
 			} else if (ob.status == 'S') {
 				sp_chart_data.rows[1].c[1].v += ob.count
 			} else if (ob.status == 'N') {
@@ -3011,7 +3020,7 @@ function initializeAreaMonthSelection($http, $scope, last_fully_updated_month) {
 function setupWeeklyFOSubmission($scope, $http) {
 	$scope.start_date = ''
 	$scope.end_date = ''
-	$scope.title = 'Weekly FO Submission';
+	$scope.title = 'FO CommCare Submission';
 	$('#datepicker-weekly-fo-submission').datepicker({
 		weekStart: 1
 	}).on('changeDate', function(e) {
