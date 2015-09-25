@@ -341,7 +341,7 @@ def target(request):
         lastmonth = lastmonth.strftime('%b-%y')
 
         if 'area' in request.GET:
-            area = request.GET['area'].replace(" ", "_")
+            area = request.GET['area']
             params['area'] = request.GET['area']
             filter_query = "residence_area='%s' AND " % area
             filter_query2 = "AND area = '%s'" % area

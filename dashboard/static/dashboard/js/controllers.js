@@ -2749,7 +2749,7 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 		for (var i in data.sp.last_month) {
 			var ob = data.sp.last_month[i]
 			if (ob.status == 'D') {
-				sp_chart_data.rows[0].c[2].v -= ob.count
+				// sp_chart_data.rows[0].c[2].v -= ob.count
 			} else if (ob.status == 'S') {
 				sp_chart_data.rows[0].c[1].v += ob.count
 			} else if (ob.status == 'N') {
@@ -2759,7 +2759,7 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 		for (var i in data.sp.this_month) {
 			var ob = data.sp.this_month[i]
 			if (ob.status == 'D') {
-				sp_chart_data.rows[1].c[2].v -= ob.count
+				// sp_chart_data.rows[1].c[2].v -= ob.count
 			} else if (ob.status == 'S') {
 				sp_chart_data.rows[1].c[1].v += ob.count
 			} else if (ob.status == 'N') {
@@ -3022,6 +3022,8 @@ function setupWeeklyFOSubmission($scope, $http) {
 	$scope.end_date = ''
 	$scope.title = 'FO CommCare Submission';
 	$('#datepicker-weekly-fo-submission').datepicker({
+		orientation: 'auto',
+		format: 'yyyy/mm/dd',
 		weekStart: 1
 	}).on('changeDate', function(e) {
 		if (e.target.id == 'date-picker-weekly-start') {
@@ -3198,6 +3200,8 @@ function setupChallengeAction($scope, $http) {
 	$scope.area = '';
 
 	$('#datepicker-challenge').datepicker({
+		orientation: 'auto',
+		format: 'yyyy/mm/dd',
 		weekStart: 1
 	}).on('changeDate', function(e) {
 		if (e.target.id == 'date-picker-challenge-start') {
