@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-25
+ * @Last Modified 2015-09-27
  */
 
 'use strict';
@@ -190,6 +190,10 @@ dashboardControllers.controller('DashboardOpReportCtrl', ['$scope', '$routeParam
 
 dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams', '$http',
 	function($scope, $routeParams, $http) {
+		$scope.sortHeader = '';
+		$scope.params = {
+			page: 1
+		}
 		// Set title
 		var url;
 		if ($routeParams.data_type == 'sale') {
@@ -226,7 +230,7 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 			var type = event.target.getAttribute("value");
 			url = "../api/product_margin/" + type;
 			$scope.type = '- ' + type;
-			retriveAndDrawDataTable(url, 1, 10, $http, $scope, $('#data-table-paginator'));
+			retriveAndDrawDataTable(url, $scope.params, 10, $http, $scope, $('#data-table-paginator'));
 		});
 
 		// setup paginator
@@ -234,7 +238,8 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 			bootstrapMajorVersion: 3,
 			useBootstrapTooltip: true,
 			onPageClicked: function(e, originalEvent, type, page) {
-				retriveAndDrawDataTable(url, page, 10, $http, $scope, $('#data-table-paginator'));
+				$scope.params.page = page
+				retriveAndDrawDataTable(url, $scope.params, 10, $http, $scope, $('#data-table-paginator'));
 			},
 			itemContainerClass: function(type, page, current) {
 				return (page === current) ? "active" : "pointer-cursor";
@@ -242,7 +247,15 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 		}
 
 		$('#data-table-paginator').bootstrapPaginator(options);
-		retriveAndDrawDataTable(url, 1, 10, $http, $scope, $('#data-table-paginator'))
+		retriveAndDrawDataTable(url, $scope.params, 10, $http, $scope, $('#data-table-paginator'))
+
+		$scope.reorder = function(sortHeader){
+			$scope.sortHeader = sortHeader;
+			var orderingItem = $scope.sortHeader.replace(/\s+/g, '_').toLowerCase()
+			$scope.params['ordering'] = orderingItem;
+			retriveAndDrawDataTable(url, $scope.params, 10, $http, $scope, $('#data-table-paginator'));
+		}
+
 
 	}
 ]);
@@ -363,12 +376,12 @@ dashboardControllers.controller('DashboardExportCtrl', ['$scope', '$http',
 /**
  * Helper function for retriving data
  */
-function retriveAndDrawDataTable(url, page_num, page_size, $http, $scope, table) {
+function retriveAndDrawDataTable(url, params, page_size, $http, $scope, table) {
 	// add page number to http get parameter
-	url = url + '?page=' + page_num;
+	// url = url + '?page=' + page_num;
 
 	// retrive data
-	$http.get(url).success(function(data) {
+	$http.get(appendParamsToUrl(url, params)).success(function(data) {
 		var header_structure = [];
 		for (var k in data.results[0]) {
 			header_structure.push({
@@ -386,9 +399,9 @@ function retriveAndDrawDataTable(url, page_num, page_size, $http, $scope, table)
 		$scope.headers = header_structure;
 		$scope.sales = data.results;
 		$scope.z = data.count;
-		$scope.x = (page_num - 1) * page_size + 1;
-		if (page_num * page_size < data.count) {
-			$scope.y = page_num * page_size;
+		$scope.x = (params.page - 1) * page_size + 1;
+		if (params.page * page_size < data.count) {
+			$scope.y = params.page * page_size;
 		} else {
 			$scope.y = data.count;
 		}
@@ -1315,14 +1328,14 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			interpolateNulls: true,
 			vAxes: {
 				0: {
-					title: "SKU('000)",
+					title: "RSV('000)",
 					format: '#,###',
 					// gridlines: {
 					// 	"count": 10
 					// }
 				},
 				1: {
-					title: "RSV(php'000)",
+					title: "SKU(php'000)",
 					format: '#,###',
 					// gridlines: {
 					// 	"count": 10
@@ -1365,7 +1378,7 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			if (row_index >= chart_data.rows.length) {
 				continue;
 			}
-			chart_data.rows[row_index].c[col_index].v = Math.round(data['sku'][i].inner_bags_sum / 1000);
+			chart_data.rows[row_index].c[col_index].v = data['sku'][i].inner_bags_sum / 1000;
 
 		}
 
@@ -2027,9 +2040,9 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 				}
 			},
 			hAxis: {
-				textStyle: {
-					fontSize: 8
-				}
+				// textStyle: {
+				// 	fontSize: 8
+				// }
 			},
 			legend: {
 				position: 'top',
@@ -2137,9 +2150,9 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 				}
 			},
 			hAxis: {
-				textStyle: {
-					fontSize: 7
-				}
+				// textStyle: {
+				// 	fontSize: 7
+				// }
 			},
 			legend: {
 				position: 'top',

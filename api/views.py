@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-25
+    Date last modified: 2015-09-27
     Python Version: 2.7.6
 '''
 
@@ -36,8 +36,9 @@ def index(request):
 
 # Rest Framework API for models, to be used to display original table
 class SaleViewSet(viewsets.ModelViewSet):
-    filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('id', "area", "stockpoint_name", )
+    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,)
+    filter_fields = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "uplifter_id", "uplifter_name",)
+    ordering = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "uplifter_id", "uplifter_name",)
     queryset = Sale.objects.using('projectbloom_data').all()
     serializer_class = SaleSerializer
     paginate_by = 10
@@ -48,6 +49,9 @@ class SaleViewSet(viewsets.ModelViewSet):
 
 
 class DeliveryViewSet(viewsets.ModelViewSet):
+    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,)
+    filter_fields = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "product", )
+    ordering = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "product", )
     queryset = Delivery.objects.using('projectbloom_data').all()
     serializer_class = DeliverySerializer
     paginate_by = 10
@@ -58,6 +62,9 @@ class DeliveryViewSet(viewsets.ModelViewSet):
 
 
 class EntrepreneurViewSet(viewsets.ModelViewSet):
+    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,)
+    filter_fields = ('id', "area", "name", "role", )
+    ordering = ('id', "area", "name", "role", )
     queryset = Entrepreneur.objects.using('projectbloom_data').all()
     serializer_class = EntrepreneurSerializer
     paginate_by = 10
@@ -68,6 +75,9 @@ class EntrepreneurViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(generics.ListAPIView):
+    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,)
+    filter_fields = ('id', 'product', 'company', 'type',)
+    ordering = ('id', 'product', 'company', 'type',)
     serializer_class = ProductSerializer
     paginate_by = 10
     paginate_by_param = 'page_size'
@@ -1637,7 +1647,6 @@ def generate_sp_status_query(periods):
     query += """
     );
     """
-    print query
     return query
 
 # helper function for generating bloom overview query
