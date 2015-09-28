@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-27
+ * @Last Modified 2015-09-28
  */
 
 'use strict';
@@ -278,11 +278,12 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 		params['sd'] = four_months_ago.format('YYYY-MM-DD');
 		params['ed'] = today.format('YYYY-MM-DD');
 
-		$('.input-daterange').datepicker({
+		$('#datepicker-month').datepicker({
 			orientation: 'auto',
 			format: 'yyyy/mm/dd',
+			viewMode: "months",
+			minViewMode: 'months',
 			startDate: '2014/06/01',
-
 		}).on('changeDate', function(e) {
 			switch (e.target.id) {
 				case 'date-picker-start':
@@ -296,9 +297,33 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 			// retrive pivot table
 			retriveAndDrawPivotTable(url, params, headers, $http, $scope);
 		});
+
+		$('#datepicker-week').datepicker({
+			orientation: 'auto',
+			format: 'yyyy/mm/dd',
+			viewMode: "days",
+			minViewMode: 'days',
+			startDate: '2014/06/01',
+
+		}).on('changeDate', function(e) {
+			switch (e.target.id) {
+				case 'date-picker-start':
+					params['sd'] = e.format("yyyy-mm-dd");
+					break;
+				case 'date-picker-end':
+					params['ed'] = e.format("yyyy-mm-dd");
+					break;
+			}
+
+
+			// retrive pivot table
+			retriveAndDrawPivotTable(url, params, headers, $http, $scope);
+		});
+		$('#datepicker-week').hide()
+
 		// set default to 4 months agon to today
-		$('.input-daterange #date-picker-start').datepicker('update', four_months_ago.toDate());
-		$('.input-daterange #date-picker-end').datepicker('update', today.toDate());
+		$('#datepicker-month #date-picker-start').datepicker('update', four_months_ago.toDate());
+		$('#datepicker-month #date-picker-end').datepicker('update', today.toDate());
 
 		// configure the url according to pivot table type
 		switch ($routeParams['table_type']) {
@@ -335,18 +360,21 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 			$scope.type = event.target.getAttribute("value");
 			switch ($scope.type) {
 				case 'monthly':
-					$('.input-daterange #date-picker-start').datepicker('update', four_months_ago.toDate());
-					$('.input-daterange #date-picker-end').datepicker('update', today.toDate());
+					$('#datepicker-month').show()
+					$('#datepicker-month #date-picker-start').datepicker('update', four_months_ago.toDate());
+					$('#datepicker-month #date-picker-end').datepicker('update', today.toDate());
 					params['sd'] = four_months_ago.format('YYYY-MM-DD');
 					params['ed'] = today.format('YYYY-MM-DD');
+					$('#datepicker-week').hide();
 					break;
 				case 'weekly':
+					$('#datepicker-week').show()
 					// set default to 4 weeks agon to today
-					$('.input-daterange #date-picker-start').datepicker('update', four_weeks_ago.toDate());
-					$('.input-daterange #date-picker-end').datepicker('update', today.toDate());
+					$('#datepicker-week #date-picker-start').datepicker('update', four_weeks_ago.toDate());
+					$('#datepicker-week #date-picker-end').datepicker('update', today.toDate());
 					params['sd'] = four_weeks_ago.format('YYYY-MM-DD');
 					params['ed'] = today.format('YYYY-MM-DD');
-
+					$('#datepicker-month').hide()
 					break;
 			}
 			retriveAndDrawPivotTable(url, params, headers, $http, $scope);
@@ -427,7 +455,7 @@ function retriveAndDrawPivotTable(url, params, headers, $http, $scope) {
 	// send http get request
 	$http.get(appendParamsToUrl(url, params)).success(function(data) {
 		if (data.data.length > 0) {
-			console.log(data)
+			$scope.color_code = {}
 			$('#dataTable').show();
 			$('#paginator-div').show();
 			$('#no-data-sign').hide();
