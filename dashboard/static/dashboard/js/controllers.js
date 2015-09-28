@@ -192,9 +192,9 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 	function($scope, $routeParams, $http) {
 		$scope.sortHeader = '';
 		$scope.params = {
-			page: 1
-		}
-		// Set title
+				page: 1
+			}
+			// Set title
 		var url;
 		if ($routeParams.data_type == 'sale') {
 			$scope.title = 'Sale Table'
@@ -249,7 +249,7 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 		$('#data-table-paginator').bootstrapPaginator(options);
 		retriveAndDrawDataTable(url, $scope.params, 10, $http, $scope, $('#data-table-paginator'))
 
-		$scope.reorder = function(sortHeader){
+		$scope.reorder = function(sortHeader) {
 			$scope.sortHeader = sortHeader;
 			var orderingItem = $scope.sortHeader.replace(/\s+/g, '_').toLowerCase()
 			$scope.params['ordering'] = orderingItem;
@@ -369,7 +369,7 @@ dashboardControllers.controller('DashboardPivotCtrl', ['$scope', '$routeParams',
 					break;
 				case 'weekly':
 					$('#datepicker-week').show()
-					// set default to 4 weeks agon to today
+						// set default to 4 weeks agon to today
 					$('#datepicker-week #date-picker-start').datepicker('update', four_weeks_ago.toDate());
 					$('#datepicker-week #date-picker-end').datepicker('update', today.toDate());
 					params['sd'] = four_weeks_ago.format('YYYY-MM-DD');
@@ -1346,24 +1346,36 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			series: {
 				0: {
 					type: 'bars',
-					targetAxisIndex: 1
+					targetAxisIndex: 0
 				},
 				1: {
 					type: 'bars',
+					targetAxisIndex: 0
+				},
+				2: {
+					type: 'lines',
+					targetAxisIndex: 1
+				},
+				3: {
+					type: 'lines',
+					targetAxisIndex: 1
+				},
+				4: {
+					type: 'lines',
 					targetAxisIndex: 1
 				}
 			},
 			interpolateNulls: true,
 			vAxes: {
 				0: {
-					title: "RSV('000)",
+					title: "SKU('000)",
 					format: '#,###',
 					// gridlines: {
 					// 	"count": 10
 					// }
 				},
 				1: {
-					title: "SKU(php'000)",
+					title: "RSV(php'000)",
 					format: '#,###',
 					// gridlines: {
 					// 	"count": 10
@@ -2889,6 +2901,7 @@ function initializeTab($http, $scope, tab, last_fully_updated_month, tabSelectLi
 
 	// add listener after ng-repeat finish render the tabs
 	$scope.$on('ngRepeatFinished', function(ngRepeatFinishedEvent) {
+		$('.fo-area-selection').unbind()
 		$('.fo-area-selection').each(
 			function() {
 				$(this).click(
@@ -3371,46 +3384,118 @@ function setupChallengeAction($scope, $http) {
  */
 function setupDeliveryReport($scope, $http) {
 	$scope.title = 'MTD Delivery Report';
-	$http.get('../api/ops-report/delivery-report').success(function(data) {
-		console.log(data);
-		var delivery_report_header = ['Area', 'Stockpoint ID', 'Stockpoint Name', 'Product', data.month.pre_month, data.month.this_month]
-		var delivery_report_content = {};
-
-		var pre_month = data.month.pre_month;
-		var this_month = data.month.this_month;
-
-		for (var i in data.pre_month) {
-			var id = data.pre_month[i]['Stockpoint ID'] + data.pre_month[i]['Product']
-			delivery_report_content[id] = {
-				'Area': data.pre_month[i]['Area'],
-				'Stockpoint ID': data.pre_month[i]['Stockpoint ID'],
-				'Stockpoint Name': data.pre_month[i]['Stockpoint Name'],
-				'Product': data.pre_month[i]['Product']
+	initializeTab($http, $scope, null, null, function() {
+		$(this).tab('show');
+		var id0 = this.id.split('-')[0];
+		var id1 = this.id.split('-')[1];
+		if (id0 == 'fo') {
+			$scope.params = {
+				fo: id1
 			}
-			delivery_report_content[id][pre_month] = data.pre_month[i]['Sum'];
-			delivery_report_content[id][this_month] = 0;
-		}
-
-		for (var i in data.this_month) {
-			var id = data.this_month[i]['Stockpoint ID'] + data.this_month[i]['Product']
-			if (id in delivery_report_content) {
-				delivery_report_content[id][this_month] = data.this_month[i]['Sum'];
-			} else {
-				delivery_report_content[id] = {
-					'Area': data.this_month[i]['Area'],
-					'Stockpoint ID': data.this_month[i]['Stockpoint ID'],
-					'Stockpoint Name': data.this_month[i]['Stockpoint Name'],
-					'Product': data.this_month[i]['Product']
-				}
-				delivery_report_content[id][pre_month] = 0;
-				delivery_report_content[id][this_month] = data.this_month[i]['Sum'];
+			$scope.selected_fo = (id1 + ",");
+			$scope.area = "Overall";
+		} else if (id0 == 'bloom') {
+			$scope.params = {}
+			$scope.selected_fo = "Bloom,";
+			$scope.area = "Overall";
+		} else {
+			$scope.params = {
+				area: id1
 			}
+			$scope.selected_fo = (id0 + ",");
+			$scope.area = id1;
 		}
-		delivery_report_content = sortObjectByKey(delivery_report_content);
-		$scope.delivery_report_content = delivery_report_content
-		$scope.delivery_report_header = delivery_report_header
-
+		$scope.$digest();
+	}, function() {
+		// post render, set the params to initialize the params variable in scope to activate the watch
+		$scope.params = {};
+		$scope.$digest();
+		$scope.selected_fo = "Bloom,";
+		$scope.area = "Overall";
 	});
+
+	// add watch to params
+	$scope.$watch(
+		function(scope) {
+			return scope.params
+		},
+		function(newValue, oldValue) {
+			if (JSON.stringify(newValue) === JSON.stringify(oldValue)) {
+				return;
+			}
+
+			fo_area_change();
+
+		}
+	);
+	var fo_area_change = function() {
+		$http.get(appendParamsToUrl('../api/ops-report/delivery-report', $scope.params)).success(function(data) {
+			var delivery_report_header = ['Area', 'Stockpoint ID', 'Stockpoint Name', 'Product', data.month.pre_month, data.month.this_month]
+			var delivery_report_content = {};
+
+			var summary_header = ['Company', data.month.pre_month, data.month.this_month]
+			var summary_content = {
+				mars_total: ['Mars Total', 0, 0],
+				wrigley_total: ['Wrigley Total', 0, 0],
+				total: ['Total', 0, 0]
+			}
+
+			var pre_month = data.month.pre_month;
+			var this_month = data.month.this_month;
+
+			for (var i in data.pre_month) {
+				var id = data.pre_month[i]['Stockpoint ID'] + data.pre_month[i]['Product']
+				delivery_report_content[id] = {
+					'Area': data.pre_month[i]['Area'],
+					'Stockpoint ID': data.pre_month[i]['Stockpoint ID'],
+					'Stockpoint Name': data.pre_month[i]['Stockpoint Name'],
+					'Product': data.pre_month[i]['Product']
+				}
+				delivery_report_content[id][pre_month] = data.pre_month[i]['Sum'];
+				delivery_report_content[id][this_month] = 0;
+
+				// update total for each company, pre month
+				if (getCompanyName(data.pre_month[i]['Product']) == 'mars') {
+					summary_content.mars_total[1] += data.pre_month[i]['Sum'];
+					summary_content.total[1] += data.pre_month[i]['Sum'];
+				} else {
+					summary_content.wrigley_total[1] += data.pre_month[i]['Sum'];
+					summary_content.total[1] += data.pre_month[i]['Sum'];
+				}
+			}
+
+			for (var i in data.this_month) {
+				var id = data.this_month[i]['Stockpoint ID'] + data.this_month[i]['Product']
+				if (id in delivery_report_content) {
+					delivery_report_content[id][this_month] = data.this_month[i]['Sum'];
+				} else {
+					delivery_report_content[id] = {
+						'Area': data.this_month[i]['Area'],
+						'Stockpoint ID': data.this_month[i]['Stockpoint ID'],
+						'Stockpoint Name': data.this_month[i]['Stockpoint Name'],
+						'Product': data.this_month[i]['Product']
+					}
+					delivery_report_content[id][pre_month] = 0;
+					delivery_report_content[id][this_month] = data.this_month[i]['Sum'];
+				}
+
+				// update total for each company, this month
+				if (getCompanyName(data.this_month[i]['Product']) == 'mars') {
+					summary_content.mars_total[2] += data.this_month[i]['Sum'];
+					summary_content.total[2] += data.this_month[i]['Sum'];
+				} else {
+					summary_content.wrigley_total[2] += data.this_month[i]['Sum'];
+					summary_content.total[2] += data.this_month[i]['Sum'];
+				}
+			}
+			delivery_report_content = sortObjectByKey(delivery_report_content);
+			$scope.delivery_report_content = delivery_report_content
+			$scope.delivery_report_header = delivery_report_header
+			$scope.summary_content = summary_content;
+
+		});
+	}
+
 }
 
 /**
@@ -3529,6 +3614,25 @@ function timeseriersStackedColumnChart($scope, chart_name, options, data, last_f
 	$scope[chart_name].data = chart_data;
 	$scope[chart_name].options = options;
 
+}
+
+/**
+ * Helper function for getting the company name with product name given
+ */
+function getCompanyName(product) {
+	switch (product) {
+		case 'DM 50+10':
+		case 'JF 50+10':
+		case 'Sugus 34':
+		case 'Skittles 15g':
+		case 'DM sticks 2+1':
+			return 'wrigley';
+			break;
+		case 'Snickers 20g':
+		case 'M&Ms 14.5g':
+			return 'mars';
+			break;
+	}
 }
 
 function get_last_three_month(selected_month) {

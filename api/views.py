@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-27
+    Date last modified: 2015-09-28
     Python Version: 2.7.6
 '''
 
@@ -634,6 +634,20 @@ def action_plan(request):
 @login_required(login_url='/login/')
 def delivery_report(request):
     if request.method == 'GET':
+        if 'area' in request.GET:
+            filter_query = "AND area = '%s'" % request.GET['area']
+        elif 'fo' in request.GET:
+            areas = execute_query("""
+                SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
+            filter_query = " AND ("
+            for i in areas:
+                filter_query += "area='%s' OR " % i['area']
+            # change last logic operator to and
+            filter_query = filter_query[:-3]
+            filter_query += ")"
+        else:
+            filter_query = ''
+
         now = datetime.datetime.now()
         pre_month = get_pre_month(now)
         now = now.strftime("%b-%y")
@@ -656,9 +670,10 @@ def delivery_report(request):
             delivery
         WHERE
             DATE_FORMAT(date, '%%b-%%y') = '%s'
+            %s
         GROUP BY stockpoint_name
         ORDER By area, stockpoint_name, product
-        """ % pre_month
+        """ % (pre_month, filter_query)
 
         result['pre_month'] = execute_query(query1)
 
@@ -686,9 +701,10 @@ def delivery_report(request):
             WHERE
                 s.entrepreneur_code = e.id
                 and DATE_FORMAT(s.date_of_visit, '%%b-%%y')='%s'
+                %s
             GROUP BY entrepreneur_code , month
             ORDER BY e.area, e.name
-            """ % (product['product'], product['product'].replace (" ", "_"), now)
+            """ % (product['product'], product['product'].replace (" ", "_"), now, filter_query)
 
             try:
                 result['this_month'].extend(execute_query(query))

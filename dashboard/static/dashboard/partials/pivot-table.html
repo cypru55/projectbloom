@@ -40,22 +40,27 @@
                 </div>
                 <div sytle="overflow:auto;">
                     <table class="table color-legend" id="sp-color-legend" hidden>
+
                         <thead>
                             <tr>
-                                <th>New SP</th>
+                                <th style="background-color:{{new_sp_color}}">New SP <span class="glyphicon glyphicon-arrow-right pull-right"></span></th>
                             
-                                <th>Stable SP</th>
+                                <th style="background-color:{{stable_sp_color}}">Stable SP<span class="glyphicon glyphicon-arrow-right pull-right"></th>
                             
-                                <th>Dropped SP</th>
+                                <th style="background-color:{{dropped_sp_color}}">Dropped SP<span class="glyphicon glyphicon-arrow-right pull-right"></th>
+
+                                <th style="background-color:{{stable_sp_color}}">Stable SP</th>                       
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="col-md-2" style="background-color:{{new_sp_color}}"></td>
+                                <td class="col-md-2" >With &lt; 3 months of experience</td>
                            
-                                <td class="col-md-2" style="background-color:{{stable_sp_color}}"></td>
+                                <td class="col-md-2" >With &ge; 3 months of experience</td>
                            
-                                <td class="col-md-2" style="background-color:{{dropped_sp_color}}"></td>
+                                <td class="col-md-2" >Stopped supplying to uplifters</td>
+
+                                <td class="col-md-2" >Started supplying again</td>
                             </tr>
                         </tbody>
                     </table>
@@ -63,24 +68,28 @@
                     <table class="table color-legend" id="ul-color-legend" hidden>
                         <thead>
                             <tr>
-                                <th>New UL</th>
+                                <th style="background-color:{{new_ul_color}}">New UL<span class="glyphicon glyphicon-arrow-right pull-right"></span></th>
                            
-                                <th>Stable UL(Active)</th>
+                                <th style="background-color:{{stable_ul_a_color}}">Stable UL(Active)<span class="glyphicon glyphicon-arrow-right pull-right"></span></th>
                             
-                                <th>Stable UL(Inactive)</th>
+                                <th style="background-color:{{stable_ul_ia_color}}">Stable UL(Inactive)<span class="glyphicon glyphicon-arrow-right pull-right"></span></th>
                           
-                                <th>Dropped UL</th>
+                                <th style="background-color:{{dropped_ul_color}}">Dropped UL<span class="glyphicon glyphicon-arrow-right pull-right"></span></th>
+
+                                <th style="background-color:{{stable_ul_a_color}}">Stable UL(Active)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="col-md-2" style="background-color:{{new_ul_color}}"></td>
+                                <td class="col-md-2" >With &lt; 3 months of experience</td>
                             
-                                <td class="col-md-2" style="background-color:{{stable_ul_a_color}}"></td>
+                                <td class="col-md-2" >With &ge; 3 months of experience</td>
                             
-                                <td class="col-md-2" style="background-color:{{stable_ul_ia_color}}"></td>
+                                <td class="col-md-2" >Stopped selling for a short period</td>
                            
-                                <td class="col-md-2" style="background-color:{{dropped_ul_color}}"></td>
+                                <td class="col-md-2" >Stopped for &ge;3 consecutive months</td>
+
+                                <td class="col-md-2" >Started selling again</td>
                             </tr>
                         </tbody>
                     </table>
