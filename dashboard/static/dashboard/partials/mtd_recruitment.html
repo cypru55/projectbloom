@@ -24,8 +24,8 @@
             <div class="panel-heading">
                 {{area}} Recruitment (MTD) 
             </div>
-            <div class="panel-body">
-                <div google-chart chart="overviewChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="recruitment-mtd">
+                <div google-chart chart="overviewChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'recruitment-mtd')"></div>
             </div>
         </div>
     </div>
@@ -33,8 +33,8 @@
         <div class="panel panel-default">
             <div class="panel-heading">{{area}} Uplifter Overview Chart</div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="ulOverviewChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="ulOverviewChartObject">
+                <div google-chart chart="ulOverviewChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'ulOverviewChartObject')"></div>
             </div>
         </div>
      </div>
@@ -42,8 +42,8 @@
         <div class="panel panel-default">
             <div class="panel-heading">{{area}} Stockpoint Overview Chart</div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="spOverviewChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="spOverviewChartObject">
+                <div google-chart chart="spOverviewChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'spOverviewChartObject')"></div>
             </div>
         </div>
    </div>

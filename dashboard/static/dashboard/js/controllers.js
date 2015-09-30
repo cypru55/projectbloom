@@ -37,7 +37,7 @@ var color = {
 
 dashboardControllers.controller('DashboardMonthlyCtrl', ['$scope', '$routeParams', '$http',
 	function($scope, $routeParams, $http) {
-
+		$scope.readyHandler = chartReadyHandler;
 
 		$http.get('../api/last-full-data-month').success(function(data) {
 			var last_fully_updated_month = data[0].value;
@@ -100,6 +100,8 @@ dashboardControllers.controller('DashboardMonthlyCtrl', ['$scope', '$routeParams
 
 dashboardControllers.controller('DashboardShareoutCtrl', ['$scope', '$http',
 	function($scope, $http) {
+		$scope.readyHandler = chartReadyHandler;
+
 		$http.get('../api/last-full-data-month').success(function(data) {
 			var last_fully_updated_month = data[0].value;
 			// initialize $scope variables
@@ -126,6 +128,8 @@ dashboardControllers.controller('DashboardQuaterlyCtrl', ['$scope', '$http',
 
 dashboardControllers.controller('DashboardRecruitmentMTDCtrl', ['$scope', '$http',
 	function($scope, $http) {
+		$scope.readyHandler = chartReadyHandler;
+		
 		// since it is mtd, we use now as last_fully_updated_month
 		var until_month = moment().format('MMM-YY');
 		var tabSelectListener = function() {
@@ -3707,29 +3711,47 @@ function parseJsonToCsv($http, url, file_name) {
 	$http.get(url).success(function(data) {
 		var scv_str = Papa.unparse(data.results)
 
-		var blob = new Blob([scv_str], { type: 'text/csv;charset=utf-8;' });
-        if (navigator.msSaveBlob) { // IE 10+
-            navigator.msSaveBlob(blob, filename);
-        } else {
-            var link = document.createElement("a");
-            if (link.download !== undefined) { // feature detection
-                // Browsers that support HTML5 download attribute
-                var url = URL.createObjectURL(blob);
-                link.setAttribute("href", url);
-                link.setAttribute("download", file_name);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-        }
+		var blob = new Blob([scv_str], {
+			type: 'text/csv;charset=utf-8;'
+		});
+		if (navigator.msSaveBlob) { // IE 10+
+			navigator.msSaveBlob(blob, filename);
+		} else {
+			var link = document.createElement("a");
+			if (link.download !== undefined) { // feature detection
+				// Browsers that support HTML5 download attribute
+				var url = URL.createObjectURL(blob);
+				link.setAttribute("href", url);
+				link.setAttribute("download", file_name);
+				link.style.visibility = 'hidden';
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			}
+		}
 
 	});
 }
-
-/**
- * Return an Object sorted by it's Key
- */
+var chartReadyHandler = function(chartWrapper, div_id) {
+		var url = chartWrapper.getChart().getImageURI()
+		var download_link_id = div_id + '_download';
+		var $download = $('<a/>', {
+			id: download_link_id,
+			href: url,
+			target: "_blank",
+			download: div_id + ".png",
+			class: "button btn pull-right",
+			text: "Download"
+		})
+		if ($('#' + download_link_id).length <= 0) {
+			$('#' + div_id).append($download);
+		} else {
+			$('#' + download_link_id).replaceWith($download);
+		}
+	}
+	/**
+	 * Return an Object sorted by it's Key
+	 */
 var sortObjectByKey = function(obj) {
 	var keys = [];
 	var sorted_obj = {};

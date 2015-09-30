@@ -33,8 +33,8 @@
         <div class="panel panel-default">
             <div class="panel-heading">{{selected_area}} Recruitment</div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="overviewChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="recruitment">
+                <div google-chart chart="overviewChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'recruitment')"></div>
             </div>
         </div>
     </div>
@@ -42,8 +42,8 @@
         <div class="panel panel-default">
             <div class="panel-heading">{{selected_area}} 3 Month Purchase Value</div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="threeMonthPurchaseValueChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="threeMonthPurchaseValueChartObject">
+                <div google-chart chart="threeMonthPurchaseValueChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'threeMonthPurchaseValueChartObject')"></div>
             </div>
         </div>
     </div>
@@ -52,8 +52,8 @@
         <div class="panel panel-default">
             <div class="panel-heading">{{selected_area}} 3 Month Stockpoint Income</div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="threeMonthSPIncomeChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="threeMonthSPIncomeChartObject">
+                <div google-chart chart="threeMonthSPIncomeChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'threeMonthSPIncomeChartObject')"></div>
             </div>
         </div>
     </div>
@@ -75,8 +75,8 @@
                 </div>
                 </div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="spProductDetailChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="spProductDetailChartObject">
+                <div google-chart chart="spProductDetailChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'spProductDetailChartObject')"></div>
             </div>
         </div>
     </div>
@@ -85,8 +85,8 @@
         <div class="panel panel-default">
             <div class="panel-heading">{{selected_area}} Uplifter {{selected_month}} Income and Estimated Man-hours</div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="ulIncomeAndEMHObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="ulIncomeAndEMHObject">
+                <div google-chart chart="ulIncomeAndEMHObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'ulIncomeAndEMHObject')"></div>
             </div>
         </div>
     </div>
@@ -94,8 +94,8 @@
         <div class="panel panel-default">
             <div class="panel-heading">{{selected_area}} {{selected_month}} vs {{previous_month}} Most Improved # of Days Worked</div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="improvedChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="improvedChartObject">
+                <div google-chart chart="improvedChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'improvedChartObject')"></div>
             </div>
         </div>
     </div>

@@ -25,8 +25,9 @@
                 Recruitment
             </div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="overviewChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id= "overviewChartObject">
+                <div google-chart chart="overviewChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'overviewChartObject')"></div>
+
             </div>
             <!-- /.panel-body -->
         </div>
@@ -38,47 +39,47 @@
                 Uplifter Retention Chart
             </div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="ulRententionChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="ulRententionChartObject">
+                <div google-chart chart="ulRententionChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'ulRententionChartObject')"></div>
             </div>
             <!-- /.panel-body -->
         </div>
         <!-- /.panel -->
     </div>
     <div class="col-lg-12">
-        <div class="panel panel-default">
+        <div class="panel panel-default" >
             <div class="panel-heading">
                 Stockpoint Retention Chart
             </div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="spRetentionChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="spRetentionChartObject">
+                <div google-chart chart="spRetentionChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'spRetentionChartObject')"></div>
             </div>
             <!-- /.panel-body -->
         </div>
         <!-- /.panel -->
     </div>
     <div class="col-lg-12">
-        <div class="panel panel-default">
+        <div class="panel panel-default" >
             <div class="panel-heading">
                 Tenure Chart
             </div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="ulTenureChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="ulTenureChartObject">
+                <div google-chart chart="ulTenureChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'ulTenureChartObject')"></div>
             </div>
             <!-- /.panel-body -->
         </div>
         <!-- /.panel -->
     </div>
     <div class="col-lg-12">
-        <div class="panel panel-default">
+        <div class="panel panel-default" >
             <div class="panel-heading">
                 Estimated Income/Hour For Stable Uplifters
             </div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="estimatedIPHForSULChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="estimatedIPHForSULChartObject">
+                <div google-chart chart="estimatedIPHForSULChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'estimatedIPHForSULChartObject')"></div>
             </div>
             <!-- /.panel-body -->
         </div>
@@ -90,25 +91,25 @@
 <div id="tab2" class="row">
     <div class="col-lg-12">
         <div class="panel panel-default">
-            <div class="panel-heading">
+            <div class="panel-heading" >
                 Business Contribution
             </div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="bisnuessContribChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="bisnuessContribChartObject">
+                <div google-chart chart="bisnuessContribChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'bisnuessContribChartObject')"></div>
             </div>
             <!-- /.panel-body -->
         </div>
         <!-- /.panel -->
     </div>
     <div class="col-lg-12">
-        <div class="panel panel-default">
+        <div class="panel panel-default" >
             <div class="panel-heading">
                 Cases Sold
             </div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="caseSoldChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="caseSoldChartObject">
+                <div google-chart chart="caseSoldChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'caseSoldChartObject')"></div>
             </div>
             <!-- /.panel-body -->
         </div>
@@ -116,13 +117,13 @@
     </div>
 
      <div class="col-lg-12">
-        <div class="panel panel-default">
+        <div class="panel panel-default" >
             <div class="panel-heading">
                 Cases Sold By Area
             </div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="caseSoldByAreaChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="caseSoldByAreaChartObject">
+                <div google-chart chart="caseSoldByAreaChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'caseSoldByAreaChartObject')"></div>
             </div>
             <!-- /.panel-body -->
         </div>
@@ -134,21 +135,21 @@
                 Stockpoints by Area
             </div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="stockpointByAreaChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="stockpointByAreaChartObject">
+                <div google-chart chart="stockpointByAreaChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'stockpointByAreaChartObject')"></div>
             </div>
             <!-- /.panel-body -->
         </div>
         <!-- /.panel -->
     </div>
     <div class="col-lg-12">
-        <div class="panel panel-default">
+        <div class="panel panel-default" >
             <div class="panel-heading">
                 Uplifters by Area
             </div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="uplifterByAreaChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body" id="uplifterByAreaChartObject">
+                <div google-chart chart="uplifterByAreaChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'uplifterByAreaChartObject')"></div>
             </div>
             <!-- /.panel-body -->
         </div>
@@ -160,8 +161,8 @@
                 Estimated Uplifter Man Hours By Area
             </div>
             <!-- /.panel-heading -->
-            <div class="panel-body">
-                <div google-chart chart="estimatedManHourByAreaChartObject" style="{{cssStyle}}"></div>
+            <div class="panel-body"  id="estimatedManHourByAreaChartObject">
+                <div google-chart chart="estimatedManHourByAreaChartObject" style="{{cssStyle}}" agc-on-ready="readyHandler(chartWrapper,'estimatedManHourByAreaChartObject')"></div>
             </div>
             <!-- /.panel-body -->
         </div>
