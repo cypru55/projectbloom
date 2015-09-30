@@ -2,12 +2,12 @@
     File name: serializers.py
     Author: Liu Tuo
     Date created: 2015-08-11
-    Date last modified: 2015-09-04
+    Date last modified: 2015-09-30
     Python Version: 2.7.6
 '''
 
 from rest_framework import serializers
-from api.models import Sale, Delivery, Entrepreneur, Product, EntrepreneurStatus
+from api.models import Sale, Delivery, Entrepreneur, Product, EntrepreneurStatus, SPPrescreening, ULPrescreening
 
 class EntrepreneurSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
@@ -39,3 +39,13 @@ class EntrepreneurStatusSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = EntrepreneurStatus
 		fields = ('entrepreneur_id', 'name', 'type', 'month', 'status')
+
+class SPPrescreeningSerializer(serializers.HyperlinkedModelSerializer):
+	class Meta:
+		model = SPPrescreening
+		fields = ('username', 'date_of_interview', 'residence_area', 'name_applicant', 'residence_address', 'contact_number', 'training_areas', 'languages')
+
+class ULPrescreeningSerializer(serializers.HyperlinkedModelSerializer):
+	class Meta:
+		model = ULPrescreening
+		fields = ('username', 'date_of_interview', 'residence_area', 'name_applicant', 'residence_address', 'contact_number', 'commitment', 'commitment_days', 'sales_tools', 'sales_tools_others', 'training_areas')

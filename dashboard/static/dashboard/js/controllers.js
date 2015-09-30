@@ -129,7 +129,7 @@ dashboardControllers.controller('DashboardQuaterlyCtrl', ['$scope', '$http',
 dashboardControllers.controller('DashboardRecruitmentMTDCtrl', ['$scope', '$http',
 	function($scope, $http) {
 		$scope.readyHandler = chartReadyHandler;
-		
+
 		// since it is mtd, we use now as last_fully_updated_month
 		var until_month = moment().format('MMM-YY');
 		var tabSelectListener = function() {
@@ -225,6 +225,20 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 
 		} else if ($routeParams.data_type == 'entrepreneur') {
 			$scope.title = 'Entrepreneur Table'
+			$scope.type = "";
+			url = '../api/' + $routeParams.data_type;
+			$('#product-margin-type-selector').hide();
+
+		}
+		else if ($routeParams.data_type == 'ulprescreening') {
+			$scope.title = 'UL Prescreening Table'
+			$scope.type = "";
+			url = '../api/' + $routeParams.data_type;
+			$('#product-margin-type-selector').hide();
+
+		}
+		else if ($routeParams.data_type == 'spprescreening') {
+			$scope.title = 'SP Prescreening Table'
 			$scope.type = "";
 			url = '../api/' + $routeParams.data_type;
 			$('#product-margin-type-selector').hide();

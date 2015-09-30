@@ -18,8 +18,8 @@ from decimal import Decimal
 from rest_framework import viewsets, generics
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
-from api.serializers import SaleSerializer, DeliverySerializer, ProductSerializer, EntrepreneurStatusSerializer, EntrepreneurSerializer
-from api.models import Entrepreneur, Sale, Delivery, Product, EntrepreneurStatus
+from api.serializers import SaleSerializer, DeliverySerializer, ProductSerializer, EntrepreneurStatusSerializer, EntrepreneurSerializer, ULPrescreeningSerializer, SPPrescreeningSerializer
+from api.models import Entrepreneur, Sale, Delivery, Product, EntrepreneurStatus, ULPrescreening, SPPrescreening
 from rest_framework import filters
 import json
 import datetime
@@ -113,6 +113,31 @@ class StatusViewSet(generics.ListAPIView):
             'projectbloom_data').all().filter(type=self.kwargs['type'])
         return queryset
 
+class ULPrescreeningViewSet(viewsets.ModelViewSet):
+    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
+    filter_fields = ('username', 'date_of_interview' ,'name_applicant',)
+    ordering = ('username', 'date_of_interview', 'residence_area', 'name_applicant', 'residence_address', 
+        'contact_number', 'commitment', 'commitment_days', 'sales_tools', 'sales_tools_others', 'training_areas',)
+    search_fields = ('username', 'date_of_interview' ,'name_applicant','residence_area',)
+    queryset = ULPrescreening.objects.using('projectbloom_data').all()
+    serializer_class = ULPrescreeningSerializer
+    paginate_by = 10
+    paginate_by_param = 'page_size'
+    # Set MAX results per page
+    http_method_names = ['get']
+
+class SPPrescreeningViewSet(viewsets.ModelViewSet):
+    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
+    filter_fields = ('username', 'date_of_interview' ,'name_applicant',)
+    ordering = ('username', 'date_of_interview', 'residence_area', 'name_applicant', 'residence_address', 
+        'contact_number', 'training_areas', 'languages',)
+    search_fields = ('username', 'date_of_interview' ,'name_applicant','residence_area',)
+    queryset = SPPrescreening.objects.using('projectbloom_data').all()
+    serializer_class = SPPrescreeningSerializer
+    paginate_by = 10
+    paginate_by_param = 'page_size'
+    # Set MAX results per page
+    http_method_names = ['get']
 
 ################## Pivot Tables #################
 

@@ -2,7 +2,7 @@
     File name: models.py
     Author: Liu Tuo
     Date created: 2015-08-11
-    Date last modified: 2015-09-04
+    Date last modified: 2015-09-30
     Python Version: 2.7.6
 '''
 from django.db import models
@@ -125,3 +125,40 @@ class EntrepreneurStatus(models.Model):
 
     def __str__(self):              # __unicode__ on Python 2
         return self.name
+
+class SPPrescreening(models.Model):
+    username = models.CharField(max_length = 50)
+    date_of_interview = models.DateField()
+    residence_area = models.CharField(max_length = 25)
+    name_applicant = models.CharField(max_length = 50)
+    residence_address = models.CharField(max_length = 200)
+    contact_number = models.CharField(max_length = 50)
+    training_areas = models.CharField(max_length = 100)
+    languages = models.CharField(max_length = 100)
+
+    class Meta:
+       managed = False
+       db_table = 'sp_prescreening'
+
+    def __str__(self):              # __unicode__ on Python 2
+        return self.name_card
+
+class ULPrescreening(models.Model):
+    username = models.CharField(max_length = 50)
+    date_of_interview = models.DateField()
+    residence_area = models.CharField(max_length = 25)
+    name_applicant = models.CharField(max_length = 50)
+    residence_address = models.CharField(max_length = 200)
+    contact_number = models.CharField(max_length = 15)
+    commitment = models.CharField(max_length = 50)
+    commitment_days = models.CharField(max_length = 50)
+    sales_tools = models.CharField(max_length = 100)
+    sales_tools_others = models.CharField(max_length = 100)
+    training_areas = models.CharField(max_length = 100)
+
+    class Meta:
+       managed = False
+       db_table = 'ul_prescreening'
+
+    def __str__(self):              # __unicode__ on Python 2
+        return self.name_card

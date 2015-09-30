@@ -10,13 +10,15 @@
 
 from django.conf.urls import url, include
 from . import views
-from api.views import SaleViewSet, DeliveryViewSet, ProductViewSet, StatusViewSet, EntrepreneurViewSet
+from api.views import SaleViewSet, DeliveryViewSet, ProductViewSet, StatusViewSet, EntrepreneurViewSet, ULPrescreeningViewSet, SPPrescreeningViewSet
 from rest_framework import routers, viewsets
 
 router = routers.DefaultRouter()
 router.register(r'sale', SaleViewSet)
 router.register(r'delivery', DeliveryViewSet)
 router.register(r'entrepreneur', EntrepreneurViewSet)
+router.register(r'ulprescreening', ULPrescreeningViewSet)
+router.register(r'spprescreening', SPPrescreeningViewSet)
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
