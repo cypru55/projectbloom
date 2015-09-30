@@ -1154,6 +1154,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			},
 			seriesType: 'line',
 			series: {},
+			colors:['lightgray','#3366cc', '#dc3912', '#ff9900', '#109618', '#990099', '#0099c6', '#dd4477', '#66aa00', '#b82e2e', '#316395', '#994499', '#22aa99', '#aaaa11', '#6633cc', '#e67300', '#8b0707', '#651067', '#329262', '#5574a6', '#3b3eac', '#b77322', '#16d620', '#b91383', '#f4359e', '#9c5935', '#a9c413', '#2a778d', '#668d1c', '#bea413', '#0c5922', '#743411'],
 			interpolateNulls: true,
 			vAxes: {
 				0: {
@@ -1173,18 +1174,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			height: 400
 		}
 
-		var areas = [];
-		for (var i in data['by_area']) {
-			if (areas.indexOf(data['by_area'][i].area) == -1) {
-				areas.push(data['by_area'][i].area);
-				chart_data.cols.push({
-					label: data['by_area'][i].area,
-					type: "number"
-				});
-			}
-		}
-
-		// last 2 columns are average
+		// first 2 columns are average
 		chart_data.cols.push({
 			label: 'Average Income/Hr',
 			type: 'number'
@@ -1196,7 +1186,20 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				role: "annotation"
 			}
 		});
-		options['series'][chart_data.cols.length - 3] = {
+
+		var areas = [];
+		for (var i in data['by_area']) {
+			if (areas.indexOf(data['by_area'][i].area) == -1) {
+				areas.push(data['by_area'][i].area);
+				chart_data.cols.push({
+					label: data['by_area'][i].area,
+					type: "number"
+				});
+			}
+		}
+
+
+		options['series'][0] = {
 			color: 'lightgray',
 			type: 'bars',
 			targetAxisIndex: 1
@@ -1232,7 +1235,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 
 		// fill data
 		for (var i in data['by_area']) {
-			var col_index = areas.indexOf(data['by_area'][i].area) + 1;
+			var col_index = areas.indexOf(data['by_area'][i].area) + 3;
 			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['by_area'][i].month, "MMM-YY"));
 			if (row_index >= chart_data.rows.length) {
 				continue;
@@ -1242,7 +1245,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 		}
 
 		for (var i in data['average']) {
-			var col_index = chart_data.cols.length - 2;
+			var col_index = 1;
 			var row_index = monthDiff(moment('2014/6/1', 'YYYY-MM-DD'), moment(data['average'][i].month, "MMM-YY"));
 			if (row_index >= chart_data.rows.length) {
 				continue;
