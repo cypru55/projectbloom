@@ -39,7 +39,7 @@ class SaleViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
     filter_fields = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "uplifter_id", "uplifter_name",)
     ordering = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "uplifter_id", "uplifter_name",)
-    search_fields = ('=id', 'area', 'date', 'stockpoint_id' ,'stockpoint_name', "uplifter_id", 'uplifter_name')
+    search_fields = ('id', 'area', 'date', 'stockpoint_id' ,'stockpoint_name', "uplifter_id", 'uplifter_name')
     queryset = Sale.objects.using('projectbloom_data').all()
     serializer_class = SaleSerializer
     paginate_by = 10
@@ -65,7 +65,7 @@ class EntrepreneurViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
     filter_fields = ('id', "area", "name", "role", )
     ordering = ('id', "area", "name", "role", )
-    search_fields = ('=id', 'area','name', 'role')
+    search_fields = ('id', 'area','name', 'role')
     queryset = Entrepreneur.objects.using('projectbloom_data').all()
     serializer_class = EntrepreneurSerializer
     paginate_by = 10
