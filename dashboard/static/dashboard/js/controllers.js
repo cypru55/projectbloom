@@ -416,7 +416,7 @@ dashboardControllers.controller('DashboardExportCtrl', ['$scope', '$http',
 			parseJsonToCsv($http, '../api/entrepreneur/?page_size=100000000', 'entrepreneur.csv');
 		});
 		$('#sale_csv').click(function() {
-			parseJsonToCsv($http, '../api/sale/?page_size=50000', 'sale.csv');
+			parseJsonToCsv($http, '../api/sale/?page_size=100000000', 'sale.csv');
 		});
 		$('#delivery_csv').click(function() {
 			parseJsonToCsv($http, '../api/delivery/?page_size=100000000', 'delivery.csv');
@@ -3707,15 +3707,22 @@ function parseJsonToCsv($http, url, file_name) {
 	$http.get(url).success(function(data) {
 		var scv_str = Papa.unparse(data.results)
 
-		var uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(scv_str);
-		var downloadLink = document.createElement("a");
-
-		downloadLink.href = uri;
-		downloadLink.download = file_name;
-
-		document.body.appendChild(downloadLink);
-		downloadLink.click();
-		document.body.removeChild(downloadLink);
+		var blob = new Blob([scv_str], { type: 'text/csv;charset=utf-8;' });
+        if (navigator.msSaveBlob) { // IE 10+
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            var link = document.createElement("a");
+            if (link.download !== undefined) { // feature detection
+                // Browsers that support HTML5 download attribute
+                var url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", file_name);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
 
 	});
 }

@@ -38,7 +38,9 @@ def index(request):
 class SaleViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
     filter_fields = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "uplifter_id", "uplifter_name",)
-    ordering = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "uplifter_id", "uplifter_name",)
+    ordering = ('id', 'date', 'area', 'stockpoint_id', 'stockpoint_name', 'uplifter_id', 
+            'uplifter_name', 'hours_per_day', 'sold', 'own_sts', 'used_for_retail', 'uplifter_profit',
+             'stockpoint_profit', 'product',)
     search_fields = ('id', 'area', 'date', 'stockpoint_id' ,'stockpoint_name', "uplifter_id", 'uplifter_name')
     queryset = Sale.objects.using('projectbloom_data').all()
     serializer_class = SaleSerializer
@@ -51,7 +53,8 @@ class SaleViewSet(viewsets.ModelViewSet):
 class DeliveryViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
     filter_fields = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "product", )
-    ordering = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "product", )
+    ordering =  ('id', 'date', 'area', 'stockpoint_id', 'stockpoint_name', 'product', 'qty', 'peso', 
+            'gsv', 'to_distributors', 'servings', 'rsv', 'inner_bags', )
     search_fields = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "product", )
     queryset = Delivery.objects.using('projectbloom_data').all()
     serializer_class = DeliverySerializer
@@ -64,8 +67,10 @@ class DeliveryViewSet(viewsets.ModelViewSet):
 class EntrepreneurViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
     filter_fields = ('id', "area", "name", "role", )
-    ordering = ('id', "area", "name", "role", )
-    search_fields = ('id', 'area','name', 'role')
+    ordering = ('id', 'area', 'name', 'role', 'work_profile', 'vest', 'visor', 'name_card', 
+            'detailer', 'backpack', 'cooler_box', 'metal_trolley', 'clip_board', 'others', 
+            'tools_requested', 'remarks_on_tools', 'contact', 'address', 'organization')
+    search_fields = ('id', 'area','name', 'role',)
     queryset = Entrepreneur.objects.using('projectbloom_data').all()
     serializer_class = EntrepreneurSerializer
     paginate_by = 10
@@ -77,7 +82,8 @@ class EntrepreneurViewSet(viewsets.ModelViewSet):
 class ProductViewSet(generics.ListAPIView):
     filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
     filter_fields = ('id', 'product', 'company', 'type',)
-    ordering = ('id', 'product', 'company', 'type',)
+    ordering = ('id', 'product', 'company', 'uplifter_margin', 'wholesale_margin', 'sts_margin',
+         'retail_margin', 'type',)
     search_fields = ('id', 'product', 'company', 'type',)
     serializer_class = ProductSerializer
     paginate_by = 10
