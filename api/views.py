@@ -2,7 +2,7 @@
     File name: views.py
     Author: Liu Tuo
     Date created: 2015-08-03
-    Date last modified: 2015-09-28
+    Date last modified: 2015-09-30
     Python Version: 2.7.6
 '''
 
@@ -36,53 +36,53 @@ def index(request):
 
 # Rest Framework API for models, to be used to display original table
 class SaleViewSet(viewsets.ModelViewSet):
-    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,)
+    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
     filter_fields = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "uplifter_id", "uplifter_name",)
     ordering = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "uplifter_id", "uplifter_name",)
+    search_fields = ('=id', 'area', 'date', 'stockpoint_id' ,'stockpoint_name', "uplifter_id", 'uplifter_name')
     queryset = Sale.objects.using('projectbloom_data').all()
     serializer_class = SaleSerializer
     paginate_by = 10
     paginate_by_param = 'page_size'
     # Set MAX results per page
-    max_paginate_by = 100
     http_method_names = ['get', 'post']
 
 
 class DeliveryViewSet(viewsets.ModelViewSet):
-    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,)
+    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
     filter_fields = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "product", )
     ordering = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "product", )
+    search_fields = ('id', "date", "area", "stockpoint_id", "stockpoint_name", "product", )
     queryset = Delivery.objects.using('projectbloom_data').all()
     serializer_class = DeliverySerializer
     paginate_by = 10
     paginate_by_param = 'page_size'
     # Set MAX results per page
-    max_paginate_by = 100
     http_method_names = ['get', 'post']
 
 
 class EntrepreneurViewSet(viewsets.ModelViewSet):
-    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,)
+    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
     filter_fields = ('id', "area", "name", "role", )
     ordering = ('id', "area", "name", "role", )
+    search_fields = ('=id', 'area','name', 'role')
     queryset = Entrepreneur.objects.using('projectbloom_data').all()
     serializer_class = EntrepreneurSerializer
     paginate_by = 10
     paginate_by_param = 'page_size'
     # Set MAX results per page
-    max_paginate_by = 100
     http_method_names = ['get', 'post']
 
-
+    
 class ProductViewSet(generics.ListAPIView):
-    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,)
+    filter_backends = (filters.DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
     filter_fields = ('id', 'product', 'company', 'type',)
     ordering = ('id', 'product', 'company', 'type',)
+    search_fields = ('id', 'product', 'company', 'type',)
     serializer_class = ProductSerializer
     paginate_by = 10
     paginate_by_param = 'page_size'
     # Set MAX results per page
-    max_paginate_by = 100
     http_method_names = ['get']
 
     def get_queryset(self):

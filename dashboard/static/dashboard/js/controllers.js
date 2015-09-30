@@ -1,7 +1,7 @@
 /* 
  * @Author: archer
  * @Date:   2015-08-13 15:34:44
- * @Last Modified 2015-09-28
+ * @Last Modified 2015-09-30
  */
 
 'use strict';
@@ -192,7 +192,9 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 	function($scope, $routeParams, $http) {
 		$scope.sortHeader = '';
 		$scope.params = {
-				page: 1
+				page: 1,
+				ordering: '',
+				search: ''
 			}
 			// Set title
 		var url;
@@ -249,11 +251,24 @@ dashboardControllers.controller('DashboardTableCtrl', ['$scope', '$routeParams',
 		$('#data-table-paginator').bootstrapPaginator(options);
 		retriveAndDrawDataTable(url, $scope.params, 10, $http, $scope, $('#data-table-paginator'))
 
+		// add watch to params
+		$scope.$watchCollection(
+			function(scope) {
+				return scope.params
+			},
+			function(newValue, oldValue) {
+				if (JSON.stringify(newValue) === JSON.stringify(oldValue)) {
+					return;
+				}
+				retriveAndDrawDataTable(url, $scope.params, 10, $http, $scope, $('#data-table-paginator'));
+
+			}
+		);
+
 		$scope.reorder = function(sortHeader) {
 			$scope.sortHeader = sortHeader;
 			var orderingItem = $scope.sortHeader.replace(/\s+/g, '_').toLowerCase()
 			$scope.params['ordering'] = orderingItem;
-			retriveAndDrawDataTable(url, $scope.params, 10, $http, $scope, $('#data-table-paginator'));
 		}
 
 
@@ -397,7 +412,18 @@ dashboardControllers.controller('DashboardFormCtrl', ['$scope', '$http',
 
 dashboardControllers.controller('DashboardExportCtrl', ['$scope', '$http',
 	function($scope, $http) {
-		console.log('e')
+		$('#entrepreneur_csv').click(function() {
+			parseJsonToCsv($http, '../api/entrepreneur/?page_size=100000000', 'entrepreneur.csv');
+		});
+		$('#sale_csv').click(function() {
+			parseJsonToCsv($http, '../api/sale/?page_size=50000', 'sale.csv');
+		});
+		$('#delivery_csv').click(function() {
+			parseJsonToCsv($http, '../api/delivery/?page_size=100000000', 'delivery.csv');
+		});
+		$('#product_csv').click(function() {
+			parseJsonToCsv($http, '../api/product/all?page_size=100000000', 'product.csv');
+		});
 	}
 ]);
 
@@ -644,7 +670,8 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			hAxis: {
 				"format": 'MMM-yy',
 				gridlines: {
-					"count": 15
+					"count": 15,
+					color: 'transparent'
 				}
 			},
 			seriesType: 'bars',
@@ -820,7 +847,8 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			hAxis: {
 				format: 'MMM-yy',
 				gridlines: {
-					"count": 15
+					"count": 15,
+					color: 'transparent'
 				}
 			},
 			seriesType: 'bars',
@@ -842,7 +870,8 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				1: {
 					title: "UL Retention",
 					gridlines: {
-						"count": 10
+						"count": 10,
+						color: 'transparent'
 					},
 					format: '#%',
 					maxValue: 1,
@@ -958,7 +987,8 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			hAxis: {
 				format: 'MMM-yy',
 				gridlines: {
-					"count": 15
+					"count": 15,
+					color: 'transparent'
 				}
 			},
 			seriesType: 'bars',
@@ -973,9 +1003,9 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				0: {
 					title: "Stable Stockpoint",
 					format: '#',
-					// gridlines: {
-					// 	"count": 10
-					// }
+					gridlines: {
+						color: 'transparent'
+					}
 				},
 				1: {
 					title: "SP Retention",
@@ -1100,7 +1130,8 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			hAxis: {
 				format: 'MMM-yy',
 				gridlines: {
-					"count": 15
+					"count": 15,
+					color: 'transparent'
 				}
 			},
 			seriesType: 'line',
@@ -1224,7 +1255,8 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			hAxis: {
 				"format": 'MMM-yy',
 				gridlines: {
-					"count": 15
+					"count": 15,
+					color: 'transparent'
 				}
 			},
 			seriesType: 'bars',
@@ -1252,7 +1284,8 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			hAxis: {
 				"format": 'MMM-yy',
 				gridlines: {
-					"count": 15
+					"count": 15,
+					color: 'transparent'
 				}
 			},
 			seriesType: 'bars',
@@ -1281,7 +1314,8 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			hAxis: {
 				"format": 'MMM-yy',
 				gridlines: {
-					"count": 15
+					"count": 15,
+					color: 'transparent'
 				}
 			},
 			seriesType: 'bars',
@@ -1339,7 +1373,8 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			hAxis: {
 				format: 'MMM-yy',
 				gridlines: {
-					"count": 15
+					"count": 15,
+					color: 'transparent'
 				}
 			},
 			seriesType: 'line',
@@ -1462,7 +1497,8 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			hAxis: {
 				format: 'MMM-yy',
 				gridlines: {
-					"count": 15
+					"count": 15,
+					color: 'transparent'
 				}
 			},
 			seriesType: 'bars',
@@ -1610,7 +1646,8 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 			hAxis: {
 				"format": 'MMM-yy',
 				gridlines: {
-					"count": 15
+					"count": 15,
+					color: 'transparent'
 				}
 			},
 			seriesType: 'bars',
@@ -1736,7 +1773,8 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 			hAxis: {
 				"format": 'MMM-yy',
 				gridlines: {
-					"count": 15
+					"count": 15,
+					color: 'transparent'
 				}
 			},
 			seriesType: 'bars',
@@ -2480,7 +2518,8 @@ function retriveAndDrawRecruitmentMTDCharts(params, title, $scope, $http) {
 			hAxis: {
 				"format": 'MMM-yy',
 				gridlines: {
-					"count": 15
+					"count": 15,
+					color: 'transparent'
 				}
 			},
 			seriesType: 'bars',
@@ -3506,9 +3545,15 @@ function appendParamsToUrl(url, params) {
 	var isFirst = true
 	for (var key in params) {
 		if (isFirst) {
+			if (params[key] == '') {
+				continue;
+			}
 			url_with_param += '?' + key + '=' + params[key];
 			isFirst = false;
 		} else {
+			if (params[key] == '') {
+				continue;
+			}
 			url_with_param += '&' + key + '=' + params[key];
 		}
 	}
@@ -3653,6 +3698,26 @@ function toggle_tab(class_name, id_to_show) {
 	if (id_to_show != null) {
 		$("#" + id_to_show).show();
 	}
+}
+
+/**
+ * parse json to csv and download it
+ */
+function parseJsonToCsv($http, url, file_name) {
+	$http.get(url).success(function(data) {
+		var scv_str = Papa.unparse(data.results)
+
+		var uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(scv_str);
+		var downloadLink = document.createElement("a");
+
+		downloadLink.href = uri;
+		downloadLink.download = file_name;
+
+		document.body.appendChild(downloadLink);
+		downloadLink.click();
+		document.body.removeChild(downloadLink);
+
+	});
 }
 
 /**
