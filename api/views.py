@@ -1794,7 +1794,8 @@ def generate_bloom_overview_query(params, type, month):
                 (SELECT 
                     t.month AS month,
                         (CASE
-                            WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
+                            WHEN t.status = 'S' OR t.status = 'S1' OR t.status='S2' THEN 'S'
+		   	    WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
                             WHEN t.status = 'D1' THEN 'D'
                             ELSE t.status
                         END) AS status,
