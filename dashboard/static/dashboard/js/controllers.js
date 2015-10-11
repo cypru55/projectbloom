@@ -967,7 +967,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			var sp_retention = null;
 			var retention_label = null;
 			// we have a lp4y which is not considered when calculating stable sp, minus 1 from these 3 cases
-			if (title == 'Bloom' || title == 'Mark' || title == 'Tondo') {
+			if (title == 'Bloom' || title == 'Brain' || title == 'Tondo') {
 				if (i != 0 && data_array[i - 1][4] > 1) {
 					var sp_retention = ((data_array[i - 1][4] - 1 - data_array[i][6]) / (data_array[i - 1][4] - 1)).toFixed(2);
 					var retention_label = sp_retention * 100 + "%"
