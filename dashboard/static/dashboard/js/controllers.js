@@ -692,10 +692,16 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					color: 'transparent'
 				}
 			},
+			annotations: {
+    			textStyle: {
+					bold:true
+				}
+			},
 			seriesType: 'bars',
 			vAxis: {
 				title: "Entrepreneur",
 				format: '#',
+				
 				// gridlines: {
 				// 	"count": 10
 				// }
@@ -745,12 +751,9 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			}, {
 				type: "number",
 				role: "annotation",
-				textStyle: {
-				fontName: 'Times-Roman',
-				fontSize: 18,
-				bold: true},
 				p: {
 					role: "annotation"
+					
 				}
 
 			}],
@@ -815,6 +818,9 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				type: "number",
 				p: {}
 			}, {
+				type: "number"
+			},
+			{
 				type: "string",
 				role: "annotation",
 				p: {
@@ -829,7 +835,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				type: "string",
 				role: "annotation",
 				p: {
-					role: "annotation"
+					role: "annotation",
 				}
 			}],
 			rows: []
@@ -852,7 +858,9 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				}, {
 					v: -data_array[i][3]
 				}, {
-					v: -data_array[i][3]
+					v: 0
+				}, {
+					v: data_array[i][3]
 				}, {
 					v: ul_retention
 				}, {
@@ -876,6 +884,13 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			seriesType: 'bars',
 			series: {
 				2: {
+				type: 'line',
+				color: 'black',
+				lineWidth: 0,
+				pointSize: 0,
+				visibleInLegend: false	
+				},
+				3: {
 					type: 'line',
 					targetAxisIndex: 1
 				},
@@ -907,7 +922,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				}
 			},
 			lineWidth: 4,
-			colors: [color.stable_ul, color.drop, color.retention],
+			colors: [color.stable_ul, color.drop, color.drop, color.retention],
 			// width: 800,
 			height: 400
 		}
@@ -947,7 +962,9 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				type: "number",
 				p: {}
 			}, {
-				type: "number",
+				type: "number"
+			}, {
+				type: "string",
 				role: "annotation",
 				p: {
 					role: "annotation"
@@ -992,7 +1009,9 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				}, {
 					v: -data_array[i][6]
 				}, {
-					v: -data_array[i][6]
+					v: 0
+				}, {
+					v: data_array[i][6]
 				}, {
 					v: sp_retention
 				}, {
@@ -1016,6 +1035,13 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			seriesType: 'bars',
 			series: {
 				2: {
+					type: 'line',
+					color: 'black',
+					lineWidth: 0,
+					pointSize: 0,
+					visibleInLegend: false
+				},
+				3: {
 					type: 'line',
 					targetAxisIndex: 1
 				},
@@ -1046,7 +1072,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				}
 			},
 			lineWidth: 4,
-			colors: [color.stable_sp, color.drop, color.retention],
+			colors: [color.stable_sp, color.drop,color.drop, color.retention],
 
 			// width: 800,
 			height: 400
@@ -1068,7 +1094,10 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 			formatter: {},
 			options: {
 				title: title + ": Total of " + data.length + " entrepreneurs",
-				height: 400
+				height: 400,
+				pieSliceTextStyle:{
+					fontSize:11
+				}
 			}
 		}
 
