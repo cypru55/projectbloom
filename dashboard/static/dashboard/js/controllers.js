@@ -2346,7 +2346,7 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 			annotations: {
 				textStyle: {
 				fontSize: 16,
-				bold: true,
+				bold: false,
 				}
 			},
 			displayExactValues: true,
