@@ -693,8 +693,9 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				}
 			},
 			annotations: {
-    			textStyle: {
-					bold:true
+				textStyle: {
+				fontSize: 16,
+				bold: true,
 				}
 			},
 			seriesType: 'bars',
@@ -881,6 +882,13 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					color: 'transparent'
 				}
 			},
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				color: color.black,
+				}
+			},
 			seriesType: 'bars',
 			series: {
 				2: {
@@ -913,12 +921,6 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					format: '#%',
 					maxValue: 1,
 					minValue: 0
-				}
-			},
-			annotations: {
-				textStyle: {
-					// The color of the text.
-					color: color.black,
 				}
 			},
 			lineWidth: 4,
@@ -1030,6 +1032,12 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				gridlines: {
 					"count": 15,
 					color: 'transparent'
+				}
+			},
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
 				}
 			},
 			seriesType: 'bars',
@@ -1177,6 +1185,12 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 		var options = {
 			isStacked: "true",
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			hAxis: {
 				format: 'MMM-yy',
@@ -1305,6 +1319,12 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 		var options = {
 			isStacked: "true",
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			hAxis: {
 				"format": 'MMM-yy',
@@ -1334,6 +1354,12 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 		var options = {
 			isStacked: "true",
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			hAxis: {
 				"format": 'MMM-yy',
@@ -1364,6 +1390,12 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 		var options = {
 			isStacked: "true",
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			hAxis: {
 				"format": 'MMM-yy',
@@ -1423,6 +1455,12 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 		var options = {
 			isStacked: "true",
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			hAxis: {
 				format: 'MMM-yy',
@@ -1547,6 +1585,12 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 		var options = {
 			isStacked: "true",
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			hAxis: {
 				format: 'MMM-yy',
@@ -1696,6 +1740,12 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 		var options = {
 			isStacked: "true",
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			hAxis: {
 				"format": 'MMM-yy',
@@ -1823,6 +1873,12 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 		var options = {
 			isStacked: "true",
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			hAxis: {
 				"format": 'MMM-yy',
@@ -1954,6 +2010,12 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 
 		var options = {
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			seriesType: 'bars',
 			interpolateNulls: true,
@@ -2046,6 +2108,12 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 
 		var options = {
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			seriesType: 'bars',
 			interpolateNulls: true,
@@ -2146,6 +2214,12 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 
 		var options = {
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			seriesType: 'bars',
 			interpolateNulls: true,
@@ -2269,6 +2343,12 @@ function retriveAndDrawShareoutCharts($scope, $http, last_fully_updated_month) {
 
 		var options = {
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			seriesType: 'bars',
 			interpolateNulls: true,
@@ -2396,6 +2476,12 @@ function retriveAndDrawShareoutSPProductChart($scope, $http, last_fully_updated_
 
 		var options = {
 			fill: 20,
+			annotations: {
+				textStyle: {
+				fontSize: 16,
+				bold: true,
+				}
+			},
 			displayExactValues: true,
 			seriesType: 'bars',
 			interpolateNulls: true,
