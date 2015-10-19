@@ -1576,15 +1576,15 @@ function retriveAndDrawAdditionalCharts(params, title, last_fully_updated_month,
 		});
 
 		// set companies to line chart
-		// options['series'] = {};
-		// options['series'][products.length] = {
-		// 	type: 'line',
-		// 	targetAxisIndex: 1
-		// }
-		// options['series'][products.length + 1] = {
-		// 	type: 'line',
-		// 	targetAxisIndex: 1
-		// }
+		options['series'] = {};
+		options['series'][products.length] = {
+			type: 'line',
+			targetAxisIndex: 0
+		}
+		options['series'][products.length + 1] = {
+			type: 'line',
+			targetAxisIndex: 0
+		}
 
 		// fill cols with 0
 		var startDate = moment('2014/6/1', 'YYYY-MM-DD');
