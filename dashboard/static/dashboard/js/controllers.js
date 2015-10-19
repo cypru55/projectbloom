@@ -1038,6 +1038,7 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 				textStyle: {
 				fontSize: 16,
 				bold: true,
+				color: color.black,
 				}
 			},
 			seriesType: 'bars',
@@ -1071,12 +1072,6 @@ function retriveAndDrawKPIChart(params, title, last_fully_updated_month, $scope,
 					format: '#%',
 					maxValue: 1,
 					minValue: 0
-				}
-			},
-			annotations: {
-				textStyle: {
-					// The color of the text.
-					color: color.black,
 				}
 			},
 			lineWidth: 4,
