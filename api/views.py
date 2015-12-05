@@ -1045,26 +1045,36 @@ def uplifter_by_area(request):
     if request.method == 'GET':
         filter_query = ' '
         if 'area' in request.GET:
-            filter_query = " AND area='%s'" % request.GET['area']
+            filter_query = " AND e.area='%s'" % request.GET['area']
         elif 'fo' in request.GET:
             areas = execute_query("""
                 SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
             filter_query = " AND ("
             for i in areas:
-                filter_query += "area='%s' OR " % i['area']
+                filter_query += "e.area='%s' OR " % i['area']
             # change last logic operator to and
             filter_query = filter_query[:-3]
             filter_query += ")"
         query = """
-        SELECT count(DISTINCT
-            uplifter_id) as count, area, DATE_FORMAT(date, '%%b-%%y') AS month
+        SELECT 
+            count(t.entrepreneur_id) as count,
+            e.area as area,
+            t.month AS month
         FROM
-            sale_db
-        where uplifter_id>0
+            entrepreneur_status AS t, entrepreneur as e
+        WHERE
+            e.id = t.entrepreneur_id and e.role = 'Uplifter'
+            and t.status <> 'D2'
+            and t.status <> 'D1'
+            and t.status IS NOT NULL
+            AND t.status <> 'NP1'
+            AND t.status <> 'NP2'
+            AND t.status <> 'NA'
             %s
-        GROUP BY area , DATE_FORMAT(date, '%%b-%%y')
-        ORDER BY STR_TO_DATE(month, '%%b-%%y')
+        GROUP BY area , month
+        ORDER BY month
         """ % filter_query
+
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -1077,26 +1087,46 @@ def stockpoint_by_area(request):
     if request.method == 'GET':
         filter_query = ' '
         if 'area' in request.GET:
-            filter_query = " AND area='%s'" % request.GET['area']
+            filter_query = " AND e.area='%s'" % request.GET['area']
         elif 'fo' in request.GET:
             areas = execute_query("""
                 SELECT area From fo_area WHERE fo_name='%s'""" % request.GET['fo'])
             filter_query = " AND ("
             for i in areas:
-                filter_query += "area='%s' OR " % i['area']
+                filter_query += "e.area='%s' OR " % i['area']
             # change last logic operator to and
             filter_query = filter_query[:-3]
             filter_query += ")"
+        # query = """
+        # SELECT count(DISTINCT
+        #     stockpoint_id) as count, area, DATE_FORMAT(date, '%%b-%%y') AS month
+        # FROM
+        #     sale_db
+        # where stockpoint_id>0
+        #     %s
+        # GROUP BY area , DATE_FORMAT(date, '%%b-%%y')
+        # ORDER BY STR_TO_DATE(month, '%%b-%%y')
+        # """ % filter_query
         query = """
-        SELECT count(DISTINCT
-            stockpoint_id) as count, area, DATE_FORMAT(date, '%%b-%%y') AS month
-        FROM
-            sale_db
-        where stockpoint_id>0
-            %s
-        GROUP BY area , DATE_FORMAT(date, '%%b-%%y')
-        ORDER BY STR_TO_DATE(month, '%%b-%%y')
+            SELECT 
+                count(t.entrepreneur_id) as count,
+                e.area as area,
+                t.month AS month
+            FROM
+                entrepreneur_status AS t, entrepreneur as e
+            WHERE
+                e.id = t.entrepreneur_id and e.role = 'Stockpoint'
+                and t.status <> 'D2'
+                and t.status <> 'D1'
+                and t.status IS NOT NULL
+                AND t.status <> 'NP1'
+                AND t.status <> 'NP2'
+                AND t.status <> 'NA'
+                %s
+            GROUP BY area , month
+            ORDER BY month
         """ % filter_query
+
         result = execute_query(query)
 
         json_str = json.dumps(result, default=defaultencode)
@@ -1759,8 +1789,10 @@ def generate_bloom_overview_query(params, type, month):
                 (SELECT 
                     t.month AS month,
                         (CASE
-                            WHEN t.status = 'N1' OR t.status = 'N2' THEN 'N'
+                            WHEN t.status = 'N1'THEN 'N'
+                            WHEN t.status = 'N2' THEN 'N'
                             WHEN t.status = 'D1' THEN 'D'
+                            WHEN t.status= 'D2' THEN 'D'
                             ELSE t.status
                         END) AS status,
                         t.type
